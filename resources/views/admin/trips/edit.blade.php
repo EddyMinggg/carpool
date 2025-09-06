@@ -16,7 +16,7 @@
                 <label for="creator_id" class="block text-sm font-medium text-gray-700 mb-1">Creator</label>
                 <select name="creator_id" id="creator_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @foreach($users as $user)
-                        <option value="{{ $user->user_id }}" {{ $trip->creator_id == $user->user_id ? 'selected' : '' }}>
+                        <option value="{{ $user->id }}" {{ $trip->creator_id == $user->id ? 'selected' : '' }}>
                             {{ $user->name }} ({{ $user->email }})
                         </option>
                     @endforeach

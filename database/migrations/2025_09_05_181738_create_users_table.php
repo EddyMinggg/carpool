@@ -9,15 +9,15 @@ return new class extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id('user_id')->comment('User unique ID');
-            $table->string('username', 50)->unique()->comment('Display name / username');
-            $table->string('email')->unique()->comment('Email for login (required by Breeze)');
-            $table->timestamp('email_verified_at')->nullable()->comment('Email verification timestamp');
-            $table->string('password')->comment('Hashed password');
-            $table->string('phone', 20)->nullable()->comment('Phone number');
-            $table->tinyInteger('role')->default(0)->comment('Role: 0=user, 1=admin');
-            $table->rememberToken()->comment('Remember login token');
-            $table->softDeletes()->comment('Soft delete timestamp');
+            $table->id('id');
+            $table->string('username', 50)->unique();
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->string('phone', 20)->nullable();
+            $table->tinyInteger('is_admin')->default(0);
+            $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

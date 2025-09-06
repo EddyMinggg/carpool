@@ -17,7 +17,7 @@ class User extends Authenticatable
      *
      * @var string
      */
-    protected $primaryKey = 'user_id';
+    protected $primaryKey = 'id';
 
     /**
      * The attributes that are mass assignable.
@@ -29,7 +29,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
-        'role'
+        'is_admin'
     ];
 
     /**
@@ -59,6 +59,6 @@ class User extends Authenticatable
     // Check if user is admin
     public function isAdmin(): bool
     {
-        return $this->role === self::ROLE_ADMIN;
+        return $this->is_admin === self::ROLE_ADMIN;
     }
 }

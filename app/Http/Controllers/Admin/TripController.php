@@ -24,7 +24,7 @@ class TripController extends Controller
      */
     public function create()
     {
-        $users = User::pluck('name', 'user_id');
+        $users = User::select('id', 'username','email')->get();
         $statuses = Trip::getStatusOptions();
         return view('admin.trips.create', compact('users', 'statuses'));
     }
@@ -35,10 +35,10 @@ class TripController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'creator_id' => 'required|exists:users,user_id',
-            'start_place' => 'required|string|max:100',
+            'creator_id' => 'required|exists:users,id',
+            'start_place' => 'string|max:100',
             'end_place' => 'required|string|max:100',
-            'plan_departure_time' => 'required|date_format:H:i',
+            'plan_departure_time' => 'required|date_format:Y-m-d\TH:i',
             'max_people' => 'required|integer|between:1,4',
             'is_private' => 'boolean',
             'trip_status' => 'required|in:'.implode(',', array_keys(Trip::getStatusOptions())),
@@ -69,7 +69,7 @@ class TripController extends Controller
      */
     public function edit(Trip $trip)
     {
-        $users = User::pluck('name', 'user_id');
+        $users = User::pluck('name', 'id');
         $statuses = Trip::getStatusOptions();
         return view('admin.trips.edit', compact('trip', 'users', 'statuses'));
     }
@@ -80,7 +80,7 @@ class TripController extends Controller
     public function update(Request $request, Trip $trip)
     {
         $validated = $request->validate([
-            'creator_id' => 'required|exists:users,user_id',
+            'creator_id' => 'required|exists:users,id',
             'start_place' => 'required|string|max:100',
             'end_place' => 'required|string|max:100',
             'plan_departure_time' => 'required|date_format:H:i',
