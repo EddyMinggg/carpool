@@ -14,7 +14,8 @@ class TripController extends Controller
      */
     public function index()
     {
-        $trips = Trip::with('creator')->latest()->get();
+        $trips = Trip::paginate(10);
+
         return view('admin.trips.index', compact('trips'));
     }
 
@@ -54,9 +55,15 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
+        // Eager-load relationships to avoid "N+1" query problem
+        $trip->load([
+            'creator',           // Load the trip's creator (User)
+            'joins.user',        // Load all participants + their User info
+            'payments.user'      // Load all payments + their User info
+        ]);
+
         return view('admin.trips.show', compact('trip'));
     }
-
     /**
      * Show the form for editing the specified resource.
      */
