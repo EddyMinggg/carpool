@@ -1,64 +1,73 @@
-<?php
-/**
- * Admin Layout Template
- * Contains common sidebar and header for admin panel
- */
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Panel - Carpool System')</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>@yield('title', 'Carpool Management System - Admin Panel')</title>
+    <link href="{{ asset('css/tailwind.css') }}" rel="stylesheet">
     <style>
         .sidebar {
+            width: 240px !important;
             height: 100vh;
             position: fixed;
-            top: 0;
             left: 0;
-            width: 250px;
-            background-color: #343a40;
-            padding-top: 20px;
+            top: 0;
+            z-index: 10;
         }
-        .sidebar a {
-            color: #ddd;
-            display: block;
-            padding: 10px 20px;
-            text-decoration: none;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            color: white;
-            background-color: #0d6efd;
-        }
-        .content {
-            margin-left: 250px;
+
+        /* Key update: Add w-full and remove any max-width */
+        .main-content {
+            margin-left: 240px !important;
+            min-height: 100vh;
             padding: 20px;
+            box-sizing: border-box;
+            width: calc(100% - 240px) !important; /* Critical: Fill remaining width */
+            max-width: none !important; /* Ensure no max-width limits it */
         }
     </style>
 </head>
-<body>
-    <div class="sidebar">
-        <h4 class="text-center text-white mb-4">Carpool Admin</h4>
-        <a href="{{ route('admin.dashboard') }}" {{ request()->routeIs('admin.dashboard') ? 'class=active' : '' }}>Dashboard</a>
-        <a href="{{ route('admin.trips.index') }}" {{ request()->routeIs('admin.trips.*') ? 'class=active' : '' }}>Manage Trips</a>
-        <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-            @csrf
-        </form>
-    </div>
-
-    <div class="content">
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
+<body class="bg-gray-100 p-0 m-0">
+    <div class="flex">
+        <!-- Sidebar: Use the fixed width class -->
+        <aside class="sidebar bg-gray-800 text-white">
+            <div class="p-4 border-b border-gray-700">
+                <h1 class="text-xl font-bold">Carpool Management</h1>
             </div>
-        @endif
+            <nav class="p-4">
+                <a href="{{ route('admin.dashboard') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600' : 'hover:bg-gray-700' }}">
+                    Dashboard
+                </a>
+                <a href="{{ route('admin.trips.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.trips.*') ? 'bg-blue-600' : 'hover:bg-gray-700' }}">
+                    Manage Trips
+                </a>
+                <form action="{{ route('logout') }}" method="POST" class="mt-6">
+                    @csrf
+                    <button type="submit" class="w-full text-left py-2 px-3 rounded hover:bg-gray-700">
+                        Logout
+                    </button>
+                </form>
+            </nav>
+        </aside>
 
-        @yield('content')
+        <!-- Main Content: Use the margin-matched class -->
+        <main class="main-content">
+            <!-- Top Notifications -->
+            @if(session('success'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <!-- Page Content -->
+            @yield('content')
+        </main>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
