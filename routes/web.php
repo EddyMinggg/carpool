@@ -25,8 +25,4 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::resource('trips', TripController::class)->parameters(['trips' => 'trip:trip_id']);
 });
 
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-require __DIR__.'/auth.php';
+require __DIR__.'/auth.php'; // Breeze’s default auth routes (includes /login)
