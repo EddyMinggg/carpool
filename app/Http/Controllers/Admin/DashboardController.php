@@ -9,15 +9,21 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
-    {
-        // Dashboard statistics
-        $data = [
-            'totalUsers' => User::count(),
-            'totalTrips' => Trip::count(),
-            'pendingTrips' => Trip::where('trip_status', Trip::STATUS_PENDING)->count(),
-        ];
+    public function dashboard()
+{
+    $totalUsers = User::count();
+    $totalTrips = Trip::count();
+    $pendingTrips = Trip::where('trip_status', 'pending')->count();
+    $upcomingTrips = Trip::where('plan_departure_time', '>', now())
+                        ->orderBy('plan_departure_time', 'asc')
+                        ->take(5)
+                        ->get();
 
-        return view('admin.dashboard', $data);
-    }
+    return view('admin.dashboard', compact(
+        'totalUsers', 
+        'totalTrips', 
+        'pendingTrips',
+        'upcomingTrips'
+    ));
+}
 }

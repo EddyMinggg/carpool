@@ -1,32 +1,135 @@
-<?php
-/**
- * Admin Dashboard
- * Shows key statistics and overview
- */
-?>
 @extends('admin.layout')
 
 @section('content')
-    <h1 class="mb-4">Dashboard</h1>
-    
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card bg-primary text-white p-4">
-                <h5>Total Users</h5>
-                <h2>{{ $totalUsers }}</h2>
+    <div class="container mx-auto px-4">
+        <!-- 页面标题 -->
+        <header class="py-6 border-b border-gray-200">
+            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p class="text-gray-500 mt-1">Overview of your carpool system performance</p>
+        </header>
+
+        <!-- 统计卡片区域 - 优化间距和响应式布局 -->
+        <section class="py-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 总用户数卡片 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-500 font-medium">Total Users</h3>
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                <i class="fa fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <p class="text-3xl font-bold text-gray-900">{{ $totalUsers }}</p>
+                            <span class="text-green-600 text-sm font-medium flex items-center">
+                                <i class="fa fa-arrow-up mr-1"></i> 12%
+                            </span>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-2">vs last month</p>
+                    </div>
+                </div>
+
+                <!-- 总行程数卡片 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-500 font-medium">Total Trips</h3>
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                <i class="fa fa-car"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <p class="text-3xl font-bold text-gray-900">{{ $totalTrips }}</p>
+                            <span class="text-green-600 text-sm font-medium flex items-center">
+                                <i class="fa fa-arrow-up mr-1"></i> 8%
+                            </span>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-2">vs last month</p>
+                    </div>
+                </div>
+
+                <!-- 待处理行程卡片 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-500 font-medium">Pending Trips</h3>
+                            <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
+                                <i class="fa fa-clock-o"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <p class="text-3xl font-bold text-gray-900">{{ $pendingTrips }}</p>
+                            <span class="text-red-600 text-sm font-medium flex items-center">
+                                <i class="fa fa-arrow-down mr-1"></i> 3%
+                            </span>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-2">vs last month</p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card bg-success text-white p-4">
-                <h5>Total Trips</h5>
-                <h2>{{ $totalTrips }}</h2>
+        </section>
+
+        <!-- 近期行程表格 - 优化宽度和间距 -->
+        <section class="py-4">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-900">Upcoming Trips</h2>
+                        <a href="{{ route('admin.trips.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors">
+                            View all <i class="fa fa-chevron-right ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-100">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trip ID</th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure Time</th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100">
+                            @forelse($upcomingTrips as $trip)
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->trip_id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $trip->start_place }} → {{ $trip->end_place }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $trip->plan_departure_time->format('Y-m-d H:i') }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div class="w-24 bg-gray-200 rounded-full h-2.5">
+                                            <div class="bg-blue-600 h-2.5 rounded-full" 
+                                                 style="width: {{ ($trip->current_people / $trip->max_people) * 100 }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-500 mt-1 block">
+                                            {{ $trip->current_people }}/{{ $trip->max_people }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            Upcoming
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-500">
+                                        <i class="fa fa-calendar-o text-2xl mb-2 text-gray-300"></i>
+                                        <p>No upcoming trips scheduled</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card bg-warning text-dark p-4">
-                <h5>Pending Trips</h5>
-                <h2>{{ $pendingTrips }}</h2>
-            </div>
-        </div>
+        </section>
     </div>
 @endsection
