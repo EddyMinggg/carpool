@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name', 50)->nullable()->comment('用户昵称');
             $table->timestamp('register_time')->useCurrent()->comment('注册时间');
             $table->softDeletes()->comment('软删除时间戳');
+            $table->string('email', 319)->unique();
             $table->timestamps();
         });
     }
@@ -26,4 +27,3 @@ return new class extends Migration
         Schema::dropIfExists('users');
     }
 };
-    
