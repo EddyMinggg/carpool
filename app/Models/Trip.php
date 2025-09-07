@@ -10,7 +10,7 @@ class Trip extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $primaryKey = 'trip_id';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'creator_id', 'start_place', 'end_place', 'plan_departure_time',
@@ -18,8 +18,8 @@ class Trip extends Model
     ];
 
     protected $casts = [
-        'plan_departure_time' => 'datetime:H:i',
-        'actual_departure_time' => 'datetime:H:i',
+        'plan_departure_time' => 'datetime',
+        'actual_departure_time' => 'datetime',
         'is_private' => 'boolean',
         'base_price' => 'decimal:2'
     ];
@@ -45,12 +45,12 @@ class Trip extends Model
     // Relationship: Trip belongs to a creator (User)
     public function creator()
     {
-        return $this->belongsTo(User::class, 'creator_id', 'user_id');
+        return $this->belongsTo(User::class, 'creator_id', 'id');
     }
 
     // Relationship: Trip has many joins
     public function joins()
     {
-        return $this->hasMany(TripJoin::class, 'trip_id', 'trip_id');
+        return $this->hasMany(TripJoin::class, 'trip_id', 'id');
     }
 }

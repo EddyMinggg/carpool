@@ -29,8 +29,8 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($trips as $trip)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->trip_id }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->creator->name ?? 'Unknown User' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->creator->username ?? 'Unknown User' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->start_place }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->end_place }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->plan_departure_time->format('Y-m-d H:i') }}</td>
@@ -44,9 +44,9 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('admin.trips.show', $trip->trip_id) }}" class="text-blue-600 hover:text-blue-900 mr-3 transition-colors">View</a>
-                                    <a href="{{ route('admin.trips.edit', $trip->trip_id) }}" class="text-yellow-600 hover:text-yellow-900 mr-3 transition-colors">Edit</a>
-                                    <form action="{{ route('admin.trips.destroy', $trip->trip_id) }}" method="POST" class="inline">
+                                    <a href="{{ route('admin.trips.show', $trip->id) }}" class="text-blue-600 hover:text-blue-900 mr-3 transition-colors">View</a>
+                                    <a href="{{ route('admin.trips.edit', $trip->id) }}" class="text-yellow-600 hover:text-yellow-900 mr-3 transition-colors">Edit</a>
+                                    <form action="{{ route('admin.trips.destroy', $trip->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:text-red-900 transition-colors" onclick="return confirm('Are you sure you want to delete this?')">Delete</button>

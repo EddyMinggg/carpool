@@ -3,11 +3,11 @@
 @section('title', 'Trip Management - Edit')
 
 @section('content')
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Trip #{{ $trip->trip_id }}</h2>
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Trip #{{ $trip->id }}</h2>
 
     <!-- Edit Form Card -->
     <div class="bg-white rounded-lg shadow-md p-6 max-w-3xl">
-        <form action="{{ route('admin.trips.update', $trip->trip_id) }}" method="POST">
+        <form action="{{ route('admin.trips.update', $trip->id) }}" method="POST">
             @csrf
             @method('PUT')
 
@@ -17,7 +17,7 @@
                 <select name="creator_id" id="creator_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @foreach($users as $user)
                         <option value="{{ $user->id }}" {{ $trip->creator_id == $user->id ? 'selected' : '' }}>
-                            {{ $user->name }} ({{ $user->email }})
+                            {{ $user->username }}
                         </option>
                     @endforeach
                 </select>

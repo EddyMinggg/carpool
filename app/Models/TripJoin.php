@@ -19,6 +19,7 @@ class TripJoin extends Model
         'join_role',
         'join_time',
         'user_fee',
+        'pickup_location', // 新增
         'vote_info'
     ];
 
@@ -31,13 +32,13 @@ class TripJoin extends Model
     // Relationship: TripJoin belongs to a Trip
     public function trip()
     {
-        return $this->belongsTo(Trip::class, 'trip_id', 'trip_id');
+        return $this->belongsTo(Trip::class, 'trip_id', 'id');
     }
 
     // Relationship: TripJoin belongs to a User
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     // Check if user has voted

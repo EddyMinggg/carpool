@@ -20,6 +20,8 @@ return new class extends Migration
             $table->enum('join_role', ['creator', 'normal']);
             $table->timestamp('join_time')->useCurrent();
             $table->decimal('user_fee', 8, 2);
+            // 新增：上車地點（文字地址）
+            $table->string('pickup_location', 100)->nullable();
 
             // 投票信息（JSON格式，未投票为null）
             $table->json('vote_info')->nullable();

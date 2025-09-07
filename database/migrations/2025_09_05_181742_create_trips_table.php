@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id('id');
             $table->foreignId('creator_id')->constrained('users', 'id')
                   ->cascadeOnDelete();
-            $table->string('start_place', 100);
+            $table->string('start_place', 100)->nullable();
             $table->string('end_place', 100);
             $table->timestamp('plan_departure_time');
             $table->timestamp('actual_departure_time')->nullable();

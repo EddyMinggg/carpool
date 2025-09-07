@@ -11,7 +11,7 @@
         <!-- 统计卡片区域 - 优化间距和响应式布局 -->
         <section class="py-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- 总用户数卡片 -->
+                <!-- 總用戶數卡片 -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
@@ -22,15 +22,10 @@
                         </div>
                         <div class="flex items-end justify-between">
                             <p class="text-3xl font-bold text-gray-900">{{ $totalUsers }}</p>
-                            <span class="text-green-600 text-sm font-medium flex items-center">
-                                <i class="fa fa-arrow-up mr-1"></i> 12%
-                            </span>
                         </div>
-                        <p class="text-gray-400 text-sm mt-2">vs last month</p>
                     </div>
                 </div>
-
-                <!-- 总行程数卡片 -->
+                <!-- 總行程數卡片 -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
@@ -41,15 +36,10 @@
                         </div>
                         <div class="flex items-end justify-between">
                             <p class="text-3xl font-bold text-gray-900">{{ $totalTrips }}</p>
-                            <span class="text-green-600 text-sm font-medium flex items-center">
-                                <i class="fa fa-arrow-up mr-1"></i> 8%
-                            </span>
                         </div>
-                        <p class="text-gray-400 text-sm mt-2">vs last month</p>
                     </div>
                 </div>
-
-                <!-- 待处理行程卡片 -->
+                <!-- 待處理行程卡片 -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
@@ -60,11 +50,21 @@
                         </div>
                         <div class="flex items-end justify-between">
                             <p class="text-3xl font-bold text-gray-900">{{ $pendingTrips }}</p>
-                            <span class="text-red-600 text-sm font-medium flex items-center">
-                                <i class="fa fa-arrow-down mr-1"></i> 3%
-                            </span>
                         </div>
-                        <p class="text-gray-400 text-sm mt-2">vs last month</p>
+                    </div>
+                </div>
+                <!-- 優惠碼使用卡片 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-500 font-medium">Coupons Used</h3>
+                            <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600">
+                                <i class="fa fa-ticket"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <p class="text-3xl font-bold text-gray-900">{{ $couponUsed }}</p>
+                        </div>
                     </div>
                 </div>
             </div>

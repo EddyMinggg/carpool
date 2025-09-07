@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Trip Details #{{ $trip->trip_id }}</h2>
+        <h2 class="text-2xl font-bold text-gray-800">Trip Details #{{ $trip->id }}</h2>
         <a href="{{ route('admin.trips.index') }}" class="text-blue-600 hover:text-blue-900 text-sm">
             ← Back to Trip List
         </a>
@@ -12,33 +12,33 @@
 
     <!-- Trip Basic Information -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Basic Information</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+        <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Basic Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12 py-2">
+            <div class="py-3">
                 <p class="text-sm text-gray-500">Creator</p>
-                <p class="text-gray-900">{{ $trip->creator->name ?? 'Unknown User' }}</p>
+                <p class="text-gray-900">{{ $trip->creator->username ?? 'Unknown User' }}</p>
             </div>
-            <div>
+            <div class="py-3">
                 <p class="text-sm text-gray-500">Route</p>
                 <p class="text-gray-900">{{ $trip->start_place }} → {{ $trip->end_place }}</p>
             </div>
-            <div>
+            <div class="py-3">
                 <p class="text-sm text-gray-500">Planned Departure</p>
                 <p class="text-gray-900">{{ $trip->plan_departure_time->format('Y-m-d H:i') }}</p>
             </div>
-            <div>
+            <div class="py-3">
                 <p class="text-sm text-gray-500">Max Capacity</p>
                 <p class="text-gray-900">{{ $trip->max_people }} people</p>
             </div>
-            <div>
+            <div class="py-3">
                 <p class="text-sm text-gray-500">Is Private</p>
                 <p class="text-gray-900">{{ $trip->is_private ? 'Yes' : 'No' }}</p>
             </div>
-            <div>
+            <div class="py-3">
                 <p class="text-sm text-gray-500">Base Price</p>
                 <p class="text-gray-900">¥{{ number_format($trip->base_price, 2) }}</p>
             </div>
-            <div>
+            <div class="py-3">
                 <p class="text-sm text-gray-500">Status</p>
                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                     {{ $trip->trip_status === 'pending' ? 'bg-blue-100 text-blue-800' : 
@@ -47,7 +47,7 @@
                     {{ ucfirst($trip->trip_status) }}
                 </span>
             </div>
-            <div>
+            <div class="py-3">
                 <p class="text-sm text-gray-500">Created At</p>
                 <p class="text-gray-900">{{ $trip->created_at->format('Y-m-d H:i') }}</p>
             </div>
@@ -57,10 +57,9 @@
     <!-- Participants List -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
-            Participants ({{ $trip->joins->count() }}/{{ $trip->max_people }})
+            Participants ({{ optional($trip->joins)->count() ?? 0 }}/{{ $trip->max_people }})
         </h3>
-        
-        @if($trip->joins->isEmpty())
+        @if(empty($trip->joins) || $trip->joins->isEmpty())
             <p class="text-gray-500">No participants yet</p>
         @else
             <div class="overflow-x-auto">
@@ -69,6 +68,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Location</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Voted?</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee (¥)</th>
                         </tr>
@@ -77,10 +77,13 @@
                         @foreach($trip->joins as $join)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $join->user->name ?? 'Deleted User' }}
+                                    {{ $join->user->username ?? $join->user->name ?? 'Deleted User' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ ucfirst($join->join_role) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $join->pickup_location ?? '-' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     @if($join->hasVoted())
@@ -103,8 +106,7 @@
     <!-- Payment Records -->
     <div class="bg-white rounded-lg shadow-md p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Payment Records</h3>
-        
-        @if($trip->payments->isEmpty())
+        @if(empty($trip->payments) || $trip->payments->isEmpty())
             <p class="text-gray-500">No payment records yet</p>
         @else
             <div class="overflow-x-auto">

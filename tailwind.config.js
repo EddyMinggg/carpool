@@ -6,7 +6,6 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [require('@tailwindcss/forms'),],
   output: './public/css/tailwind.css',
   darkMode: 'class'
 }

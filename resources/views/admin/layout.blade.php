@@ -35,15 +35,24 @@
                 <h1 class="text-xl font-bold">Carpool Management</h1>
             </div>
             <nav class="p-4">
-                <a href="{{ route('admin.dashboard') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600' : 'hover:bg-gray-700' }}">
+                <a href="{{ route('admin.dashboard') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     Dashboard
                 </a>
-                <a href="{{ route('admin.trips.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.trips.*') ? 'bg-blue-600' : 'hover:bg-gray-700' }}">
-                    Manage Trips
+                <a href="{{ route('admin.users.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                    Users
+                </a>
+                <a href="{{ route('admin.trips.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.trips.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                    Trips
+                </a>
+                <a href="{{ route('admin.orders.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.orders.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                    Orders
+                </a>
+                <a href="{{ route('admin.coupons.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.coupons.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                    Coupons
                 </a>
                 <form action="{{ route('logout') }}" method="POST" class="mt-6">
                     @csrf
-                    <button type="submit" class="w-full text-left py-2 px-3 rounded hover:bg-gray-700">
+                    <button type="submit" class="w-full text-left py-2 px-3 rounded hover:bg-gray-700 text-gray-200">
                         Logout
                     </button>
                 </form>
