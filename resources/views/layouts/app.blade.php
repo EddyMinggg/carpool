@@ -11,7 +11,17 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
         <!-- Scripts -->
+        <script>
+            if (localStorage.getItem('dark-mode') === 'true' || (!('dark-mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.querySelector('html').classList.add('dark');
+            } else {
+                document.querySelector('html').classList.remove('dark');
+            }
+        </script>
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
