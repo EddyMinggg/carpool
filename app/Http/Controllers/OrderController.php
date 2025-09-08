@@ -31,23 +31,22 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'creator_id' => 'required|exists:users,id',
             'pickup_location' => 'nullable|string|max:100',
             'dropoff_location' => 'required|string|max:100',
-            'planned_departure_time' => 'required|date_format:Y-m-d\TH:i',
-            'max_people' => 'required|integer|min:1|max:10'
+            'planned_departure_time' => 'required|date_format:Y-m-d H:i',
+            // 'max_people' => 'required|integer|min:1|max:10'
         ]);
 
-        Trip::create([
+        $trip = Trip::create([
             'creator_id' => $request->user()->id,
             'pickup_location' => $request->input('pickup_location'),
             'dropoff_location' => $request->input('dropoff_location'),
             'planned_departure_time' => $request->input('planned_departure_time'),
-            'max_people' => $request->input('max_people')
+            'max_people' => $request->has('private') ? 1 : 10,
+            'base_price' => 100,
         ]);
 
-        return redirect()->route('trips.index')
-            ->with('success', 'Trip template created successfully!');
+        return redirect(route('trips.index'));
     }
 
     /**

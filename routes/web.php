@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('trips')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('trips.index');
+        Route::post('/create', [OrderController::class, 'store'])->name('trips.store');
     });
 });
 

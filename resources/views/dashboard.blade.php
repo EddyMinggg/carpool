@@ -17,22 +17,21 @@
 
     <div class="py-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <form action="">
+            <form method="POST" action="{{ route('trips.store') }}">
                 @csrf
-                @method('post')
                 <div class="md:flex gap-4">
                     <div class="w-full mt-2">
-                        <x-input-label for="pickup" :value="__('Pickup Location')" />
-                        <x-text-input id="pickup" class="block mt-2 w-full" type="text" name="pickup"
-                            :value="old('pickup')" required />
-                        <x-input-error :messages="$errors->get('pickup')" class="mt-2" />
+                        <x-input-label for="pickup_location" :value="__('Pickup Location')" />
+                        <x-text-input id="pickup_location" class="block mt-2 w-full" type="text" name="pickup_location"
+                            :value="old('pickup_location')" required />
+                        <x-input-error :messages="$errors->get('pickup_location')" class="mt-2" />
                     </div>
 
                     <div class="w-full mt-2">
-                        <x-input-label for="dropoff" :value="__('Dropoff Location')" />
-                        <x-text-input id="dropoff" class="block mt-2 w-full" type="text" name="dropoff"
-                            :value="old('dropoff')" required />
-                        <x-input-error :messages="$errors->get('dropoff')" class="mt-2" />
+                        <x-input-label for="dropoff_location" :value="__('Dropoff Location')" />
+                        <x-text-input id="dropoff_location" class="block mt-2 w-full" type="text" name="dropoff_location"
+                            :value="old('dropoff_location')" required />
+                        <x-input-error :messages="$errors->get('dropoff_location')" class="mt-2" />
                     </div>
 
                     <div class="w-full flex gap-4 mt-2">
@@ -50,6 +49,8 @@
                         </div>
                     </div>
 
+                    <input type="hidden" id="planned_departure_time" name="planned_departure_time">
+
                     <div class="w-full flex pt-8">
                         <x-primary-button class="w-full" style="display: block !important; font-size: 14px;"
                             x-data=""
@@ -66,7 +67,7 @@
 
                             <div class="flex mt-4">
                                 <div class="flex items-center h-5">
-                                    <input id="private-checkbox" aria-describedby="helper-checkbox-text" type="checkbox"
+                                    <input id="private-checkbox" type="checkbox"
                                         value=""
                                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                 </div>
@@ -94,3 +95,17 @@
         </div>
     </div>
 </x-app-layout>
+
+<script type="module">
+    // jQuery document ready function
+    $(document).ready(function() {
+        // Function to update the hidden input field with the combined date and time
+        function updateCombinedDateTime() {
+            const combinedDateTime = $('#date').val() + ' ' + $('#time').val();
+            $('#planned_departure_time').val(combinedDateTime);
+        }
+
+        // Update the combined date and time whenever the date or time input changes
+        $('#date, #time').on('input', updateCombinedDateTime);
+    });
+</script>
