@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::create('trips', function (Blueprint $table) {
             $table->id('id');
             $table->foreignId('creator_id')->constrained('users', 'id')
-                  ->cascadeOnDelete();
-            $table->string('start_place', 100)->nullable();
-            $table->string('end_place', 100);
-            $table->timestamp('plan_departure_time');
+                ->cascadeOnDelete();
+            $table->string('pickup_location', 100)->nullable();
+            $table->string('dropoff_location', 100);
+            $table->timestamp('planned_departure_time');
             $table->timestamp('actual_departure_time')->nullable();
             $table->integer('max_people');
             $table->integer('base_price');
@@ -36,4 +36,3 @@ return new class extends Migration
         Schema::dropIfExists('trips');
     }
 };
-    

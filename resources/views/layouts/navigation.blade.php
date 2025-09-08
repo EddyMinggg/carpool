@@ -15,6 +15,9 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('trips.index')" :active="request()->routeIs('trips.index')">
+                        {{ __('Trips') }}
+                    </x-nav-link>
                 </div>
             </div>
             
@@ -39,19 +42,21 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            @php($languages = ['en' => 'English', 'ch' => 'Simplified Chinese', 'hk' => 'Traditional Chinese'])
+                            @php
+                            $lang = Session::get('locale', 'en');
+                            @endphp
                             <i class="material-icons text-xl">&#xe894;</i>
                         </button>
                     </x-slot>
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'en'])">
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'en'])" class="{{ $lang === 'en' ? 'bg-blue-900' : '' }}">
                             English
                         </x-dropdown-link>
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'ch'])">
-                            Simplified Chinese
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'ch'])" class="{{ $lang === 'ch' ? 'bg-blue-900' : '' }}">
+                            中文（简体）
                         </x-dropdown-link>
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'hk'])">
-                            Traditional Chinese
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'hk'])" class="{{ $lang === 'hk' ? 'bg-blue-900' : '' }}">
+                            中文（繁體）
                         </x-dropdown-link>
                     </x-slot>
                 </x-dropdown>
@@ -105,6 +110,12 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+        </div>
+
+        <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link :href="route('trips.index')" :active="request()->routeIs('trips.index')">
+                {{ __('Trips') }}
             </x-responsive-nav-link>
         </div>
 

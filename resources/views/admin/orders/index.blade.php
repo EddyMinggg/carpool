@@ -23,7 +23,7 @@
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-2 text-sm text-gray-900">{{ $order->id }}</td>
                 <td class="px-4 py-2 text-sm text-gray-900">{{ $order->user->username ?? 'Deleted User' }}</td>
-                <td class="px-4 py-2 text-sm text-gray-900">{{ $order->trip->start_place ?? '-' }} → {{ $order->trip->end_place ?? '-' }}</td>
+                <td class="px-4 py-2 text-sm text-gray-900">{{ $order->trip->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}</td>
                 <td class="px-4 py-2 text-sm text-gray-900">{{ ucfirst($order->join_role) }}</td>
                 <td class="px-4 py-2 text-sm text-gray-900">{{ $order->pickup_location ?? '-' }}</td>
                 <td class="px-4 py-2 text-sm text-gray-900">{{ number_format($order->user_fee, 2) }}</td>

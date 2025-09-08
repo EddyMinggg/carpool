@@ -1,31 +1,21 @@
-@extends('admin.layout')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Trips') }}
+        </h2>
+    </x-slot>
 
-@section('title', 'Trip Management - List')
-
-@section('content')
-    <div class="flex justify-between items-center mb-6 w-full">
-        <h2 class="text-2xl font-bold text-gray-800">Trip List</h2>
-        <a href="{{ route('admin.trips.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-            Create New Trip
-        </a>
+    <div class="py-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    {{ __("You're logged in!") }}
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md overflow-hidden w-full max-w-none">
-        <div class="p-4 sm:p-6 w-full">
-            <div class="overflow-x-auto w-full" style="min-width: 800px;">
-                <table class="w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trip ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creator</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Place</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Place</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure Time</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max People</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
+    <table class="max-w-7xl mx-auto sm:px-6 lg:px-8 w-full divide-y divide-gray-200">
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($trips as $trip)
                             <tr class="hover:bg-gray-50 transition-colors">
@@ -62,13 +52,4 @@
                         @endforelse
                     </tbody>
                 </table>
-            </div>
-
-            @if($trips->hasPages())
-                <div class="mt-6 w-full">
-                    {{ $trips->links() }}
-                </div>
-            @endif
-        </div>
-    </div>
-@endsection
+</x-app-layout>

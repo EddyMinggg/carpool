@@ -20,11 +20,11 @@
             </div>
             <div class="py-3">
                 <p class="text-sm text-gray-500">Route</p>
-                <p class="text-gray-900">{{ $trip->start_place }} → {{ $trip->end_place }}</p>
+                <p class="text-gray-900">{{ $trip->pickup_location }} → {{ $trip->dropoff_location }}</p>
             </div>
             <div class="py-3">
                 <p class="text-sm text-gray-500">Planned Departure</p>
-                <p class="text-gray-900">{{ $trip->plan_departure_time->format('Y-m-d H:i') }}</p>
+                <p class="text-gray-900">{{ $trip->planned_departure_time->format('Y-m-d H:i') }}</p>
             </div>
             <div class="py-3">
                 <p class="text-sm text-gray-500">Max Capacity</p>

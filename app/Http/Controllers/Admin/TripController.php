@@ -24,7 +24,7 @@ class TripController extends Controller
      */
     public function create()
     {
-        $users = User::select('id', 'username','email')->get();
+        $users = User::select('id', 'username', 'email')->get();
         $statuses = Trip::getStatusOptions();
         return view('admin.trips.create', compact('users', 'statuses'));
     }
@@ -37,17 +37,17 @@ class TripController extends Controller
         // 1. 验证请求数据
         $validated = $request->validate([
             'creator_id' => 'required|exists:users,id',
-            'end_place' => 'required|string|max:100',
-            'plan_departure_time' => 'required|date_format:Y-m-d\TH:i',
+            'dropoff_location' => 'required|string|max:100',
+            'planned_departure_time' => 'required|date_format:Y-m-d\TH:i',
             'max_people' => 'required|integer|min:1|max:10',
             'trip_status' => 'required|in:pending,voting,departed,completed,cancelled',
             'base_price' => 'required|integer|min:0',
             'is_private' => 'nullable|boolean',
-            'start_place' => 'nullable|string|max:100'
+            'pickup_location' => 'nullable|string|max:100'
         ]);
 
-        // 2. 关键：主动给 start_place 赋值 null
-        $validated['start_place'] = null;
+        // 2. 关键：主动给 pickup_location 赋值 null
+        $validated['pickup_location'] = null;
 
         // 3. 处理 checkbox
         $validated['is_private'] = $request->has('is_private');
@@ -81,7 +81,7 @@ class TripController extends Controller
      */
     public function edit(Trip $trip)
     {
-        $users = User::all(); 
+        $users = User::all();
         $statuses = Trip::getStatusOptions();
         return view('admin.trips.edit', compact('trip', 'users', 'statuses'));
     }
@@ -93,12 +93,12 @@ class TripController extends Controller
     {
         $validated = $request->validate([
             'creator_id' => 'required|exists:users,id',
-            'start_place' => 'required|string|max:100',
-            'end_place' => 'required|string|max:100',
-            'plan_departure_time' => 'required|date_format:H:i',
+            'pickup_location' => 'required|string|max:100',
+            'dropoff_location' => 'required|string|max:100',
+            'planned_departure_time' => 'required|date_format:H:i',
             'max_people' => 'required|integer|between:1,4',
             'is_private' => 'boolean',
-            'trip_status' => 'required|in:'.implode(',', array_keys(Trip::getStatusOptions())),
+            'trip_status' => 'required|in:' . implode(',', array_keys(Trip::getStatusOptions())),
             'base_price' => 'required|numeric|min:0',
         ]);
 

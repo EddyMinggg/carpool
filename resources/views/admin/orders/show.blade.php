@@ -14,7 +14,7 @@
         </div>
         <div class="py-3">
             <p class="text-sm text-gray-500">Trip</p>
-            <p class="text-gray-900">{{ $order->trip->start_place ?? '-' }} → {{ $order->trip->end_place ?? '-' }}</p>
+            <p class="text-gray-900">{{ $order->trip->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}</p>
         </div>
         <div class="py-3">
             <p class="text-sm text-gray-500">Role</p>

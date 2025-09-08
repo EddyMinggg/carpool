@@ -21,7 +21,7 @@
 
             <input type="hidden" name="creator_id" value="{{ auth()->user()->id }}">
             
-            <input type="hidden" name="end_place" value="华发">
+            <input type="hidden" name="dropoff_location" value="华发">
           
             <input type="hidden" name="trip_status" value="pending">
 
@@ -43,11 +43,11 @@
 
             <!-- Departure Time -->
             <div class="mb-4">
-                <label for="plan_departure_time" class="block text-sm font-medium text-gray-700 mb-1">Planned Departure Time <span class="text-red-500">*</span></label>
-                <input type="datetime-local" name="plan_departure_time" id="plan_departure_time" 
+                <label for="planned_departure_time" class="block text-sm font-medium text-gray-700 mb-1">Planned Departure Time <span class="text-red-500">*</span></label>
+                <input type="datetime-local" name="planned_departure_time" id="planned_departure_time" 
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value="{{ old('plan_departure_time') }}">
-                @error('plan_departure_time')
+                    value="{{ old('planned_departure_time') }}">
+                @error('planned_departure_time')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>

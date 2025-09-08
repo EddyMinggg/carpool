@@ -7,5 +7,8 @@ module.exports = {
     extend: {},
   },
   output: './public/css/tailwind.css',
-  darkMode: 'class'
+  darkMode: 'class',
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
 }

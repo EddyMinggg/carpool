@@ -28,33 +28,33 @@
 
             <!-- Start Place -->
             <div class="mb-4">
-                <label for="start_place" class="block text-sm font-medium text-gray-700 mb-1">Start Place</label>
-                <input type="text" name="start_place" id="start_place" 
+                <label for="pickup_location" class="block text-sm font-medium text-gray-700 mb-1">Start Place</label>
+                <input type="text" name="pickup_location" id="pickup_location" 
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value="{{ old('start_place', $trip->start_place) }}">
-                @error('start_place')
+                    value="{{ old('pickup_location', $trip->pickup_location) }}">
+                @error('pickup_location')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- End Place -->
             <div class="mb-4">
-                <label for="end_place" class="block text-sm font-medium text-gray-700 mb-1">End Place</label>
-                <input type="text" name="end_place" id="end_place" 
+                <label for="dropoff_location" class="block text-sm font-medium text-gray-700 mb-1">End Place</label>
+                <input type="text" name="dropoff_location" id="dropoff_location" 
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value="{{ old('end_place', $trip->end_place) }}">
-                @error('end_place')
+                    value="{{ old('dropoff_location', $trip->dropoff_location) }}">
+                @error('dropoff_location')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- Departure Time -->
             <div class="mb-4">
-                <label for="plan_departure_time" class="block text-sm font-medium text-gray-700 mb-1">Planned Departure Time</label>
-                <input type="datetime-local" name="plan_departure_time" id="plan_departure_time" 
+                <label for="planned_departure_time" class="block text-sm font-medium text-gray-700 mb-1">Planned Departure Time</label>
+                <input type="datetime-local" name="planned_departure_time" id="planned_departure_time" 
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value="{{ old('plan_departure_time', $trip->plan_departure_time->format('Y-m-d\TH:i')) }}">
-                @error('plan_departure_time')
+                    value="{{ old('planned_departure_time', $trip->planned_departure_time->format('Y-m-d\TH:i')) }}">
+                @error('planned_departure_time')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>

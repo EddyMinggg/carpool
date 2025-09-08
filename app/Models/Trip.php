@@ -13,12 +13,19 @@ class Trip extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'creator_id', 'start_place', 'end_place', 'plan_departure_time',
-        'actual_departure_time', 'max_people', 'is_private', 'trip_status', 'base_price'
+        'creator_id',
+        'pickup_location',
+        'dropoff_location',
+        'planned_departure_time',
+        'actual_departure_time',
+        'max_people',
+        'is_private',
+        'trip_status',
+        'base_price'
     ];
 
     protected $casts = [
-        'plan_departure_time' => 'datetime',
+        'planned_departure_time' => 'datetime',
         'actual_departure_time' => 'datetime',
         'is_private' => 'boolean',
         'base_price' => 'decimal:2'

@@ -98,10 +98,10 @@
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $trip->trip_id }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $trip->start_place }} → {{ $trip->end_place }}
+                                        {{ $trip->pickup_location }} → {{ $trip->dropoff_location }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $trip->plan_departure_time->format('Y-m-d H:i') }}
+                                        {{ $trip->planned_departure_time->format('Y-m-d H:i') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         <div class="w-24 bg-gray-200 rounded-full h-2.5">
