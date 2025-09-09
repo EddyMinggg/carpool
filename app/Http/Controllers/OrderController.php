@@ -34,10 +34,9 @@ class OrderController extends Controller
             'pickup_location' => 'nullable|string|max:100',
             'dropoff_location' => 'required|string|max:100',
             'planned_departure_time' => 'required|date_format:Y-m-d H:i',
-            // 'max_people' => 'required|integer|min:1|max:10'
         ]);
 
-        $trip = Trip::create([
+        Trip::create([
             'creator_id' => $request->user()->id,
             'pickup_location' => $request->input('pickup_location'),
             'dropoff_location' => $request->input('dropoff_location'),

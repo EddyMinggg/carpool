@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::get('lang', [LanguageController::class, 'change'])->name("change.lang");
 
     Route::prefix('trips')->group(function () {
-        Route::get('/', [OrderController::class, 'index'])->name('trips.index');
+        Route::get('/', [OrderController::class, 'index'])->name('trips');
         Route::post('/create', [OrderController::class, 'store'])->name('trips.store');
     });
 });
