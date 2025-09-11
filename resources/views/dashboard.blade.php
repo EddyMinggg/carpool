@@ -78,7 +78,7 @@
                                             <th scope="col"
                                                 class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold sm:pr-0">
                                                 Amount</th>
-                                                
+
                                         </tr>
                                     </thead>
                                     <tbody class="text-gray-500">
@@ -133,11 +133,11 @@
                             </div>
 
                             <div class="w-64">
-                            <x-input-label for="discount_code" :value="__('Discount Code')" />
-                            <x-text-input id="discount_code" class="block mt-2 text-sm w-full" name="discount_code"
-                                :value="old('discount_code')" required />
-                            <x-input-error :messages="$errors->get('discount_code')" class="mt-2" />
-                        </div>
+                                <x-input-label for="discount_code" :value="__('Discount Code')" />
+                                <x-text-input id="discount_code" class="block mt-2 text-sm w-full" name="discount_code"
+                                    :value="old('discount_code')" required />
+                                <x-input-error :messages="$errors->get('discount_code')" class="mt-2" />
+                            </div>
 
                             <div class="flex mt-4">
                                 <div class="flex items-center h-5">
@@ -188,15 +188,13 @@
                         <th scope="col" class="px-6 py-3">
                             {{ __('Status') }}
                         </th>
-                        <th scope="col" class="px-6 py-3">
-                            Action
-                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($trips as $trip)
-                        <tr
-                            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <tr class="cursor-pointer bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
+                            x-data=""
+                            x-on:click.prevent="$dispatch('open-modal', 'confirm-create-order')">
                             <td class="px-6 py-4">
                                 {{ $trip->pickup_location }}
                             </td>
@@ -216,16 +214,6 @@
                                                                 : 'bg-red-100 text-red-800')) }}">
                                         {{ ucfirst($trip->trip_status) }}
                                     </span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <!-- Modal toggle -->
-                                <div class="w-64 flex">
-                                    <x-primary-button class="w-64"
-                                        style="display: block !important; font-size: 14px;" x-data=""
-                                        x-on:click.prevent="$dispatch('open-modal', 'confirm-create-order')">
-                                        {{ __('Check Price') }}
-                                    </x-primary-button>
                                 </div>
                             </td>
                         </tr>

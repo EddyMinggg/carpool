@@ -1,8 +1,11 @@
 {
-    "You're logged in!": "您已經登入！",
-    "Pickup Location": "上車地點",
-    "Dropoff Location": "下車地點",
+    "You're logged in!": "您已经登入！",
+    "Pickup Location": "上车地点",
+    "Dropoff Location": "下车地点",
     "Date": "日期",
-    "Time": "時間",
-    "Check Price": "查看價格"
+    "Time": "时间",
+    "Check Price": "查看价格",
+    "Suggestions": "建议",
+    "Home": "主页",
+    "Status": "状态"
 }
