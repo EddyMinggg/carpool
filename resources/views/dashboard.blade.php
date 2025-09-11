@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Dashboard') }}
+            {{ __('Home') }}
         </h2>
     </x-slot>
 
@@ -12,15 +12,15 @@
                 <div class="md:flex gap-4">
                     <div class="w-full mt-2">
                         <x-input-label for="pickup_location" :value="__('Pickup Location')" />
-                        <x-text-input id="pickup_location" class="block mt-2 w-full" type="text" name="pickup_location"
-                            :value="old('pickup_location')" required />
+                        <x-text-input id="pickup_location" class="block mt-2 w-full" type="text"
+                            name="pickup_location" :value="old('pickup_location')" required />
                         <x-input-error :messages="$errors->get('pickup_location')" class="mt-2" />
                     </div>
 
                     <div class="w-full mt-2">
                         <x-input-label for="dropoff_location" :value="__('Dropoff Location')" />
-                        <x-text-input id="dropoff_location" class="block mt-2 w-full" type="text" name="dropoff_location"
-                            :value="old('dropoff_location')" required />
+                        <x-text-input id="dropoff_location" class="block mt-2 w-full" type="text"
+                            name="dropoff_location" :value="old('dropoff_location')" required />
                         <x-input-error :messages="$errors->get('dropoff_location')" class="mt-2" />
                     </div>
 
@@ -50,22 +50,107 @@
                     </div>
 
                     <x-modal name="confirm-create-order" focusable>
-                        <div class="p-6">
+                        <div class="p-8">
+
                             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                                 {{ __('Are you sure you want to create the order?') }}
                             </h2>
 
+                            <div class="-mx-4 mt-8 flow-root sm:mx-0 overflow-x-auto">
+                                <table class="min-w-full text-gray-500 dark:text-gray-400">
+                                    <colgroup>
+                                        <col class="w-full sm:w-1/2">
+                                        <col class="sm:w-1/6">
+                                        <col class="sm:w-1/6">
+                                        <col class="sm:w-1/6">
+                                    </colgroup>
+                                    <thead class="border-b border-gray-300">
+                                        <tr>
+                                            <th scope="col"
+                                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-0">
+                                                Items</th>
+                                            <th scope="col"
+                                                class="hidden px-3 py-3.5 text-right text-sm font-semibold sm:table-cell">
+                                                Quantity</th>
+                                            <th scope="col"
+                                                class="hidden px-3 py-3.5 text-right text-sm font-semibold sm:table-cell">
+                                                Price</th>
+                                            <th scope="col"
+                                                class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold sm:pr-0">
+                                                Amount</th>
+                                                
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-500">
+                                        <tr class="border-b border-gray-200">
+                                            <td class="max-w-0 py-5 pl-4 pr-3 text-sm text-gray-400 sm:pl-0">
+                                                <div class="text-md font-semibold">E-commerce Platform</div>
+                                                <div class="mt-1 truncate">Laravel based e-commerce
+                                                    platform.</div>
+                                            </td>
+                                            <td class="hidden px-3 py-5 text-right text-sm sm:table-cell">
+                                                500.0</td>
+                                            <td class="hidden px-3 py-5 text-right text-sm sm:table-cell">
+                                                $100.00</td>
+                                            <td class="py-5 pl-3 pr-4 text-right text-sm sm:pr-0">
+                                                $5,000.00</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot class="text-gray-500">
+                                        <tr>
+                                            <th scope="row" colspan="3"
+                                                class="hidden pl-4 pr-3 pt-6 text-right text-sm font-normal sm:table-cell sm:pl-0">
+                                                Subtotal</th>
+                                            <th scope="row"
+                                                class="pl-6 pr-3 pt-6 text-left text-sm font-normal sm:hidden">
+                                                Subtotal</th>
+                                            <td class="pl-3 pr-6 pt-6 text-right text-sm sm:pr-0">
+                                                $10,500.00</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" colspan="3"
+                                                class="hidden pl-4 pr-3 pt-4 text-right text-sm font-normal sm:table-cell sm:pl-0">
+                                                Discount</th>
+                                            <th scope="row"
+                                                class="pl-6 pr-3 pt-4 text-left text-sm font-normal sm:hidden">
+                                                Discount</th>
+                                            <td class="pl-3 pr-6 pt-4 text-right text-sm sm:pr-0">- 10%
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" colspan="3"
+                                                class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-400 sm:table-cell sm:pl-0">
+                                                Total</th>
+                                            <th scope="row"
+                                                class="pl-6 pr-3 pt-4 text-left text-sm font-semibold text-gray-400 sm:hidden">
+                                                Total</th>
+                                            <td
+                                                class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-400 sm:pr-0">
+                                                $11,550.00</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <div class="w-64">
+                            <x-input-label for="discount_code" :value="__('Discount Code')" />
+                            <x-text-input id="discount_code" class="block mt-2 text-sm w-full" name="discount_code"
+                                :value="old('discount_code')" required />
+                            <x-input-error :messages="$errors->get('discount_code')" class="mt-2" />
+                        </div>
+
                             <div class="flex mt-4">
                                 <div class="flex items-center h-5">
-                                    <input id="private" type="checkbox"
-                                        value=""
+                                    <input id="private" type="checkbox" value=""
                                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                 </div>
                                 <div class="ms-2 text-sm">
                                     <label for="private"
                                         class="font-medium text-gray-900 dark:text-gray-300">Private</label>
                                     <p id="private-checkbox-text"
-                                        class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">This will make your
+                                        class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">This will
+                                        make
+                                        your
                                         trip private, meaning other users cannot join your trip and split the fee.</p>
                                 </div>
                             </div>
@@ -82,6 +167,71 @@
                     </x-modal>
                 </div>
             </form>
+        </div>
+    </div>
+
+
+    <div class="max-w-7xl mx-auto px-3 pt-16 sm:px-6 lg:px-8 w-full relative overflow-x-auto">
+        <h2 class="pb-6 font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Suggestions') }}
+        </h2>
+        <div class="rounded-lg overflow-auto shadow-md w-full">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">
+                            {{ __('Pickup Location') }}
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            {{ __('Dropoff Location') }}
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            {{ __('Status') }}
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($trips as $trip)
+                        <tr
+                            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4">
+                                {{ $trip->pickup_location }}
+                            </td>
+                            <td class="px-6 py-4">
+                                {{ $trip->dropoff_location }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <span
+                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
+                                                    {{ $trip->trip_status === 'pending'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : ($trip->trip_status === 'voting'
+                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                            : ($trip->trip_status === 'completed'
+                                                                ? 'bg-green-100 text-green-800'
+                                                                : 'bg-red-100 text-red-800')) }}">
+                                        {{ ucfirst($trip->trip_status) }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <!-- Modal toggle -->
+                                <div class="w-64 flex">
+                                    <x-primary-button class="w-64"
+                                        style="display: block !important; font-size: 14px;" x-data=""
+                                        x-on:click.prevent="$dispatch('open-modal', 'confirm-create-order')">
+                                        {{ __('Check Price') }}
+                                    </x-primary-button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 </x-app-layout>

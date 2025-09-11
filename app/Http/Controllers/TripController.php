@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Trip;
 
-class OrderController extends Controller
+class TripController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -45,7 +45,7 @@ class OrderController extends Controller
             'base_price' => 100,
         ]);
 
-        return redirect(route('trips.index'));
+        return redirect(route('trips'));
     }
 
     /**
