@@ -1,3 +1,46 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 自定義黑暗模式樣式 */
+.dark-mode-bg {
+    background-color: #1f2937;
+}
+
+.dark-mode-card {
+    background-color: #374151;
+    border-color: #4b5563;
+}
+
+.dark-mode-text {
+    color: #f9fafb;
+}
+
+/* 確保投票按鈕在所有模式下都可見 */
+.vote-agree {
+    background-color: #22c55e !important;
+    color: white !important;
+}
+
+.vote-agree:hover {
+    background-color: #16a34a !important;
+}
+
+.vote-disagree {
+    background-color: #ef4444 !important;
+    color: white !important;
+}
+
+.vote-disagree:hover {
+    background-color: #dc2626 !important;
+}
+
+.vote-result-agree {
+    background-color: #22c55e !important;
+    color: white !important;
+}
+
+.vote-result-disagree {
+    background-color: #ef4444 !important;
+    color: white !important;
+}

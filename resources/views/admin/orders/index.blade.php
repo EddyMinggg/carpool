@@ -29,7 +29,7 @@
                 <td class="px-4 py-2 text-sm text-gray-900">{{ number_format($order->user_fee, 2) }}</td>
                 <td class="px-4 py-2 text-sm text-gray-900">{{ $order->created_at->format('Y-m-d H:i') }}</td>
                 <td class="px-4 py-2 text-sm">
-                    <a href="{{ route('admin.orders.show', $order->id) }}" class="text-blue-600 hover:underline">View</a>
+                    <a href="{{ route('admin.orders.show', ['order' => $order->trip_id . '-' . $order->user_id]) }}" class="text-blue-600 hover:underline">View</a>
                 </td>
             </tr>
             @endforeach

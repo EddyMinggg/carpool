@@ -12,11 +12,11 @@
             </div>
             <span class="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Order</span>
         </button>
-        <button type="button" class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-            <div class="text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">
-                <i class="material-icons text-2xl">&#xe8b8;</i>
+        <button type="button" class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group" onclick="document.getElementById('logout-form').submit();">
+            <div class="text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">
+                <i class="material-icons text-2xl">&#xe879;</i>
             </div>
-            <span class="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Settings</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">Logout</span>
         </button>
         <button type="button" class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group" onclick="location.href='{{ route('profile.edit') }}'">
             <div class="text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">
@@ -26,3 +26,8 @@
         </button>
     </div>
 </div>
+
+<!-- 隱藏的登出表單 -->
+<form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+    @csrf
+</form>
