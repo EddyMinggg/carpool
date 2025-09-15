@@ -13,18 +13,23 @@
                     <div class="w-full mt-2">
                         <x-input-label for="pickup_location" :value="__('Pickup Location')" />
                         <x-text-input id="pickup_location" class="block mt-2 w-full" type="text"
-                            name="pickup_location" :value="old('pickup_location')" required />
+                            name="pickup_location" :value="old('pickup_location')" required disabled />
                         <x-input-error :messages="$errors->get('pickup_location')" class="mt-2" />
                     </div>
 
                     <div class="w-full mt-2">
                         <x-input-label for="dropoff_location" :value="__('Dropoff Location')" />
-                        <x-text-input id="dropoff_location" class="block mt-2 w-full" type="text"
+                        {{-- <x-text-input id="dropoff_location" class="block mt-2 w-full" type="text"
                             name="dropoff_location" :value="old('dropoff_location')" required />
-                        <x-input-error :messages="$errors->get('dropoff_location')" class="mt-2" />
+                        <x-input-error :messages="$errors->get('dropoff_location')" class="mt-2" /> --}}
+                        <select
+                            class="mt-2 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                            name="dropoff_location" id="dropoff_location" disabled>
+                            <option value="huafa">華發</option>
+                        </select>
                     </div>
 
-                    <div class="w-full flex gap-4 mt-2">
+                    {{-- <div class="w-full flex gap-4 mt-2">
                         <div class="w-full">
                             <x-input-label for="date" :value="__('Date')" />
                             <x-text-input id="date" class="block mt-2 w-full" type="date" name="date"
@@ -39,15 +44,15 @@
                         </div>
                     </div>
 
-                    <input type="hidden" id="planned_departure_time" name="planned_departure_time">
-
                     <div class="w-full flex pt-8">
                         <x-primary-button class="w-full" style="display: block !important; font-size: 14px;"
                             x-data=""
                             x-on:click.prevent="$dispatch('open-modal', 'confirm-create-order')">
                             {{ __('Check Price') }}
                         </x-primary-button>
-                    </div>
+                    </div> --}}
+
+                    <input type="hidden" id="planned_departure_time" name="planned_departure_time">
 
                     <x-modal name="confirm-create-order" focusable>
                         <div class="p-8">
@@ -148,8 +153,7 @@
                                     <label for="private"
                                         class="font-medium text-gray-900 dark:text-gray-300">Private</label>
                                     <p id="private-checkbox-text"
-                                        class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">This will
-                                        make
+                                        class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">This will make
                                         your
                                         trip private, meaning other users cannot join your trip and split the fee.</p>
                                 </div>
@@ -225,15 +229,49 @@
 </x-app-layout>
 
 <script type="module">
-    // jQuery document ready function
     $(document).ready(function() {
+
+        const _apiKey = '{{ env('GEOCODING_API_KEY') }}';
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 10000,
+        };
+
         // Function to update the hidden input field with the combined date and time
         function updateCombinedDateTime() {
             const combinedDateTime = $('#date').val() + ' ' + $('#time').val();
             $('#planned_departure_time').val(combinedDateTime);
         }
 
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, error, options);
+            }
+        }
+        
+        function success(position) {
+            L.esri.Geocoding
+            .reverseGeocode({
+                apikey: _apiKey
+            })
+            .latlng(L.latLng(position.coords.latitude, position.coords.longitude))
+            .run(function (error, result) {
+                if (error) {
+                    return;
+                }
+                
+                $("#pickup_location").val(result.address.Match_addr);
+            });
+        }
+
+        function error() {
+            alert("Sorry, no position available.");
+        }
+
         // Update the combined date and time whenever the date or time input changes
         $('#date, #time').on('input', updateCombinedDateTime);
+
+        getLocation();
     });
 </script>

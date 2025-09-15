@@ -13,6 +13,17 @@
 
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+        <!-- Leaflet -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet/dist/leaflet-src.js"></script>
+
+        <!-- Esri Leaflet -->
+        <script src="https://unpkg.com/esri-leaflet"></script>
+
+        <!-- Esri Leaflet Geocoder -->
+        <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder/dist/esri-leaflet-geocoder.css"/>
+        <script src="https://unpkg.com/esri-leaflet-geocoder"></script>
+
         <!-- Scripts -->
         <script>
             if (localStorage.getItem('dark-mode') === 'true' || (!('dark-mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
