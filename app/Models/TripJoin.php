@@ -9,9 +9,9 @@ class TripJoin extends Model
 {
     use HasFactory;
 
-    // Primary key configuration (composite key handled in migration)
-    protected $primaryKey = null;
-    public $incrementing = false;
+    // Primary key configuration - 使用自增ID作為主鍵
+    protected $primaryKey = 'id';
+    public $incrementing = true;
 
     protected $fillable = [
         'trip_id',

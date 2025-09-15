@@ -19,7 +19,7 @@ return new class extends Migration
             // 参与信息
             $table->enum('join_role', ['creator', 'normal']);
             $table->timestamp('join_time')->useCurrent();
-            $table->decimal('user_fee', 8, 2);
+            $table->decimal('user_fee', 8, 2)->nullable();
             // 新增：上車地點（文字地址）
             $table->string('pickup_location', 100)->nullable();
 

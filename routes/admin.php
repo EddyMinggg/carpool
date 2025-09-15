@@ -14,5 +14,5 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::resource('trips', TripController::class)->parameters(['trips' => 'trip:id']);
     Route::resource('users', UserController::class)->parameters(['users' => 'user:id']);
     Route::resource('coupons', CouponController::class)->parameters(['coupons' => 'coupon:id']);
-    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show'])->parameters(['orders' => 'order:id']);
+    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show']);
 });
