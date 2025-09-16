@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,6 +28,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/{trip}/start-vote', [TripController::class, 'startVote'])->name('trips.start-vote');
         Route::post('/{trip}/vote', [TripController::class, 'vote'])->name('trips.vote');
     });
+
+    Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');
 });
 
 require __DIR__ . '/auth.php';

@@ -32,7 +32,7 @@ class Trip extends Model
     ];
 
     // Status constants
-    public const STATUS_PENDING = 'pending';
+    public const STATUS_AWAITING = 'awaiting';
     public const STATUS_VOTING = 'voting';
     public const STATUS_DEPARTED = 'departed';
     public const STATUS_COMPLETED = 'completed';
@@ -41,7 +41,7 @@ class Trip extends Model
     public static function getStatusOptions(): array
     {
         return [
-            self::STATUS_PENDING => 'Pending',
+            self::STATUS_AWAITING => 'Awaiting',
             self::STATUS_VOTING => 'Voting',
             self::STATUS_DEPARTED => 'Departed',
             self::STATUS_COMPLETED => 'Completed',

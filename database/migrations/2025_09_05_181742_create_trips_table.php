@@ -20,12 +20,12 @@ return new class extends Migration
             $table->integer('base_price');
             $table->boolean('is_private')->default(false);
             $table->enum('trip_status', [
-                'pending',    // 待拼中
+                'awaiting',    // 待拼中
                 'voting',     // 投票中
                 'departed',   // 已发车
                 'completed',  // 已完成
                 'cancelled'   // 已取消
-            ])->default('pending');
+            ])->default('awaiting');
             $table->softDeletes();
             $table->timestamps();
         });

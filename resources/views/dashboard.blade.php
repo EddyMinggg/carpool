@@ -1,273 +1,146 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight text-center">
             {{ __('Home') }}
         </h2>
     </x-slot>
 
     @php
-        $dates = collect($groupedTrips->keys())->sort()->take(3);
+        $dates = collect($groupedTrips->keys())->sort()->take(7); // 增加到7天
+        $activeDate = request('date') ?? ($dates->first() ?? null);
     @endphp
-    @foreach($dates as $date)
-        <div class="max-w-7xl mx-auto px-3 pt-8 sm:px-6 lg:px-8 w-full relative overflow-x-auto">
-            <h2 class="pb-4 font-semibold text-lg text-gray-800 dark:text-gray-200 leading-tight">
-                {{ $date }}
-            </h2>
-            <div class="rounded-lg overflow-auto shadow-md w-full">
-                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
-                            <th class="px-6 py-3">{{ __('Departure Time') }}</th>
-                            <th class="px-6 py-3">{{ __('Destination') }}</th>
-                            <th class="px-6 py-3">{{ __('Is New Carpool') }}</th>
-                            <th class="px-6 py-3">{{ __('Remaining Time') }}</th>
-                            <th class="px-6 py-3">{{ __('Current People') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($groupedTrips[$date] as $trip)
-                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-blue-100 dark:hover:bg-gray-600 cursor-pointer" onclick="window.location='{{ route('trips.show', $trip->id) }}'">
-                                <td class="px-6 py-4">{{ $trip->formatted_departure_time }}</td>
-                                <td class="px-6 py-4">{{ $trip->dropoff_location ?? __('Huafa') }}</td>
-                                <td class="px-6 py-4">
-                                    @if($trip->current_people === 0)
-                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg bg-blue-100 text-blue-800">{{ __('Is New Carpool') }}</span>
-                                    @else
-                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg bg-gray-100 text-gray-800">{{ __('Already Joined') }}</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">{{ $trip->remaining_time ? $trip->remaining_time : __('Not Started') }}</td>
-                                <td class="px-6 py-4">{{ $trip->current_people }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+    
+    <div x-data="{
+        activeDate: '{{ $activeDate }}',
+        dates: {{ json_encode($dates->values()) }},
+        groupedTrips: {{ json_encode($groupedTrips) }},
+        currentIndex: {{ $dates->search($activeDate) ?: 0 }},
+        get trips() {
+            return this.groupedTrips[this.activeDate] || [];
+        },
+        selectDate(date, index) {
+            this.activeDate = date;
+            this.currentIndex = index;
+        },
+        prevDate() {
+            if (this.currentIndex > 0) {
+                this.currentIndex--;
+                this.activeDate = this.dates[this.currentIndex];
+            }
+        },
+        nextDate() {
+            if (this.currentIndex < this.dates.length - 1) {
+                this.currentIndex++;
+                this.activeDate = this.dates[this.currentIndex];
+            }
+        }
+    }" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Carousel 日期選擇器 -->
+        <div class="relative px-4 pt-4 pb-2">
+            {{-- <div class="flex items-center justify-between px-4 mb-2">
+                <button @click="prevDate()" :disabled="currentIndex === 0" 
+                        class="p-2 rounded-full transition" 
+                        :class="currentIndex === 0 ? 'text-gray-300 dark:text-gray-600' : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'">
+                    <span class="material-icons">chevron_left</span>
+                </button>
+                
+                <div class="text-lg font-bold text-gray-800 dark:text-gray-200" x-text="activeDate"></div>
+                
+                <button @click="nextDate()" :disabled="currentIndex === dates.length - 1"
+                        class="p-2 rounded-full transition"
+                        :class="currentIndex === dates.length - 1 ? 'text-gray-300 dark:text-gray-600' : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'">
+                    <span class="material-icons">chevron_right</span>
+                </button>
+            </div> --}}
+
+            <div class="flex items-center text-sm mt-4">
+                <i class="text-gray-400 dark:text-gray-500 material-icons" id="location_pin">&#xe0c8;</i>
+                <span class="ms-2 text-gray-900 dark:text-gray-100" id="pickup_location"></span>
+                <span class="loader inline-block"></span>
+            </div>
+            
+            <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-4" 
+                 style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
+                <template x-for="(date, index) in dates" :key="date">
+                    <button @click="selectDate(date, index); $el.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'})"
+                            :class="activeDate === date ? 'bg-blue-600 dark:bg-blue-700 text-white shadow-lg scale-105' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
+                            class="min-w-[70px] px-3 py-3 rounded-lg font-semibold text-sm transition-all duration-300 snap-center focus:outline-none whitespace-nowrap border border-gray-200 dark:border-gray-600">
+                        <div class="w-full" x-text="new Date(date).toLocaleDateString('en', {weekday: 'short'})"></div>
+                        <div class="w-full" x-text="new Date(date).toLocaleDateString('en', {month: 'short', day: 'numeric'})"></div>
+                    </button>
+                </template>
             </div>
         </div>
-    @endforeach
-    
-    <div class="pt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <form method="POST" action="{{ route('trips.store') }}">
-                @csrf
-                <div class="md:flex gap-4">
-                    <div class="w-full mt-2">
-                        <x-input-label for="pickup_location" :value="__('Pickup Location')" />
-                        <x-text-input id="pickup_location" class="block mt-2 w-full" type="text"
-                            name="pickup_location" :value="old('pickup_location')" required disabled />
-                        <x-input-error :messages="$errors->get('pickup_location')" class="mt-2" />
-                    </div>
-
-                    <div class="w-full mt-2">
-                        <x-input-label for="dropoff_location" :value="__('Dropoff Location')" />
-                        {{-- <x-text-input id="dropoff_location" class="block mt-2 w-full" type="text"
-                            name="dropoff_location" :value="old('dropoff_location')" required />
-                        <x-input-error :messages="$errors->get('dropoff_location')" class="mt-2" /> --}}
-                        <select
-                            class="mt-2 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                            name="dropoff_location" id="dropoff_location" disabled>
-                            <option value="huafa">華發</option>
-                        </select>
-                    </div>
-
-                    {{-- <div class="w-full flex gap-4 mt-2">
-                        <div class="w-full">
-                            <x-input-label for="date" :value="__('Date')" />
-                            <x-text-input id="date" class="block mt-2 w-full" type="date" name="date"
-                                :value="old('date')" lang="en-US" required />
-                            <x-input-error :messages="$errors->get('date')" class="mt-2" />
+        <!-- Trip 列表 -->
+        <div class="flex flex-col gap-4 px-4 py-4">
+            <template x-for="trip in trips" :key="trip.id">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] active:scale-98" 
+                     @click="window.location='/trips/' + trip.id">
+                    <!-- 上方：時間和價格 -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100" x-text="trip.formatted_departure_time">
                         </div>
-                        <div class="w-full">
-                            <x-input-label for="time" :value="__('Time')" />
-                            <x-text-input id="time" class="block mt-2 w-full" type="time" name="time"
-                                :value="old('time')" required />
-                            <x-input-error :messages="$errors->get('time')" class="mt-2" />
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" x-text="'HK$ ' + trip.price">
+                            </div>
                         </div>
                     </div>
-
-                    <div class="w-full flex pt-8">
-                        <x-primary-button class="w-full" style="display: block !important; font-size: 14px;"
-                            x-data=""
-                            x-on:click.prevent="$dispatch('open-modal', 'confirm-create-order')">
-                            {{ __('Check Price') }}
-                        </x-primary-button>
-                    </div> --}}
-
-                    <input type="hidden" id="planned_departure_time" name="planned_departure_time">
-
-                    <x-modal name="confirm-create-order" focusable>
-                        <div class="p-8">
-
-                            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                {{ __('Are you sure you want to create the order?') }}
-                            </h2>
-
-                            <div class="-mx-4 mt-8 flow-root sm:mx-0 overflow-x-auto">
-                                <table class="min-w-full text-gray-500 dark:text-gray-400">
-                                    <colgroup>
-                                        <col class="w-full sm:w-1/2">
-                                        <col class="sm:w-1/6">
-                                        <col class="sm:w-1/6">
-                                        <col class="sm:w-1/6">
-                                    </colgroup>
-                                    <thead class="border-b border-gray-300">
-                                        <tr>
-                                            <th scope="col"
-                                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-0">
-                                                Items</th>
-                                            <th scope="col"
-                                                class="hidden px-3 py-3.5 text-right text-sm font-semibold sm:table-cell">
-                                                Quantity</th>
-                                            <th scope="col"
-                                                class="hidden px-3 py-3.5 text-right text-sm font-semibold sm:table-cell">
-                                                Price</th>
-                                            <th scope="col"
-                                                class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold sm:pr-0">
-                                                Amount</th>
-
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-gray-500">
-                                        <tr class="border-b border-gray-200">
-                                            <td class="max-w-0 py-5 pl-4 pr-3 text-sm text-gray-400 sm:pl-0">
-                                                <div class="text-md font-semibold">E-commerce Platform</div>
-                                                <div class="mt-1 truncate">Laravel based e-commerce
-                                                    platform.</div>
-                                            </td>
-                                            <td class="hidden px-3 py-5 text-right text-sm sm:table-cell">
-                                                500.0</td>
-                                            <td class="hidden px-3 py-5 text-right text-sm sm:table-cell">
-                                                $100.00</td>
-                                            <td class="py-5 pl-3 pr-4 text-right text-sm sm:pr-0">
-                                                $5,000.00</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot class="text-gray-500">
-                                        <tr>
-                                            <th scope="row" colspan="3"
-                                                class="hidden pl-4 pr-3 pt-6 text-right text-sm font-normal sm:table-cell sm:pl-0">
-                                                Subtotal</th>
-                                            <th scope="row"
-                                                class="pl-6 pr-3 pt-6 text-left text-sm font-normal sm:hidden">
-                                                Subtotal</th>
-                                            <td class="pl-3 pr-6 pt-6 text-right text-sm sm:pr-0">
-                                                $10,500.00</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row" colspan="3"
-                                                class="hidden pl-4 pr-3 pt-4 text-right text-sm font-normal sm:table-cell sm:pl-0">
-                                                Discount</th>
-                                            <th scope="row"
-                                                class="pl-6 pr-3 pt-4 text-left text-sm font-normal sm:hidden">
-                                                Discount</th>
-                                            <td class="pl-3 pr-6 pt-4 text-right text-sm sm:pr-0">- 10%
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row" colspan="3"
-                                                class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-400 sm:table-cell sm:pl-0">
-                                                Total</th>
-                                            <th scope="row"
-                                                class="pl-6 pr-3 pt-4 text-left text-sm font-semibold text-gray-400 sm:hidden">
-                                                Total</th>
-                                            <td
-                                                class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-400 sm:pr-0">
-                                                $11,550.00</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-
-                            <div class="w-64">
-                                <x-input-label for="discount_code" :value="__('Discount Code')" />
-                                <x-text-input id="discount_code" class="block mt-2 text-sm w-full" name="discount_code"
-                                    :value="old('discount_code')" required />
-                                <x-input-error :messages="$errors->get('discount_code')" class="mt-2" />
-                            </div>
-
-                            <div class="flex mt-4">
-                                <div class="flex items-center h-5">
-                                    <input id="private" type="checkbox" value=""
-                                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                </div>
-                                <div class="ms-2 text-sm">
-                                    <label for="private"
-                                        class="font-medium text-gray-900 dark:text-gray-300">Private</label>
-                                    <p id="private-checkbox-text"
-                                        class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">This will make
-                                        your
-                                        trip private, meaning other users cannot join your trip and split the fee.</p>
-                                </div>
-                            </div>
-                            <div class="mt-6 flex justify-end">
-                                <x-secondary-button x-on:click="$dispatch('close')">
-                                    {{ __('Cancel') }}
-                                </x-secondary-button>
-
-                                <x-primary-button class="ms-3">
-                                    {{ __('Confirm') }}
-                                </x-primary-button>
+                    
+                    <!-- 中間：地點 -->
+                    <div class="flex items-center mb-4">
+                        <div class="flex-1">
+                            <div class="text-lg font-semibold text-gray-700 dark:text-gray-300" x-text="trip.dropoff_location || '{{ __('Huafa') }}'">
                             </div>
                         </div>
-                    </x-modal>
+                        <div class="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                            <span class="material-icons text-sm">person</span>
+                            <span class="text-sm font-medium" x-text="trip.current_people"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- 下方：剩餘時間 -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons text-gray-400 dark:text-gray-500 text-sm">schedule</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400" x-text="trip.remaining_time || '{{ __('Not Started') }}'">
+                            </span>
+                        </div>
+                        <div class="text-xs text-gray-400 dark:text-gray-500">
+                            {{ __('Click to join') }}
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </template>
         </div>
     </div>
-
-
-    <div class="max-w-7xl mx-auto px-3 pt-16 sm:px-6 lg:px-8 w-full relative overflow-x-auto">
-        <h2 class="pb-6 font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Suggestions') }}
-        </h2>
-        <div class="rounded-lg overflow-auto shadow-md w-full">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                    <tr>
-                        <th scope="col" class="px-6 py-3">
-                            {{ __('Pickup Location') }}
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            {{ __('Dropoff Location') }}
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            {{ __('Status') }}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($trips as $trip)
-                        <tr class="cursor-pointer bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
-                            x-data=""
-                            x-on:click.prevent="$dispatch('open-modal', 'confirm-create-order')">
-                            <td class="px-6 py-4">
-                                {{ $trip->pickup_location }}
-                            </td>
-                            <td class="px-6 py-4">
-                                {{ $trip->dropoff_location }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center">
-                                    <span
-                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
-                                                    {{ $trip->trip_status === 'pending'
-                                                        ? 'bg-blue-100 text-blue-800'
-                                                        : ($trip->trip_status === 'voting'
-                                                            ? 'bg-yellow-100 text-yellow-800'
-                                                            : ($trip->trip_status === 'completed'
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : 'bg-red-100 text-red-800')) }}">
-                                        {{ ucfirst($trip->trip_status) }}
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </x-app-layout>
+
+<style>
+    .loader {
+        width: 24px;
+        height: 24px;
+        border: 3px solid #FFF;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+    }
+
+    @keyframes rotation {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    } 
+</style>
 
 <script type="module">
     $(document).ready(function() {
@@ -278,12 +151,6 @@
             timeout: 5000,
             maximumAge: 10000,
         };
-
-        // Function to update the hidden input field with the combined date and time
-        function updateCombinedDateTime() {
-            const combinedDateTime = $('#date').val() + ' ' + $('#time').val();
-            $('#planned_departure_time').val(combinedDateTime);
-        }
 
         function getLocation() {
             if (navigator.geolocation) {
@@ -301,17 +168,30 @@
                 if (error) {
                     return;
                 }
+
+                let res = result.address.Match_addr;
+
+                $.ajax({
+                    url: "/set-session",
+                    method: "POST",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        location : res
+                    }
+                });
                 
-                $("#pickup_location").val(result.address.Match_addr);
+                $("#pickup_location").html(res);
+                $(".loader").removeClass("inline-block");
+                $(".loader").addClass("hidden");
             });
         }
 
         function error() {
-            alert("Sorry, no position available.");
+            $("#pickup_location").html("Sorry, no position available. Please make sure location service is enabled.");
+            $("#location_pin").html("&#xe0c7;");
+            $(".loader").removeClass("inline-block");
+            $(".loader").addClass("hidden");
         }
-
-        // Update the combined date and time whenever the date or time input changes
-        $('#date, #time').on('input', updateCombinedDateTime);
 
         getLocation();
     });

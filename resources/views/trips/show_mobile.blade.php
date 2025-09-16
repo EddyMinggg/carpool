@@ -11,7 +11,8 @@
         </div>
     </x-slot>
 
-    <div class="max-w-md mx-auto p-4 space-y-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        
         <!-- 消息顯示 -->
         @if(session('success'))
         <div class="bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg" x-data="{ show: true }" x-show="show" x-transition>
@@ -40,12 +41,18 @@
 
         <!-- 行程資訊卡片 -->
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-            <div class="flex justify-between items-start mb-4">
+            <div class="flex items-center text-sm">
+                <span id="pickup_location" class="text-gray-900 dark:text-gray-100">{{ session('location') }}</span>
+                <span class="text-xl text-gray-900 dark:text-gray-100 px-2 mb-1">&#10230;</span>
+                <span class="text-gray-900 dark:text-gray-100">{{ $trip->dropoff_location }}</span>
+            </div>
+
+            <div class="flex justify-between items-start mt-2">
                 <div>
                     <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
                         {{ $departureTime->format('H:i') }}
                     </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         {{ $departureTime->format('Y-m-d') }}
                     </div>
                 </div>
@@ -53,25 +60,27 @@
                     <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
                         HK$ {{ number_format($price, 0) }}
                     </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         {{ __('Per person') }}
                     </div>
                 </div>
             </div>
             
-            <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
-                <div class="flex justify-between items-center mb-2">
+            <hr class="my-4 border-gray-200 dark:border-gray-600">
+
+            <div>
+                {{-- <div class="flex justify-between items-center mb-2">
                     <span class="text-gray-600 dark:text-gray-300">{{ __('Destination') }}</span>
                     <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $trip->dropoff_location }}</span>
-                </div>
+                </div> --}}
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-gray-600 dark:text-gray-300">{{ __('Current People') }}</span>
+                    <span class="text-gray-600 dark:text-gray-300">{{ __('Joined User') }}</span>
                     <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $currentPeople }}/{{ $trip->max_people }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-gray-600 dark:text-gray-300">{{ __('Status') }}</span>
                     <span class="px-2 py-1 rounded text-sm
-                        @if($trip->trip_status === 'pending') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200
+                        @if($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200
                         @elseif($trip->trip_status === 'voting') bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200
                         @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200
                         @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
@@ -88,8 +97,8 @@
             <div class="text-2xl font-bold">{{ floor($timeUntilDeparture / 60) }}:{{ str_pad($timeUntilDeparture % 60, 2, '0', STR_PAD_LEFT) }}</div>
         </div>
         @endif
-
         <!-- 成員列表 -->
+        @if ($trip->joins->isNotEmpty())
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
             <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{{ __('Members') }}</h3>
             @foreach($trip->joins as $join)
@@ -107,18 +116,19 @@
                 </div>
                 <div class="text-sm">
                     @if($join->user_id === auth()->id())
-                        <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded text-xs">
-                            {{ __('You') }}
-                        </span>
+                    <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded text-xs">
+                        {{ __('You') }}
+                    </span>
                     @else
-                        <span class="text-gray-500 dark:text-gray-400 text-xs">
-                            {{ __('Member') }}
-                        </span>
+                    <span class="text-gray-500 dark:text-gray-400 text-xs">
+                        {{ __('Member') }}
+                    </span>
                     @endif
                 </div>
             </div>
             @endforeach
         </div>
+        @endif
 
         <!-- 投票狀態 -->
         @if($currentVote)
@@ -172,14 +182,23 @@
                 <form action="{{ route('trips.join', $trip) }}" method="POST" class="space-y-4">
                     @csrf
                     <div>
-                        <label for="pickup_location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            {{ __('Pickup Location (Optional)') }}
+                        {{-- <label for="pickup_location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ __('Pickup Location') }}
                         </label>
                         <input type="text" 
                                name="pickup_location" 
                                id="pickup_location"
                                placeholder="{{ __('Enter your pickup location...') }}"
-                               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"> --}}
+                        
+                               {{-- <x-input-label for="pickup_location" :value="__('Pickup Location')" />
+                        <x-text-input id="pickup_location" class="block mt-2 w-full" type="text"
+                            name="pickup_location" :value="old('pickup_location')" required disabled />
+                        
+                            <x-input-error :messages="$errors->get('pickup_location')" class="mt-2" /> --}}
+                       
+
+
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md">
                         {{ __('Join') }} - HK$ {{ number_format($price, 0) }}
@@ -230,7 +249,7 @@
         </div>
 
         <!-- 分享按鈕 -->
-        <div class="flex gap-3">
+        <div class="flex gap-3 mt-4">
             <button class="flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white" 
                     style="background-color: #25D366;" 
                     onmouseover="this.style.backgroundColor='#1DA851'" 
