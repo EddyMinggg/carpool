@@ -23,7 +23,7 @@
             
             <input type="hidden" name="dropoff_location" value="华发">
           
-            <input type="hidden" name="trip_status" value="pending">
+            <input type="hidden" name="trip_status" value="awaiting">
 
             <!-- StartPoint -->
             <div class="mb-6 p-4 bg-blue-50 rounded-md border border-blue-100">

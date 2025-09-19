@@ -49,13 +49,13 @@
                         </button>
                     </x-slot>
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'en'])" class="{{ $lang === 'en' ? 'bg-blue-900' : '' }}">
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'en'])" class="{{ $lang === 'en' ? 'bg-blue-600 dark:bg-blue-800 text-white' : 'text-gray-800 dark:text-white' }}">
                             English
                         </x-dropdown-link>
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'ch'])" class="{{ $lang === 'ch' ? 'bg-blue-900' : '' }}">
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'ch'])" class="{{ $lang === 'ch' ? 'bg-blue-600 dark:bg-blue-800 text-white' : 'text-gray-800 dark:text-white' }}">
                             中文（简体）
                         </x-dropdown-link>
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'hk'])" class="{{ $lang === 'hk' ? 'bg-blue-900' : '' }}">
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'hk'])" class="{{ $lang === 'hk' ? 'bg-blue-600 dark:bg-blue-800 text-white' : 'text-gray-800 dark:text-white' }}">
                             中文（繁體）
                         </x-dropdown-link>
                     </x-slot>

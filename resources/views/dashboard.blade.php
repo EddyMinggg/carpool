@@ -1,9 +1,4 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight text-center">
-            {{ __('Home') }}
-        </h2>
-    </x-slot>
 
     @php
         $dates = collect($groupedTrips->keys())->sort()->take(7); // 增加到7天

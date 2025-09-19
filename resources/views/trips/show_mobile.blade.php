@@ -11,7 +11,7 @@
         </div>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
         
         <!-- 消息顯示 -->
         @if(session('success'))
@@ -90,16 +90,9 @@
             </div>
         </div>
 
-        <!-- 倒計時區域 -->
-        @if($timeUntilDeparture > 0)
-        <div class="bg-gradient-to-r from-orange-400 dark:from-orange-500 to-red-500 dark:to-red-600 text-white rounded-xl p-4 text-center shadow-md">
-            <div class="text-sm mb-1">{{ __('Auto departure in') }}</div>
-            <div class="text-2xl font-bold">{{ floor($timeUntilDeparture / 60) }}:{{ str_pad($timeUntilDeparture % 60, 2, '0', STR_PAD_LEFT) }}</div>
-        </div>
-        @endif
         <!-- 成員列表 -->
         @if ($trip->joins->isNotEmpty())
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
             <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{{ __('Members') }}</h3>
             @foreach($trip->joins as $join)
             <div class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
@@ -129,6 +122,15 @@
             @endforeach
         </div>
         @endif
+
+        <!-- 倒計時區域 -->
+        @if($timeUntilDeparture > 0)
+        <div class="bg-gradient-to-r from-orange-400 dark:from-orange-500 to-red-500 dark:to-red-600 text-white rounded-xl p-4 text-center shadow-md mt-6">
+            <div class="text-sm mb-1">{{ __('Departure in') . " (HH:MM)" }}</div>
+            <div class="text-2xl font-bold">{{ floor($timeUntilDeparture / 60) }}:{{ str_pad($timeUntilDeparture % 60, 2, '0', STR_PAD_LEFT) }}</div>
+        </div>
+        @endif
+        
 
         <!-- 投票狀態 -->
         @if($currentVote)
@@ -179,27 +181,9 @@
         <div class="space-y-6">
             @if(!$hasJoined)
                 <!-- 加入拼車表單 -->
-                <form action="{{ route('trips.join', $trip) }}" method="POST" class="space-y-4">
+                <form action="{{ route('trips.join', $trip) }}" method="POST" class="space-y-6">
                     @csrf
-                    <div>
-                        {{-- <label for="pickup_location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            {{ __('Pickup Location') }}
-                        </label>
-                        <input type="text" 
-                               name="pickup_location" 
-                               id="pickup_location"
-                               placeholder="{{ __('Enter your pickup location...') }}"
-                               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"> --}}
-                        
-                               {{-- <x-input-label for="pickup_location" :value="__('Pickup Location')" />
-                        <x-text-input id="pickup_location" class="block mt-2 w-full" type="text"
-                            name="pickup_location" :value="old('pickup_location')" required disabled />
-                        
-                            <x-input-error :messages="$errors->get('pickup_location')" class="mt-2" /> --}}
-                       
-
-
-                    </div>
+                    <input type="hidden" id="pickup_location" name="pickup_location" value="{{ session('location') }}">
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md">
                         {{ __('Join') }} - HK$ {{ number_format($price, 0) }}
                     </button>
@@ -236,7 +220,7 @@
                 @endif
                 
                 <!-- 離開拼車表單 - 所有用戶都可以離開 -->
-                <div class="mt-8">
+                <div class="mt-6">
                     <form action="{{ route('trips.leave', $trip) }}" method="POST" onsubmit="return confirm('Are you sure you want to leave this trip?');">
                         @csrf
                         @method('DELETE')

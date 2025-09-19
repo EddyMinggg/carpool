@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TripJoin;
 use Illuminate\Http\Request;
 use App\Models\Trip;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -15,9 +17,9 @@ class TripController extends Controller
      */
     public function index()
     {
-        $trips = Trip::paginate(10);
+        $tripJoins = TripJoin::where('user_id', Auth::user()->id)->paginate(10);
 
-        return view('trips.index', compact('trips'));
+        return view('trips.index', compact('tripJoins'));
     }
 
     /**
@@ -33,22 +35,7 @@ class TripController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'pickup_location' => 'nullable|string|max:100',
-            'dropoff_location' => 'required|string|max:100',
-            'planned_departure_time' => 'required|date_format:Y-m-d H:i',
-        ]);
-
-        Trip::create([
-            'creator_id' => $request->user()->id,
-            'pickup_location' => $request->input('pickup_location'),
-            'dropoff_location' => $request->input('dropoff_location'),
-            'planned_departure_time' => $request->input('planned_departure_time'),
-            'max_people' => $request->has('private') ? 1 : 10,
-            'base_price' => 100,
-        ]);
-
-        return redirect(route('trips'));
+        //
     }
 
     /**
@@ -97,8 +84,8 @@ class TripController extends Controller
         }
 
         // 格式化時間
-        $departureTime = \Carbon\Carbon::parse($trip->planned_departure_time);
-        $timeUntilDeparture = $departureTime->diffInMinutes(now(), false);
+        $departureTime = Carbon::parse($trip->planned_departure_time);
+        $timeUntilDeparture = - ($departureTime->diffInMinutes(now(), false));
 
         return view('trips.show_mobile', compact(
             'trip',
@@ -145,9 +132,9 @@ class TripController extends Controller
         $groupedTrips = $trips->filter(function ($trip) {
             return !empty($trip->planned_departure_time);
         })->map(function ($trip) {
-            $dt = $trip->planned_departure_time instanceof \Carbon\Carbon
+            $dt = $trip->planned_departure_time instanceof Carbon
                 ? $trip->planned_departure_time
-                : \Carbon\Carbon::parse($trip->planned_departure_time);
+                : Carbon::parse($trip->planned_departure_time);
             $trip->date = $dt->format('Y-m-d');
             $trip->formatted_departure_time = $dt->format('H:i');
             $trip->current_people = isset($trip->joins) ? $trip->joins->count() : 0;
@@ -163,17 +150,15 @@ class TripController extends Controller
         $dates = $groupedTrips->keys()->sort();
         $dateList = $dates->map(function ($date) {
             return [
-                'label' => \Carbon\Carbon::parse($date)->format('D M d'),
+                'label' => Carbon::parse($date)->format('D M d'),
                 'value' => $date
             ];
         });
-        $ua = strtolower($request->header('User-Agent', ''));
-        $isMobile = preg_match('/mobile|android|iphone|ipad|ipod|blackberry|phone/i', $ua);
-        $view = $isMobile ? 'dashboard_mobile' : 'dashboard';
+
 
         $trips = Trip::paginate(10);
 
-        return view($view, [
+        return view('dashboard', [
             'groupedTrips' => $groupedTrips,
             'dates' => $dates,
             'dateList' => $dateList,
@@ -200,7 +185,7 @@ class TripController extends Controller
         }
 
         // 檢查行程狀態
-        if ($trip->trip_status !== 'pending') {
+        if ($trip->trip_status !== 'awaiting') {
             return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
         }
 

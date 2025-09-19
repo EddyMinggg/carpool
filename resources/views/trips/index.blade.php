@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Trips') }}
+            {{ __('Trip History') }}
         </h2>
     </x-slot>
 
@@ -18,7 +18,7 @@
                 </div>
                 <input type="text" id="table-search-users"
                     class="block w-full md:w-64 pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="Search for users">
+                    placeholder="Search for orders">
             </div>
         </div>
         <div class="rounded-lg overflow-auto shadow-md w-full">
@@ -32,43 +32,46 @@
                             {{ __('Dropoff Location') }}
                         </th>
                         <th scope="col" class="px-6 py-3">
-                            {{ __('Status') }}
+                            {{ __('Departure Time') }}
                         </th>
                         <th scope="col" class="px-6 py-3">
-                            Action
+                            {{ __('Fee') }}
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            {{ __('Status') }}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($trips as $trip)
+                    @foreach ($tripJoins as $join)
                         <tr
                             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4">
-                                {{ $trip->pickup_location }}
+                                {{ $join->pickup_location }}
                             </td>
                             <td class="px-6 py-4">
-                                {{ $trip->dropoff_location }}
+                                {{ $join->trip->dropoff_location }}
+                            </td>
+                            <td class="px-6 py-4">
+                                {{ $join->trip->planned_departure_time }}
+                            </td>
+                            <td class="px-6 py-4">
+                                {{ '$' . $join->user_fee }}
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
                                     <span
                                         class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
-                                                    {{ $trip->trip_status === 'pending'
+                                                    {{ $join->trip->trip_status === 'awaiting'
                                                         ? 'bg-blue-100 text-blue-800'
-                                                        : ($trip->trip_status === 'voting'
+                                                        : ($join->trip->trip_status === 'voting'
                                                             ? 'bg-yellow-100 text-yellow-800'
-                                                            : ($trip->trip_status === 'completed'
+                                                            : ($join->trip->trip_status === 'completed'
                                                                 ? 'bg-green-100 text-green-800'
                                                                 : 'bg-red-100 text-red-800')) }}">
-                                        {{ ucfirst($trip->trip_status) }}
+                                        {{ ucfirst($join->trip->trip_status) }}
                                     </span>
                                 </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <!-- Modal toggle -->
-                                <a href="#" type="button" data-modal-target="editUserModal"
-                                    data-modal-show="editUserModal"
-                                    class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
                             </td>
                         </tr>
                     @endforeach

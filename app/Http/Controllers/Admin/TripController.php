@@ -40,7 +40,7 @@ class TripController extends Controller
             'dropoff_location' => 'required|string|max:100',
             'planned_departure_time' => 'required|date_format:Y-m-d\TH:i',
             'max_people' => 'required|integer|min:1|max:10',
-            'trip_status' => 'required|in:pending,voting,departed,completed,cancelled',
+            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled',
             'base_price' => 'required|integer|min:0',
             'is_private' => 'nullable|boolean',
             'pickup_location' => 'nullable|string|max:100'
