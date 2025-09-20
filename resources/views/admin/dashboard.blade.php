@@ -25,17 +25,17 @@
                         </div>
                     </div>
                 </div>
-                <!-- 總行程數卡片 -->
+                <!-- 總用戶數卡片 -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-gray-500 font-medium">Total Trips</h3>
-                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                                <i class="fa fa-car"></i>
+                            <h3 class="text-gray-500 font-medium">Total Users</h3>
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                <i class="fa fa-users"></i>
                             </div>
                         </div>
                         <div class="flex items-end justify-between">
-                            <p class="text-3xl font-bold text-gray-900">{{ $totalTrips }}</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ $totalUsers }}</p>
                         </div>
                     </div>
                 </div>
