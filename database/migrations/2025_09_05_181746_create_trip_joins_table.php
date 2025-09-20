@@ -9,12 +9,15 @@ return new class extends Migration
     public function up()
     {
         Schema::create('trip_joins', function (Blueprint $table) {
+            $table->id('id');
             // 联合主键：确保一个用户在一个行程中只能参与一次
+
             $table->foreignId('trip_id')->constrained('trips', 'id')
-                  ->cascadeOnDelete();
+                ->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users', 'id')
-                  ->cascadeOnDelete();
-            $table->primary(['trip_id', 'user_id']);
+                ->cascadeOnDelete();
+
+            $table->unique(['trip_id', 'user_id']);
 
             // 参与信息
             $table->enum('join_role', ['creator', 'normal']);
@@ -26,7 +29,8 @@ return new class extends Migration
             // 投票信息（JSON格式，未投票为null）
             $table->json('vote_info')->nullable();
 
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate();
         });
     }
 
@@ -35,4 +39,3 @@ return new class extends Migration
         Schema::dropIfExists('trip_joins');
     }
 };
-    

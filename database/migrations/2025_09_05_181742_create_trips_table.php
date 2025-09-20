@@ -14,7 +14,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->string('pickup_location', 100)->nullable();
             $table->string('dropoff_location', 100);
-            $table->timestamp('planned_departure_time');
+            $table->timestamp('planned_departure_time')->nullable();
             $table->timestamp('actual_departure_time')->nullable();
             $table->integer('max_people');
             $table->integer('base_price');
@@ -27,7 +27,8 @@ return new class extends Migration
                 'cancelled'   // 已取消
             ])->default('awaiting');
             $table->softDeletes();
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate();
         });
     }
 
