@@ -240,7 +240,7 @@
                 <thead>
                     <tr>
                         <th>Trip ID</th>
-                        <th>Route</th>
+                        <th>Destination</th>
                         <th>Departure Time</th>
                         <th>Capacity</th>
                         <th>Status</th>
@@ -251,7 +251,7 @@
                         @foreach($upcomingTrips as $trip)
                             <tr>
                                 <td>{{ $trip->id }}</td>
-                                <td>{{ $trip->pickup_location }} → {{ $trip->dropoff_location }}</td>
+                                <td>{{ $trip->dropoff_location }}</td>
                                 <td>{{ $trip->planned_departure_time->format('Y-m-d H:i') }}</td>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">

@@ -96,7 +96,7 @@ class TripController extends Controller
             'userVoteStatus',
             'timeUntilDeparture',
             'departureTime'
-        ));
+        ))->with('userHasJoined', $hasJoined);
     }
 
     /**
