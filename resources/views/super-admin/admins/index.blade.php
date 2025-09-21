@@ -126,6 +126,250 @@
         .dataTables_paginate {
             padding-top: 1rem !important;
         }
+        
+        /* === 移動設備響應式設計 === */
+        @media (max-width: 768px) {
+            /* 頁面標題移動版 */
+            .admin-header {
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+            
+            .admin-header h1 {
+                font-size: 1.5rem !important;
+                margin-bottom: 0.5rem;
+            }
+            
+            /* 統計卡片移動版 - 改為單列顯示 */
+            .stats-grid {
+                display: block !important;
+            }
+            
+            .stats-row {
+                display: block !important;
+                margin-bottom: 0 !important;
+            }
+            
+            .stats-card-blue,
+            .stats-card-green,
+            .stats-card-purple,
+            .stats-card-red {
+                margin-bottom: 1rem !important;
+                padding: 1.25rem !important;
+            }
+            
+            .stats-icon-bg {
+                padding: 0.75rem !important;
+                flex-shrink: 0;
+            }
+            
+            .stats-icon-bg i {
+                font-size: 1.25rem !important;
+            }
+            
+            /* 角色過濾器移動版 */
+            .role-filter {
+                margin-bottom: 1.5rem !important;
+                text-align: center;
+            }
+            
+            .role-filter .btn {
+                margin: 0.25rem !important;
+                padding: 0.5rem 1rem !important;
+                font-size: 0.875rem !important;
+            }
+            
+            /* Add Admin 按鈕移動版 */
+            .add-admin-btn {
+                width: 100% !important;
+                text-align: center;
+                margin-bottom: 1rem !important;
+                padding: 0.75rem !important;
+                font-size: 0.875rem !important;
+            }
+            
+            /* 表格容器移動版 */
+            .table-container {
+                padding: 1rem !important;
+                margin: 0 -0.5rem;
+                border-radius: 0.5rem !important;
+            }
+            
+            /* DataTables 移動版優化 */
+            .dataTables_wrapper {
+                font-size: 0.875rem !important;
+            }
+            
+            /* 搜索框和長度選擇器移動版 */
+            .dataTables_filter,
+            .dataTables_length {
+                text-align: center !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .dataTables_filter input,
+            .dataTables_length select {
+                padding: 0.5rem !important;
+                border-radius: 0.375rem !important;
+                border: 1px solid #d1d5db !important;
+                font-size: 0.875rem !important;
+            }
+            
+            /* 表格移動版 - 隱藏部分列 */
+            #adminsTable th:nth-child(1),
+            #adminsTable td:nth-child(1) {
+                display: none; /* 隱藏 ID */
+            }
+            
+            #adminsTable th:nth-child(3),
+            #adminsTable td:nth-child(3) {
+                display: none; /* 隱藏 Email */
+            }
+            
+            #adminsTable th:nth-child(5),
+            #adminsTable td:nth-child(5) {
+                display: none; /* 隱藏 Created */
+            }
+            
+            /* 保留的列進行優化 */
+            #adminsTable th,
+            #adminsTable td {
+                padding: 0.5rem 0.25rem !important;
+                font-size: 0.8rem !important;
+                vertical-align: middle !important;
+            }
+            
+            #adminsTable th:nth-child(2),
+            #adminsTable td:nth-child(2) {
+                width: 35% !important; /* Name */
+            }
+            
+            #adminsTable th:nth-child(4),
+            #adminsTable td:nth-child(4) {
+                width: 25% !important; /* Role */
+                text-align: center !important;
+            }
+            
+            #adminsTable th:nth-child(6),
+            #adminsTable td:nth-child(6) {
+                width: 40% !important; /* Actions */
+                text-align: center !important;
+            }
+            
+            /* Action 按鈕移動版 */
+            .action-btn {
+                display: block !important;
+                margin: 0.125rem 0 !important;
+                padding: 0.375rem 0.5rem !important;
+                font-size: 0.75rem !important;
+                width: 100% !important;
+                text-align: center !important;
+            }
+            
+            /* Role badge 移動版 */
+            .badge {
+                padding: 0.125rem 0.5rem !important;
+                font-size: 0.625rem !important;
+                display: inline-block;
+                white-space: nowrap;
+            }
+            
+            /* 分頁信息移動版 */
+            .dataTables_info,
+            .dataTables_paginate {
+                text-align: center !important;
+                font-size: 0.75rem !important;
+            }
+            
+            .dataTables_paginate .paginate_button {
+                padding: 0.25rem 0.5rem !important;
+                margin: 0 0.125rem !important;
+                font-size: 0.75rem !important;
+            }
+            
+            /* 添加移動設備專用的快速操作區 */
+            .mobile-quick-actions {
+                display: flex;
+                justify-content: space-around;
+                background: #f8fafc;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin: 1rem 0;
+                border: 1px solid #e2e8f0;
+            }
+            
+            .mobile-quick-action {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-decoration: none;
+                color: #6b7280;
+                transition: color 0.2s;
+            }
+            
+            .mobile-quick-action:hover {
+                color: #3b82f6;
+            }
+            
+            .mobile-quick-action i {
+                font-size: 1.25rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .mobile-quick-action span {
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+        }
+        
+        /* 小屏幕設備 (< 640px) 進一步優化 */
+        @media (max-width: 640px) {
+            .admin-header h1 {
+                font-size: 1.25rem !important;
+            }
+            
+            .stats-card-blue,
+            .stats-card-green,
+            .stats-card-purple,
+            .stats-card-red {
+                padding: 1rem !important;
+            }
+            
+            .table-container {
+                padding: 0.75rem !important;
+                margin: 0 -0.25rem;
+            }
+            
+            /* 進一步簡化表格 */
+            #adminsTable th,
+            #adminsTable td {
+                padding: 0.375rem 0.125rem !important;
+                font-size: 0.75rem !important;
+            }
+            
+            /* Action 按鈕堆疊顯示 */
+            .mobile-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+        }
+        
+        /* 橫屏手機優化 */
+        @media (max-width: 896px) and (orientation: landscape) {
+            .stats-row {
+                display: flex !important;
+                gap: 1rem !important;
+            }
+            
+            .stats-card-blue,
+            .stats-card-green,
+            .stats-card-purple,
+            .stats-card-red {
+                flex: 1;
+                margin-bottom: 0.5rem !important;
+            }
+        }
 
         /* Action 按鈕樣式 */
         .action-btn {
@@ -196,34 +440,35 @@
         }
     </style>
 
-    <div class="mb-6">
+    <div class="mb-6 admin-header">
         <div class="flex justify-between items-center">
-            <h2 class="text-2xl font-bold text-gray-800">Admin Management</h2>
-            <a href="{{ route('super-admin.admins.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+            <h1 class="text-2xl font-bold text-gray-800">Admin Management</h1>
+            <a href="{{ route('super-admin.admins.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors add-admin-btn">
                 <i class="fas fa-plus mr-2"></i>Create New Admin
             </a>
         </div>
     </div>
     
-    <!-- Stats Summary -->
-    <div style="display: flex; gap: 4rem; margin-bottom: 1.5rem;">
-        <div class="stats-card-red" style="flex: 1;">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-white text-opacity-80 text-sm font-medium mb-1">Super Admins</p>
-                    <p class="text-3xl font-bold" id="super-admins">
-                        {{ $admins->where('is_admin', 2)->count() }}
-                    </p>
-                </div>
-                <div class="stats-icon-bg">
-                    <i class="fas fa-crown text-2xl"></i>
+    <!-- Stats Summary - 響應式網格 -->
+    <div class="mb-6 stats-grid">
+        <div class="stats-row" style="display: flex; gap: 4rem; margin-bottom: 1.5rem;">
+            <div class="stats-card-red" style="flex: 1;">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white text-opacity-80 text-sm font-medium mb-1">Super Admins</p>
+                        <p class="text-3xl font-bold" id="super-admins">
+                            {{ $admins->where('is_admin', 2)->count() }}
+                        </p>
+                    </div>
+                    <div class="stats-icon-bg">
+                        <i class="fas fa-crown text-2xl"></i>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="stats-card-blue" style="flex: 1;">
-            <div class="flex items-center justify-between">
-                <div>
+            
+            <div class="stats-card-blue" style="flex: 1;">
+                <div class="flex items-center justify-between">
+                    <div>
                     <p class="text-white text-opacity-80 text-sm font-medium mb-1">Admins</p>
                     <p class="text-3xl font-bold" id="regular-admins">
                         {{ $admins->where('is_admin', 1)->count() }}
@@ -236,10 +481,31 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- 移動設備快速操作區 -->
+    <div class="mobile-quick-actions d-md-none">
+        <a href="{{ route('super-admin.admins.create') }}" class="mobile-quick-action">
+            <i class="fas fa-user-plus"></i>
+            <span>Add Admin</span>
+        </a>
+        <a href="#" onclick="$('#role-filter').val('Admin').change()" class="mobile-quick-action">
+            <i class="fas fa-user-tie"></i>
+            <span>Admins</span>
+        </a>
+        <a href="#" onclick="$('#role-filter').val('Super Admin').change()" class="mobile-quick-action">
+            <i class="fas fa-crown"></i>
+            <span>Super Admins</span>
+        </a>
+        <a href="#" onclick="$('#role-filter').val('').change()" class="mobile-quick-action">
+            <i class="fas fa-users"></i>
+            <span>All</span>
+        </a>
+    </div>
+
+    <!-- Admin Table with DataTable -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden table-container">
         <div class="p-6">
             <!-- Role Filter -->
-            <div class="mb-4">
+            <div class="mb-4 role-filter">
                 <label for="role-filter" class="block text-sm font-medium text-gray-700 mb-2">Filter by Role:</label>
                 <select id="role-filter" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">All Roles</option>
@@ -310,33 +576,84 @@
 $(document).ready(function() {
     var table; // 在全局作用域聲明
     
-    // 初始化 DataTable
-    table = $('#adminsTable').DataTable({
-        responsive: true,
-        pageLength: 10,
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-        order: [[0, 'asc']], // 按 ID 排序
-        columnDefs: [
-            {
-                targets: [5], // Actions column
-                orderable: false,
-                searchable: false
+    // 檢測是否為移動設備
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+    
+    // 動態配置 DataTable 設置
+    function getDataTableConfig() {
+        const baseConfig = {
+            responsive: true,
+            pageLength: isMobile() ? 5 : 10,
+            lengthMenu: isMobile() ? [[5, 10, 25], [5, 10, 25]] : [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[0, 'asc']], // 按 ID 排序
+            columnDefs: [
+                {
+                    targets: [5], // Actions column
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+            dom: isMobile() ? 'frtlip' : 'Bfrtlip', // 移動設備隱藏按鈕
+            language: {
+                search: "Search admins:",
+                lengthMenu: "Show _MENU_ admins per page",
+                info: "Showing _START_ to _END_ of _TOTAL_ admins",
+                infoEmpty: "No admins found",
+                infoFiltered: "(filtered from _MAX_ total admins)",
+                emptyTable: "No administrators found",
+                zeroRecords: "No admins match your search criteria",
+                paginate: {
+                    first: "First",
+                    last: "Last",
+                    next: "Next",
+                    previous: "Previous"
+                }
             }
-        ],
-        dom: 'Bfrtlip',
-        buttons: [
-            {
-                extend: 'copy',
-                text: '<i class="fas fa-copy"></i> Copy',
-                className: 'dt-button',
-                titleAttr: 'Copy table data to clipboard'
-            },
-            {
-                extend: 'csv',
-                text: '<i class="fas fa-file-csv"></i> CSV',
-                className: 'dt-button',
-                titleAttr: 'Export to CSV format'
-            },
+        };
+        
+        // 僅在桌面版添加按鈕
+        if (!isMobile()) {
+            baseConfig.buttons = [
+                {
+                    extend: 'copy',
+                    text: '<i class="fas fa-copy"></i> Copy',
+                    className: 'dt-button',
+                    titleAttr: 'Copy table data to clipboard'
+                },
+                {
+                    extend: 'csv',
+                    text: '<i class="fas fa-file-csv"></i> CSV',
+                    className: 'dt-button',
+                    titleAttr: 'Export to CSV format'
+                },
+                {
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel"></i> Excel',
+                    className: 'dt-button',
+                    titleAttr: 'Export to Excel format'
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="fas fa-file-pdf"></i> PDF',
+                    className: 'dt-button',
+                    titleAttr: 'Export to PDF format'
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="fas fa-print"></i> Print',
+                    className: 'dt-button',
+                    titleAttr: 'Print table'
+                }
+            ];
+        }
+        
+        return baseConfig;
+    }
+    
+    // 初始化 DataTable
+    table = $('#adminsTable').DataTable(getDataTableConfig());
             {
                 extend: 'excel',
                 text: '<i class="fas fa-file-excel"></i> Excel',
@@ -423,6 +740,85 @@ $(document).ready(function() {
             $('#super-admins').text('{{ $admins->where("is_admin", 2)->count() }}');
             $('#regular-admins').text('{{ $admins->where("is_admin", 1)->count() }}');
         }
+    }
+    
+    // 處理窗口大小變化
+    $(window).on('resize', function() {
+        // 重新計算 DataTable 布局
+        table.columns.adjust().responsive.recalc();
+        
+        // 如果屏幕大小變化跨越了移動/桌面邊界，重新初始化表格
+        const currentIsMobile = isMobile();
+        if (window.lastIsMobile !== currentIsMobile) {
+            window.lastIsMobile = currentIsMobile;
+            
+            // 銷毀當前表格並重新初始化
+            table.destroy();
+            table = $('#adminsTable').DataTable(getDataTableConfig());
+            
+            // 重新綁定角色過濾器
+            $('#role-filter').off('change').on('change', function() {
+                var selectedRole = $(this).val();
+                console.log('Filter changed to:', selectedRole);
+                
+                if (selectedRole === '') {
+                    table.search('').columns().search('').draw();
+                } else {
+                    table.column(4).search(selectedRole, false, false).draw();
+                }
+            });
+        }
+    });
+    
+    // 設置初始狀態
+    window.lastIsMobile = isMobile();
+    
+    // 移動設備觸控優化
+    if (isMobile()) {
+        // 增加觸控目標大小
+        $('#adminsTable tbody tr').on('touchstart', function() {
+            $(this).addClass('bg-gray-50');
+        }).on('touchend', function() {
+            $(this).removeClass('bg-gray-50');
+        });
+        
+        // 優化搜索框在移動設備上的行為
+        $('.dataTables_filter input').attr('placeholder', 'Search admins...');
+        
+        // 為移動設備添加快速滾動到頂部按鈕
+        if ($('#adminsTable tbody tr').length > 5) {
+            $('<button>')
+                .addClass('btn btn-sm btn-secondary position-fixed')
+                .css({
+                    'bottom': '20px',
+                    'right': '20px',
+                    'z-index': '1000',
+                    'border-radius': '50%',
+                    'width': '50px',
+                    'height': '50px',
+                    'display': 'none'
+                })
+                .html('<i class="fas fa-chevron-up"></i>')
+                .attr('id', 'scrollToTop')
+                .appendTo('body')
+                .on('click', function() {
+                    $('html, body').animate({ scrollTop: 0 }, 300);
+                });
+            
+            $(window).on('scroll', function() {
+                if ($(this).scrollTop() > 300) {
+                    $('#scrollToTop').fadeIn();
+                } else {
+                    $('#scrollToTop').fadeOut();
+                }
+            });
+        }
+        
+        // 移動設備Action按鈕優化
+        $('#adminsTable tbody tr').each(function() {
+            const actionCell = $(this).find('td:last-child');
+            actionCell.addClass('mobile-actions');
+        });
     }
 });
 
