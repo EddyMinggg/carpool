@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -98,7 +99,7 @@ class TripController extends Controller
     {
         // 删除相关的 trip_joins 记录
         $trip->joins()->delete();
-        
+
         // 删除 trip 记录
         $trip->delete();
 
@@ -228,10 +229,10 @@ class TripController extends Controller
     private function updateAllUserFees(Trip $trip)
     {
         $currentPeople = $trip->joins()->count();
-        
+
         if ($currentPeople > 0) {
             $newFee = $trip->base_price / $currentPeople;
-            
+
             DB::table('trip_joins')
                 ->where('trip_id', $trip->id)
                 ->update(['user_fee' => $newFee]);

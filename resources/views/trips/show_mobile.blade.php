@@ -1,3 +1,4 @@
+@section('Title', $trip->dropoff_location)
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
@@ -137,15 +138,16 @@
         @endif
 
         <!-- 倒計時區域 -->
-        @if ($timeUntilDeparture > 0)
-            <div
-                class="bg-gradient-to-r from-orange-400 dark:from-orange-500 to-red-500 dark:to-red-600 text-white rounded-xl p-4 text-center shadow-md mt-6">
-                <div class="text-sm mb-1">{{ __('Departure in') . ' (HH:MM)' }}</div>
-                <div class="text-2xl font-bold">
-                    {{ floor($timeUntilDeparture / 60) }}:{{ str_pad($timeUntilDeparture % 60, 2, '0', STR_PAD_LEFT) }}
-                </div>
+        <div
+            id="cd"
+            class="bg-gradient-to-r from-orange-400 dark:from-orange-500 to-red-500 dark:to-red-600 text-white rounded-xl p-4 text-center shadow-md mt-6 hidden">
+            <div class="text-sm mb-1">{{ __('Departure in') }}</div>
+            <div class="text-2xl font-bold">
+                <span id="cd-hours">--</span> :
+                <span id="cd-minutes">--</span> :
+                <span id="cd-seconds">--</span>
             </div>
-        @endif
+        </div>
 
 
         <!-- 投票狀態 -->
@@ -328,12 +330,46 @@
 <script type="module">
     $(document).ready(function() {
 
-         $('#confirm').on('click', function() {
+        $('#confirm').on('click', function() {
             if ($(this).is(':checked')) {
                 $('#proceed-button').prop("disabled", false);
             } else {
                 $('#proceed-button').prop("disabled", true);
             }
         });
+
+        let timer = function(date) {
+            let timer = Math.round(new Date(date).getTime() / 1000) - Math.round(new Date().getTime() /
+                1000);
+            let days, hours, minutes, seconds;
+            setInterval(function() {
+                if (--timer < 0) {
+                    timer = 0;
+                }
+                days = parseInt(timer / 60 / 60 / 24, 10);
+                
+                if (days <= 1) {
+                    $('#cd').show();
+                }
+
+                hours = parseInt((timer / 60 / 60) % 24, 10);
+                minutes = parseInt((timer / 60) % 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                hours = hours < 10 ? "0" + hours : hours;
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                $('#cd-days').html(days);
+                $('#cd-hours').html(hours);
+                $('#cd-minutes').html(minutes);
+                $('#cd-seconds').html(seconds);
+            }, 1000);
+        };
+
+        //using the function
+        const today = new Date();
+        const plannedDepartureTime = new Date('{{ $trip->planned_departure_time }}');
+        timer(plannedDepartureTime);
     })
 </script>
