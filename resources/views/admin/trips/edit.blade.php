@@ -26,15 +26,12 @@
                 @enderror
             </div>
 
-            <!-- Start Place -->
-            <div class="mb-4">
-                <label for="pickup_location" class="block text-sm font-medium text-gray-700 mb-1">Start Place</label>
-                <input type="text" name="pickup_location" id="pickup_location" 
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value="{{ old('pickup_location', $trip->pickup_location) }}">
-                @error('pickup_location')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+            <!-- StartPoint Note -->
+            <div class="mb-6 p-4 bg-blue-50 rounded-md border border-blue-100">
+                <p class="text-sm text-blue-800">
+                    <i class="fa fa-info-circle mr-2"></i>
+                    The starting point is set by individual users when they join the trip, not by the admin
+                </p>
             </div>
 
             <!-- End Place -->
@@ -68,16 +65,6 @@
                 @error('max_people')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-            </div>
-
-            <!-- Is Private -->
-            <div class="mb-4">
-                <label class="flex items-center">
-                    <input type="checkbox" name="is_private" 
-                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        {{ $trip->is_private ? 'checked' : '' }}>
-                    <span class="ml-2 text-sm text-gray-700">Private Trip (invitation only)</span>
-                </label>
             </div>
 
             <!-- Trip Status -->

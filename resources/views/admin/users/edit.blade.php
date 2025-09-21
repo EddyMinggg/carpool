@@ -30,10 +30,25 @@
                 @enderror
             </div>
             <div class="mb-4">
-                <label class="flex items-center">
-                    <input type="checkbox" name="is_admin" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {{ old('is_admin', $user->is_admin) ? 'checked' : '' }}>
-                    <span class="ml-2 text-sm text-gray-700">Admin</span>
-                </label>
+                @if(Auth::user()->is_admin === 2)
+                    <!-- Super Admin 可以設定任何角色 -->
+                    <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select name="is_admin" id="role" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="0" {{ old('is_admin', $user->is_admin) == 0 ? 'selected' : '' }}>User</option>
+                        <option value="1" {{ old('is_admin', $user->is_admin) == 1 ? 'selected' : '' }}>Admin</option>
+                        <option value="2" {{ old('is_admin', $user->is_admin) == 2 ? 'selected' : '' }}>Super Admin</option>
+                    </select>
+                @else
+                    <!-- 普通 Admin 只能設定 User/Admin (不能設定 Super Admin) -->
+                    <label class="flex items-center">
+                        <input type="checkbox" name="is_admin" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {{ old('is_admin', $user->is_admin) == 1 ? 'checked' : '' }}>
+                        <span class="ml-2 text-sm text-gray-700">Admin</span>
+                    </label>
+                    @if($user->is_admin === 2)
+                        <p class="mt-2 text-sm text-gray-500">This user is a Super Admin and cannot be modified by regular admins.</p>
+                        <input type="hidden" name="is_admin" value="{{ $user->is_admin }}">
+                    @endif
+                @endif
             </div>
             <div class="flex space-x-4">
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Update User</button>

@@ -19,7 +19,6 @@ class Trip extends Model
         'planned_departure_time',
         'actual_departure_time',
         'max_people',
-        'is_private',
         'trip_status',
         'base_price'
     ];
@@ -27,7 +26,6 @@ class Trip extends Model
     protected $casts = [
         'planned_departure_time' => 'datetime',
         'actual_departure_time' => 'datetime',
-        'is_private' => 'boolean',
         'base_price' => 'decimal:2'
     ];
 

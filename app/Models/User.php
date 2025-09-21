@@ -55,10 +55,33 @@ class User extends Authenticatable
     // Role constants
     public const ROLE_USER = 0;
     public const ROLE_ADMIN = 1;
+    public const ROLE_SUPER_ADMIN = 2;
 
-    // Check if user is admin
+    // Check if user is admin (includes super admin)
     public function isAdmin(): bool
     {
+        return $this->is_admin >= self::ROLE_ADMIN;
+    }
+
+    // Check if user is super admin
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_admin === self::ROLE_SUPER_ADMIN;
+    }
+
+    // Check if user is regular admin (not super admin)
+    public function isRegularAdmin(): bool
+    {
         return $this->is_admin === self::ROLE_ADMIN;
+    }
+
+    // Get role name
+    public function getRoleName(): string
+    {
+        return match($this->is_admin) {
+            self::ROLE_SUPER_ADMIN => 'Super Admin',
+            self::ROLE_ADMIN => 'Admin',
+            default => 'User'
+        };
     }
 }

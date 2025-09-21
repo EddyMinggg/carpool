@@ -18,13 +18,11 @@ return new class extends Migration
             $table->timestamp('actual_departure_time')->nullable();
             $table->integer('max_people');
             $table->integer('base_price');
-            $table->boolean('is_private')->default(false);
             $table->enum('trip_status', [
-                'awaiting',    // 待拼中
-                'voting',     // 投票中
-                'departed',   // 已发车
-                'completed',  // 已完成
-                'cancelled'   // 已取消
+                'awaiting',
+                'departed',
+                'completed',
+                'cancelled'
             ])->default('awaiting');
             $table->softDeletes();
             $table->timestamp('created_at')->useCurrent();

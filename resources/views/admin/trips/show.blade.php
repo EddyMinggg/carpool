@@ -31,10 +31,6 @@
                 <p class="text-gray-900">{{ $trip->max_people }} people</p>
             </div>
             <div class="py-3">
-                <p class="text-sm text-gray-500">Is Private</p>
-                <p class="text-gray-900">{{ $trip->is_private ? 'Yes' : 'No' }}</p>
-            </div>
-            <div class="py-3">
                 <p class="text-sm text-gray-500">Base Price</p>
                 <p class="text-gray-900">¥{{ number_format($trip->base_price, 2) }}</p>
             </div>

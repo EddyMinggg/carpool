@@ -1,17 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Carpool Management System - Admin Panel')</title>
+    
+    <title>@yield('title', 'Super Admin') - {{ config('app.name', 'Laravel') }}</title>
+    
+    <!-- CSS -->
     <link href="{{ asset('css/tailwind.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    
     <style>
         .sidebar {
             width: 240px !important;
@@ -22,59 +28,53 @@
             z-index: 10;
         }
 
-        /* Key update: Add w-full and remove any max-width */
         .main-content {
             margin-left: 240px !important;
             min-height: 100vh;
             padding: 20px;
             box-sizing: border-box;
-            width: calc(100% - 240px) !important; /* Critical: Fill remaining width */
-            max-width: none !important; /* Ensure no max-width limits it */
+            width: calc(100% - 240px) !important;
+            max-width: none !important;
         }
     </style>
 </head>
 <body class="bg-gray-100 p-0 m-0">
     <div class="flex">
-        <!-- Sidebar: Use the fixed width class -->
+        <!-- Sidebar -->
         <aside class="sidebar bg-gray-800 text-white">
             <div class="p-4 border-b border-gray-700">
-                <h1 class="text-xl font-bold">Carpool Management</h1>
+                <h1 class="text-xl font-bold">🚀 Super Admin</h1>
+                <p class="text-gray-300 text-sm">{{ Auth::user()->username }}</p>
             </div>
+            
             <nav class="p-4">
-                <a href="{{ route('admin.dashboard') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
-                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
-                </a>
-                <a href="{{ route('admin.users.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
-                    <i class="fas fa-users mr-3"></i>Users
-                </a>
-                <a href="{{ route('admin.trips.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.trips.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
-                    <i class="fas fa-route mr-3"></i>Trips
-                </a>
-                <a href="{{ route('admin.orders.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.orders.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
-                    <i class="fas fa-shopping-cart mr-3"></i>Orders
-                </a>
-                <a href="{{ route('admin.coupons.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.coupons.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
-                    <i class="fas fa-ticket-alt mr-3"></i>Coupons
-                </a>
+                <div class="mb-4">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Admin Management</h3>
+                    <a href="{{ route('super-admin.admins.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('super-admin.admins.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                        <i class="fas fa-users-cog mr-2"></i> Manage Admins
+                    </a>
+                </div>
                 
-                @if(Auth::user()->isSuperAdmin())
-                    <div class="border-t border-gray-700 mt-4 pt-4">
-                        <a href="{{ route('super-admin.dashboard') }}" class="block py-2 px-3 rounded mb-2 bg-red-600 hover:bg-red-700 text-white">
-                            <i class="fas fa-crown mr-3"></i>Super Admin Panel
-                        </a>
-                    </div>
-                @endif
+                <div class="mb-4">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Quick Access</h3>
+                    <a href="{{ route('admin.dashboard') }}" class="block py-2 px-3 rounded mb-2 hover:bg-gray-700 text-gray-200">
+                        <i class="fas fa-tachometer-alt mr-2"></i> Admin Panel
+                    </a>
+                    <a href="{{ route('dashboard') }}" class="block py-2 px-3 rounded mb-2 hover:bg-gray-700 text-gray-200">
+                        <i class="fas fa-home mr-2"></i> User Dashboard
+                    </a>
+                </div>
                 
                 <form action="{{ route('logout') }}" method="POST" class="mt-6">
                     @csrf
                     <button type="submit" class="w-full text-left py-2 px-3 rounded hover:bg-gray-700 text-gray-200">
-                        <i class="fas fa-sign-out-alt mr-3"></i>Logout
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
                     </button>
                 </form>
             </nav>
         </aside>
-
-        <!-- Main Content: Use the margin-matched class -->
+        
+        <!-- Main Content -->
         <main class="main-content">
             <!-- Top Notifications -->
             @if(session('success'))
@@ -88,12 +88,12 @@
                     {{ session('error') }}
                 </div>
             @endif
-
+            
             <!-- Page Content -->
             @yield('content')
         </main>
     </div>
-
+    
     <!-- DataTables JavaScript -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>

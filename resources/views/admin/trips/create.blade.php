@@ -63,16 +63,6 @@
                 @enderror
             </div>
 
-            <!-- Private trip -->
-            <div class="mb-4">
-                <label class="flex items-center">
-                    <input type="checkbox" name="is_private" 
-                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        {{ old('is_private') ? 'checked' : '' }}>
-                    <span class="ml-2 text-sm text-gray-700">Private Trip (invitation only)</span>
-                </label>
-            </div>
-
             <!-- Base Price -->
             <div class="mb-6">
                 <label for="base_price" class="block text-sm font-medium text-gray-700 mb-1">Base Price (¥) <span class="text-red-500">*</span></label>

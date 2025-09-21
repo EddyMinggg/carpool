@@ -1,87 +1,10 @@
-@extends('admin.layout')
+@extends('super-admin.layout')
 
-@section('title', 'User Management')
+@section('title', 'Admin Management')
 
 @section('content')
     <style>
-        /* 自定義DataTable樣式 */
-        .dataTables_wrapper {
-            padding: 0;
-        }
-        
-        .dataTables_filter {
-            float: right;
-            margin-bottom: 1rem;
-        }
-        
-        .dataTables_filter input {
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            padding: 0.5rem;
-            margin-left: 0.5rem;
-        }
-        
-        .dataTables_length {
-            margin-top: 1.5rem !important;
-            margin-bottom: 1rem !important;
-        }
-        
-        .dataTables_length select {
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            padding: 0.25rem;
-            margin: 0 0.5rem;
-        }
-        
-        .dataTables_info {
-            padding-top: 1.5rem !important;
-            margin-bottom: 0.5rem !important;
-        }
-        
-        .dataTables_paginate {
-            padding-top: 1rem !important;
-        }
-        
-        .dataTables_paginate .paginate_button {
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            padding: 0.5rem 0.75rem;
-            margin: 0 0.125rem;
-            text-decoration: none;
-        }
-        
-        .dataTables_paginate .paginate_button:hover {
-            background: #f3f4f6;
-        }
-        
-        .dataTables_paginate .paginate_button.current {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-        
-        #usersTable {
-            width: 100% !important;
-        }
-        
-        #usersTable thead th {
-            background-color: #f9fafb;
-            border-bottom: 2px solid #e5e7eb;
-            padding: 0.75rem;
-            font-weight: 500;
-            text-align: left;
-        }
-        
-        #usersTable tbody td {
-            padding: 0.75rem;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: middle;
-        }
-        
-        #usersTable tbody tr:hover {
-            background-color: #f9fafb;
-        }
-        
+        /* DataTable 按鈕樣式 */
         .dt-buttons {
             margin-bottom: 1rem;
             display: flex;
@@ -185,11 +108,26 @@
         
         /* Focus 狀態 */
         .dt-button:focus {
-            outline: 2px solid #3b82f6 !important;
-            outline-offset: 2px !important;
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
         }
         
-        /* Action按鈕樣式 */
+        /* DataTable 間距調整 */
+        .dataTables_length {
+            margin-top: 1.5rem !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .dataTables_info {
+            padding-top: 1.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        
+        .dataTables_paginate {
+            padding-top: 1rem !important;
+        }
+
+        /* Action 按鈕樣式 */
         .action-btn {
             display: inline-block;
             padding: 0.25rem 0.5rem;
@@ -243,16 +181,8 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         
-        .stats-card-green {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .stats-card-purple {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        .stats-card-red {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
             border-radius: 0.75rem;
             padding: 1.5rem;
@@ -267,47 +197,40 @@
     </style>
 
     <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">User Management</h2>
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-gray-800">Admin Management</h2>
+            <a href="{{ route('super-admin.admins.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Create New Admin
+            </a>
+        </div>
     </div>
     
     <!-- Stats Summary -->
-    <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; gap: 4rem; margin-bottom: 1.5rem;">
+        <div class="stats-card-red" style="flex: 1;">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white text-opacity-80 text-sm font-medium mb-1">Super Admins</p>
+                    <p class="text-3xl font-bold" id="super-admins">
+                        {{ $admins->where('is_admin', 2)->count() }}
+                    </p>
+                </div>
+                <div class="stats-icon-bg">
+                    <i class="fas fa-crown text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
         <div class="stats-card-blue" style="flex: 1;">
             <div class="flex items-center justify-between">
                 <div>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">Total Users</p>
-                    <p style="font-size: 1.875rem; font-weight: bold;" id="total-users">{{ $users->count() }}</p>
-                </div>
-                <div class="stats-icon-bg">
-                    <i class="fas fa-users" style="font-size: 1.5rem;"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="stats-card-green" style="flex: 1;">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">Regular Users</p>
-                    <p style="font-size: 1.875rem; font-weight: bold;" id="regular-users">
-                        {{ $users->where('is_admin', 0)->count() }}
+                    <p class="text-white text-opacity-80 text-sm font-medium mb-1">Admins</p>
+                    <p class="text-3xl font-bold" id="regular-admins">
+                        {{ $admins->where('is_admin', 1)->count() }}
                     </p>
                 </div>
                 <div class="stats-icon-bg">
-                    <i class="fas fa-user" style="font-size: 1.5rem;"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="stats-card-purple" style="flex: 1;">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">Administrators</p>
-                    <p style="font-size: 1.875rem; font-weight: bold;" id="admin-users">
-                        {{ $users->where('is_admin', '>', 0)->count() }}
-                    </p>
-                </div>
-                <div class="stats-icon-bg">
-                    <i class="fas fa-user-shield" style="font-size: 1.5rem;"></i>
+                    <i class="fas fa-user-shield text-2xl"></i>
                 </div>
             </div>
         </div>
@@ -320,13 +243,12 @@
                 <label for="role-filter" class="block text-sm font-medium text-gray-700 mb-2">Filter by Role:</label>
                 <select id="role-filter" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">All Roles</option>
-                    <option value="User">Regular Users</option>
                     <option value="Admin">Administrators</option>
                     <option value="Super Admin">Super Administrators</option>
                 </select>
             </div>
             
-            <table id="usersTable" class="display" style="width:100%">
+            <table id="adminsTable" class="display" style="width:100%">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -338,41 +260,37 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($users as $user)
+                    @foreach($admins as $admin)
                         <tr>
-                            <td>{{ $user->id }}</td>
-                            <td>{{ $user->username }}</td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ $user->phone ?: 'N/A' }}</td>
+                            <td>{{ $admin->id }}</td>
+                            <td>{{ $admin->username }}</td>
+                            <td>{{ $admin->email }}</td>
+                            <td>{{ $admin->phone ?? 'N/A' }}</td>
                             <td>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                    {{ $user->is_admin === 2 ? 'bg-red-100 text-red-800' : ($user->is_admin === 1 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') }}">
-                                    {{ $user->is_admin === 2 ? 'Super Admin' : ($user->is_admin === 1 ? 'Admin' : 'User') }}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    {{ $admin->isSuperAdmin() ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }}">
+                                    {{ $admin->getRoleName() }}
                                 </span>
                             </td>
                             <td>
                                 <div class="flex space-x-1">
-                                    <a href="{{ route('admin.users.show', $user->id) }}" 
+                                    <a href="{{ route('super-admin.admins.show', $admin->id) }}" 
                                        class="action-btn action-btn-blue"
-                                       title="View User">
+                                       title="View Admin">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    
-                                    @if(!(Auth::user()->is_admin === 1 && $user->is_admin === 2))
-                                        <a href="{{ route('admin.users.edit', $user->id) }}" 
-                                           class="action-btn action-btn-yellow"
-                                           title="Edit User">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    @endif
-                                    
-                                    @if(Auth::user()->id !== $user->id && !(Auth::user()->is_admin === 1 && $user->is_admin === 2))
-                                        <button onclick="deleteUser({{ $user->id }})" 
+                                    <a href="{{ route('super-admin.admins.edit', $admin->id) }}" 
+                                       class="action-btn action-btn-yellow"
+                                       title="Edit Admin">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @if($admin->id !== Auth::user()->id)
+                                        <button onclick="deleteAdmin({{ $admin->id }})" 
                                                 class="action-btn action-btn-red"
-                                                title="Delete User">
+                                                title="Delete Admin">
                                             <i class="fas fa-trash"></i>
                                         </button>
-                                        <form id="delete-form-{{ $user->id }}" action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display: none;">
+                                        <form id="delete-form-{{ $admin->id }}" action="{{ route('super-admin.admins.destroy', $admin->id) }}" method="POST" style="display: none;">
                                             @csrf
                                             @method('DELETE')
                                         </form>
@@ -393,11 +311,11 @@ $(document).ready(function() {
     var table; // 在全局作用域聲明
     
     // 初始化 DataTable
-    table = $('#usersTable').DataTable({
+    table = $('#adminsTable').DataTable({
         responsive: true,
         pageLength: 10,
         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-        order: [[0, 'asc']],
+        order: [[0, 'asc']], // 按 ID 排序
         columnDefs: [
             {
                 targets: [5], // Actions column
@@ -439,11 +357,13 @@ $(document).ready(function() {
             }
         ],
         language: {
-            search: "Search users:",
-            lengthMenu: "Show _MENU_ users per page",
-            info: "Showing _START_ to _END_ of _TOTAL_ users",
-            infoEmpty: "No users found",
-            infoFiltered: "(filtered from _MAX_ total users)",
+            search: "Search admins:",
+            lengthMenu: "Show _MENU_ admins per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ admins",
+            infoEmpty: "No admins found",
+            infoFiltered: "(filtered from _MAX_ total admins)",
+            emptyTable: "No admin users found",
+            zeroRecords: "No admins match your search criteria",
             paginate: {
                 first: "First",
                 last: "Last",
@@ -478,41 +398,37 @@ $(document).ready(function() {
             
             var info = table.page.info();
             var visibleRows = table.rows({search: 'applied'});
-            var totalVisible = info.recordsDisplay;
             
-            var regularUsers = 0;
-            var adminUsers = 0;
+            var superAdmins = 0;
+            var regularAdmins = 0;
             
             // 遍歷當前顯示的行
             visibleRows.every(function(rowIdx, tableLoop, rowLoop) {
                 var data = this.data();
-                var roleHtml = data[4];
+                var roleHtml = data[4]; // Role 列現在是第 4 列 (0-indexed)
                 var roleText = $(roleHtml).text().trim();
                 
-                if (roleText === 'User') {
-                    regularUsers++;
-                } else if (roleText === 'Admin' || roleText === 'Super Admin') {
-                    adminUsers++;
+                if (roleText === 'Super Admin') {
+                    superAdmins++;
+                } else if (roleText === 'Admin') {
+                    regularAdmins++;
                 }
             });
             
-            $('#total-users').text(totalVisible);
-            $('#regular-users').text(regularUsers);
-            $('#admin-users').text(adminUsers);
+            $('#super-admins').text(superAdmins);
+            $('#regular-admins').text(regularAdmins);
         } catch (error) {
             console.error('Error updating stats:', error);
             // 回退到原始數據
-            $('#total-users').text('{{ $users->count() }}');
-            $('#regular-users').text('{{ $users->where("is_admin", 0)->count() }}');
-            $('#admin-users').text('{{ $users->where("is_admin", ">", 0)->count() }}');
+            $('#super-admins').text('{{ $admins->where("is_admin", 2)->count() }}');
+            $('#regular-admins').text('{{ $admins->where("is_admin", 1)->count() }}');
         }
     }
 });
 
-// 刪除用戶函數
-function deleteUser(userId) {
-    if (confirm('Are you sure you want to delete this user?')) {
-        document.getElementById('delete-form-' + userId).submit();
+function deleteAdmin(adminId) {
+    if (confirm('Are you sure you want to delete this admin?')) {
+        document.getElementById('delete-form-' + adminId).submit();
     }
 }
 </script>

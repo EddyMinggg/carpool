@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 // Import your AdminMiddleware (ensure this line exists)
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\Localization;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         web: [
             __DIR__ . '/../routes/web.php',
             __DIR__ . '/../routes/admin.php',
+            __DIR__ . '/../routes/super-admin.php',
         ],
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
@@ -21,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware
             ->alias([
                 'admin' => AdminMiddleware::class,
+                'super_admin' => SuperAdminMiddleware::class,
             ])
             ->web(append: [
                 Localization::class

@@ -16,6 +16,7 @@ class DashboardController extends Controller
         $totalTrips = Trip::count();
         $pendingTrips = Trip::where('trip_status', 'pending')->count();
         $upcomingTrips = Trip::where('planned_departure_time', '>', now())
+            ->withCount('joins')
             ->orderBy('planned_departure_time', 'asc')
             ->take(5)
             ->get();
