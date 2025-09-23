@@ -39,6 +39,7 @@ class RegisteredUserController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'is_admin' => User::ROLE_USER, // 確保註冊的用戶都是普通用戶
         ]);
 
         event(new Registered($user));

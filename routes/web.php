@@ -22,8 +22,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/{trip}/join', [TripController::class, 'join'])->name('trips.join');
         Route::delete('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
         Route::post('/{trip}/depart-now', [TripController::class, 'departNow'])->name('trips.depart-now');
-        Route::post('/{trip}/start-vote', [TripController::class, 'startVote'])->name('trips.start-vote');
-        Route::post('/{trip}/vote', [TripController::class, 'vote'])->name('trips.vote');
+    });
+
+    Route::prefix('payment')->group(function () {
+        Route::get('/{id}', function () {
+            return view('payment.code');
+        })->name('payment.code');
     });
 
     Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');

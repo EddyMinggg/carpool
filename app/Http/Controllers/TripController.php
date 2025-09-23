@@ -85,7 +85,6 @@ class TripController extends Controller
 
         // 格式化時間
         $departureTime = Carbon::parse($trip->planned_departure_time);
-        $timeUntilDeparture = - ($departureTime->diffInMinutes(now(), false));
 
         return view('trips.show_mobile', compact(
             'trip',
@@ -94,9 +93,8 @@ class TripController extends Controller
             'price',
             'currentVote',
             'userVoteStatus',
-            'timeUntilDeparture',
             'departureTime'
-        ));
+        ))->with('userHasJoined', $hasJoined);
     }
 
     /**
