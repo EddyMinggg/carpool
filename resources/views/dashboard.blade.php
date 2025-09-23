@@ -1,3 +1,4 @@
+@section('Title', 'Dashboard')
 <x-app-layout>
 
     @php
