@@ -140,7 +140,7 @@
         <!-- 倒計時區域 -->
         <div
             id="cd"
-            class="bg-gradient-to-r from-orange-400 dark:from-orange-500 to-red-500 dark:to-red-600 text-white rounded-xl p-4 text-center shadow-md mt-6 hidden">
+            class="hidden bg-gradient-to-r from-orange-400 dark:from-orange-500 to-red-500 dark:to-red-600 text-white rounded-xl p-4 text-center shadow-md mt-6">
             <div class="text-sm mb-1">{{ __('Departure in') }}</div>
             <div class="text-2xl font-bold">
                 <span id="cd-hours">--</span> :
@@ -231,7 +231,7 @@
                                 {{ __('Think carefully before joining.') }}
                             </span>
                         </div>
-                        <div class="flex mt-4">
+                        <div class="flex mt-6">
                             <div class="flex items-center h-5">
                                 <input id="confirm" type="checkbox" value=""
                                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
@@ -360,7 +360,6 @@
                 minutes = minutes < 10 ? "0" + minutes : minutes;
                 seconds = seconds < 10 ? "0" + seconds : seconds;
 
-                $('#cd-days').html(days);
                 $('#cd-hours').html(hours);
                 $('#cd-minutes').html(minutes);
                 $('#cd-seconds').html(seconds);

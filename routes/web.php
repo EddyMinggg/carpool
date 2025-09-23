@@ -24,6 +24,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/{trip}/depart-now', [TripController::class, 'departNow'])->name('trips.depart-now');
     });
 
+    Route::prefix('payment')->group(function () {
+        Route::get('/{id}', function () {
+            return view('payment.code');
+        })->name('payment.code');
+    });
+
     Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');
 });
 
