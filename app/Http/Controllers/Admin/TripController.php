@@ -18,7 +18,11 @@ class TripController extends Controller
             ->orderBy('planned_departure_time', 'desc')
             ->paginate(10);
 
-        return view('admin.trips.index', compact('trips'));
+        // Mobile device detection
+        $userAgent = request()->header('User-Agent');
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+
+        return view('admin.trips.index', compact('trips', 'isMobile'));
     }
 
     /**
@@ -26,7 +30,11 @@ class TripController extends Controller
      */
     public function create()
     {
-        return view('admin.trips.create');
+        // Mobile device detection
+        $userAgent = request()->header('User-Agent');
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+        
+        return view('admin.trips.create', compact('isMobile'));
     }
 
     /**
@@ -61,7 +69,12 @@ class TripController extends Controller
     public function show(Trip $trip)
     {
         $trip->load(['creator', 'joins.user']);
-        return view('admin.trips.show', compact('trip'));
+        
+        // Mobile device detection
+        $userAgent = request()->header('User-Agent');
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+        
+        return view('admin.trips.show', compact('trip', 'isMobile'));
     }
 
     /**
@@ -70,7 +83,12 @@ class TripController extends Controller
     public function edit(Trip $trip)
     {
         $users = \App\Models\User::all();
-        return view('admin.trips.edit', compact('trip', 'users'));
+        
+        // Mobile device detection
+        $userAgent = request()->header('User-Agent');
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+        
+        return view('admin.trips.edit', compact('trip', 'users', 'isMobile'));
     }
 
     /**

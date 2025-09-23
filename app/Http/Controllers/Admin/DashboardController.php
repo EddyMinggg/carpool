@@ -10,8 +10,12 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
+        // 檢測移動設備
+        $userAgent = $request->userAgent();
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+        
         $totalUsers = User::count();
         $totalTrips = Trip::count();
         $pendingTrips = Trip::where('trip_status', 'pending')->count();
@@ -21,12 +25,14 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
         $couponUsed = \App\Models\Coupon::sum('used_count');
+        
         return view('admin.dashboard', compact(
             'totalUsers',
             'totalTrips',
             'pendingTrips',
             'upcomingTrips',
-            'couponUsed'
+            'couponUsed',
+            'isMobile'
         ));
     }
 }

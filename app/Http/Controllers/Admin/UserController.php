@@ -12,46 +12,43 @@ class UserController extends Controller
     // 用戶列表
     public function index(Request $request)
     {
+        // 檢測移動設備
+        $userAgent = $request->userAgent();
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+        
         $currentUser = Auth::user();
         
-        // 構建基礎查詢
-        $query = User::query();
+        // 構建基礎查詢 - User Management 只顯示普通用戶
+        $query = User::where('is_admin', 0);
         
-        // 如果是普通 admin，過濾掉 super admin
-        if ($currentUser->is_admin === User::ROLE_ADMIN) {
-            $query->where('is_admin', '<', User::ROLE_SUPER_ADMIN);
+        // 移動版使用分頁，桌面版獲取所有數據供 DataTable 使用
+        if ($isMobile) {
+            $users = $query->orderBy('created_at', 'desc')->paginate(10);
+        } else {
+            $users = $query->get();
         }
         
-        // 獲取所有用戶數據供DataTable使用
-        $users = $query->get();
-        
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'isMobile'));
     }
 
     // 用戶詳情
     public function show(User $user)
     {
-        $currentUser = Auth::user();
+        // 檢測設備類型
+        $userAgent = request()->header('User-Agent', '');
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
         
-        // 普通 admin 無法查看 super admin
-        if ($currentUser->is_admin === User::ROLE_ADMIN && $user->is_admin === User::ROLE_SUPER_ADMIN) {
-            abort(404);
-        }
-        
-        return view('admin.users.show', compact('user'));
+        return view('admin.users.show', compact('user', 'isMobile'));
     }
 
     // 編輯用戶
     public function edit(User $user)
     {
-        $currentUser = Auth::user();
+        // 檢測設備類型
+        $userAgent = request()->header('User-Agent', '');
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
         
-        // 普通 admin 無法編輯 super admin
-        if ($currentUser->is_admin === User::ROLE_ADMIN && $user->is_admin === User::ROLE_SUPER_ADMIN) {
-            abort(404);
-        }
-        
-        return view('admin.users.edit', compact('user'));
+        return view('admin.users.edit', compact('user', 'isMobile'));
     }
 
     // 更新用戶
