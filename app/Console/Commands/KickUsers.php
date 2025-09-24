@@ -33,7 +33,7 @@ class KickUsers extends Command
 
         foreach ($trips as $trip) {
             $paidDeposit = Payment::where('trip_id', $trip->id)->where('type', 'deposit')->where('paid', 1)->pluck('user_id');
-            $newUserFee = $trip->base_price / ($paidDeposit->count());
+            $newUserFee = $trip->base_price / ($paidDeposit->count() == 0 ? 1 : $paidDeposit->count());
 
             TripJoin::where('trip_id', $trip->id)->whereNotIn('user_id', $paidDeposit->all())->delete();
 
