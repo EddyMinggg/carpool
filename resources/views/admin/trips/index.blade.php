@@ -379,8 +379,8 @@
                     <div class="mobile-stat-label">Total Trips</div>
                 </div>
                 <div class="mobile-stat-card">
-                    <div class="mobile-stat-number">{{ $trips->where('trip_status', 'pending')->count() }}</div>
-                    <div class="mobile-stat-label">Pending</div>
+                    <div class="mobile-stat-number">{{ $trips->where('trip_status', 'awaiting')->count() }}</div>
+                    <div class="mobile-stat-label">awaiting</div>
                 </div>
             </div>
 
@@ -396,10 +396,10 @@
                         <div class="mobile-trip-header">
                             <div class="mobile-trip-id">#{{ $trip->id }}</div>
                             <div class="mobile-trip-status" style="
-                                background-color: {{ $trip->trip_status === 'pending' ? '#dbeafe' : 
+                                background-color: {{ $trip->trip_status === 'awaiting' ? '#dbeafe' : 
                                    ($trip->trip_status === 'voting' ? '#fef3c7' : 
                                    ($trip->trip_status === 'completed' ? '#dcfce7' : '#fee2e2')) }};
-                                color: {{ $trip->trip_status === 'pending' ? '#1e40af' : 
+                                color: {{ $trip->trip_status === 'awaiting' ? '#1e40af' : 
                                    ($trip->trip_status === 'voting' ? '#92400e' : 
                                    ($trip->trip_status === 'completed' ? '#166534' : '#991b1b')) }};
                             ">
@@ -482,7 +482,7 @@
                                     <td>{{ $trip->max_people }}</td>
                                     <td>
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            {{ $trip->trip_status === 'pending' ? 'bg-blue-100 text-blue-800' : 
+                                            {{ $trip->trip_status === 'awaiting' ? 'bg-blue-100 text-blue-800' : 
                                                ($trip->trip_status === 'voting' ? 'bg-yellow-100 text-yellow-800' : 
                                                ($trip->trip_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')) }}">
                                             {{ ucfirst($trip->trip_status) }}

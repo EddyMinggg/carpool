@@ -210,7 +210,7 @@
                     <div class="mobile-form-group">
                         <label for="trip_status" class="mobile-form-label">Trip Status</label>
                         <select name="trip_status" id="trip_status" class="mobile-form-select">
-                            <option value="pending" {{ $trip->trip_status === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="awaiting" {{ $trip->trip_status === 'awaiting' ? 'selected' : '' }}>awaiting</option>
                             <option value="voting" {{ $trip->trip_status === 'voting' ? 'selected' : '' }}>Voting</option>
                             <option value="completed" {{ $trip->trip_status === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="cancelled" {{ $trip->trip_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
@@ -315,7 +315,7 @@
                         <label for="trip_status" class="block text-sm font-medium text-gray-700 mb-1">Trip Status</label>
                         <select name="trip_status" id="trip_status" 
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="pending" {{ $trip->trip_status === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="awaiting" {{ $trip->trip_status === 'awaiting' ? 'selected' : '' }}>Awaiting</option>
                             <option value="voting" {{ $trip->trip_status === 'voting' ? 'selected' : '' }}>Voting</option>
                             <option value="completed" {{ $trip->trip_status === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="cancelled" {{ $trip->trip_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>

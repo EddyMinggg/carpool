@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Payment;
 use App\Models\TripJoin;
 use Illuminate\Http\Request;
 use App\Models\Trip;
@@ -43,10 +44,21 @@ class TripController extends Controller
      */
     public function show(string $id)
     {
+        $currentUser = Auth::user();
+
+        $payment = Payment::where('trip_id', $id)->where('user_id', $currentUser->id)->first();
+
+        $madeDepositPayment = null;
+        if ($payment) {
+            $madeDepositPayment = $payment->paid;
+        }
+        if ($madeDepositPayment !== null && !$madeDepositPayment) {
+            return redirect()->route('payment.code', ['id' => $payment->id]);
+        }
+
         $trip = Trip::with(['joins.user', 'creator'])->findOrFail($id);
 
         // 計算當前用戶是否已加入
-        $currentUser = Auth::user();
         $userJoin = $trip->joins->where('user_id', $currentUser->id)->first();
         $hasJoined = $userJoin !== null;
 
@@ -68,7 +80,7 @@ class TripController extends Controller
 
         // 檢查是否有進行中的投票
         $currentVote = null;
-        $userVoteStatus = 'pending';
+        $userVoteStatus = 'awaiting';
         if ($hasJoined && $userJoin && $trip->trip_status === 'voting') {
             $currentVote = true;
             $voteInfo = $userJoin->vote_info; // Already cast to array
@@ -126,7 +138,7 @@ class TripController extends Controller
      */
     public function dashboard(Request $request)
     {
-        $trips = Trip::with('joins')->orderBy('planned_departure_time')->get();
+        $trips = Trip::with('joins')->orderBy('planned_departure_time')->where('planned_departure_time', '>', Carbon::now())->get();
         $groupedTrips = $trips->filter(function ($trip) {
             return !empty($trip->planned_departure_time);
         })->map(function ($trip) {
@@ -167,55 +179,55 @@ class TripController extends Controller
     /**
      * Join a trip
      */
-    public function join(Request $request, Trip $trip)
-    {
-        $user = Auth::user();
+    // public function join(Request $request, Trip $trip)
+    // {
+    //     $user = Auth::user();
 
-        // 檢查用戶是否已經加入
-        $existingJoin = $trip->joins()->where('user_id', $user->id)->first();
-        if ($existingJoin) {
-            return redirect()->back()->with('error', __('You have already joined this trip.'));
-        }
+    //     // 檢查用戶是否已經加入
+    //     $existingJoin = $trip->joins()->where('user_id', $user->id)->first();
+    //     if ($existingJoin) {
+    //         return redirect()->back()->with('error', __('You have already joined this trip.'));
+    //     }
 
-        // 檢查行程是否已滿
-        if ($trip->joins()->count() >= $trip->max_people) {
-            return redirect()->back()->with('error', __('This trip is full.'));
-        }
+    //     // 檢查行程是否已滿
+    //     if ($trip->joins()->count() >= $trip->max_people) {
+    //         return redirect()->back()->with('error', __('This trip is full.'));
+    //     }
 
-        // 檢查行程狀態
-        if ($trip->trip_status !== 'awaiting') {
-            return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
-        }
+    //     // 檢查行程狀態
+    //     if ($trip->trip_status !== 'awaiting') {
+    //         return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
+    //     }
 
-        // 驗證表單數據
-        $validated = $request->validate([
-            'pickup_location' => 'nullable|string|max:255'
-        ]);
+    //     // 驗證表單數據
+    //     $validated = $request->validate([
+    //         'pickup_location' => 'nullable|string|max:255'
+    //     ]);
 
-        // 計算用戶費用（基於當前人數動態計算）
-        $currentPeople = $trip->joins()->count();
-        $totalCost = $trip->base_price; // 從數據庫獲取基礎費用
-        $newUserFee = $totalCost / ($currentPeople + 1); // +1 因為包括即將加入的用戶
+    //     // 計算用戶費用（基於當前人數動態計算）
+    //     $currentPeople = $trip->joins()->count();
+    //     $totalCost = $trip->base_price; // 從數據庫獲取基礎費用
+    //     $newUserFee = $totalCost / ($currentPeople + 1); // +1 因為包括即將加入的用戶
 
-        // 創建加入記錄
-        $trip->joins()->create([
-            'user_id' => $user->id,
-            'pickup_location' => $validated['pickup_location'] ?? null,
-            'join_role' => 'normal',
-            'user_fee' => round($newUserFee, 2),
-            'vote_info' => json_encode([])
-        ]);
+    //     // 創建加入記錄
+    //     $trip->joins()->create([
+    //         'user_id' => $user->id,
+    //         'pickup_location' => $validated['pickup_location'] ?? null,
+    //         'join_role' => 'normal',
+    //         'user_fee' => round($newUserFee, 2),
+    //         'vote_info' => json_encode([])
+    //     ]);
 
-        // 更新所有現有成員的費用（包括新加入的用戶）
-        $newPeopleCount = $currentPeople + 1;
-        $updatedUserFee = $totalCost / $newPeopleCount;
+    //     // 更新所有現有成員的費用（包括新加入的用戶）
+    //     $newPeopleCount = $currentPeople + 1;
+    //     $updatedUserFee = $totalCost / $newPeopleCount;
 
-        DB::table('trip_joins')
-            ->where('trip_id', $trip->id)
-            ->update(['user_fee' => round($updatedUserFee, 2)]);
+    //     DB::table('trip_joins')
+    //         ->where('trip_id', $trip->id)
+    //         ->update(['user_fee' => round($updatedUserFee, 2)]);
 
-        return redirect()->back()->with('success', __('Successfully joined the trip!'));
-    }
+    //     return redirect()->back()->with('success', __('Successfully joined the trip!'));
+    // }
 
     /**
      * Leave a trip
@@ -289,8 +301,8 @@ class TripController extends Controller
         }
 
         // 檢查行程狀態
-        if ($trip->trip_status !== 'pending') {
-            return redirect()->back()->with('error', __('Cannot start vote. Trip is not in pending status.'));
+        if ($trip->trip_status !== 'awaiting') {
+            return redirect()->back()->with('error', __('Cannot start vote. Trip is not in awaiting status.'));
         }
 
         // 檢查是否已有投票進行中
@@ -417,8 +429,8 @@ class TripController extends Controller
                     'actual_departure_time' => now()
                 ]);
             } else {
-                // 投票未通過，回到pending狀態
-                $trip->update(['trip_status' => 'pending']);
+                // 投票未通過，回到awaiting狀態
+                $trip->update(['trip_status' => 'awaiting']);
 
                 // 清除投票信息
                 foreach ($trip->joins as $join) {

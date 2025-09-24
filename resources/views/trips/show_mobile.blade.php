@@ -1,4 +1,7 @@
 @section('Title', $trip->dropoff_location)
+@php
+$deposit = ($trip->base_price / $trip->max_people) * 0.2;
+@endphp
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
@@ -138,9 +141,8 @@
         @endif
 
         <!-- 倒計時區域 -->
-        <div
-            id="cd"
-            class="hidden bg-gradient-to-r from-orange-400 dark:from-orange-500 to-red-500 dark:to-red-600 text-white rounded-xl p-4 text-center shadow-md mt-6">
+        <div id="cd"
+            class="hidden bg-orange-600 text-white rounded-xl p-4 text-center shadow-md mt-6">
             <div class="text-sm mb-1">{{ __('Departure in') }}</div>
             <div class="text-2xl font-bold">
                 <span id="cd-hours">--</span> :
@@ -158,7 +160,7 @@
                 </h3>
                 <p class="text-sm text-blue-600 dark:text-blue-400 mb-4">{{ __('Should we depart immediately?') }}</p>
 
-                @if ($userVoteStatus === 'pending')
+                @if ($userVoteStatus === 'awaiting')
                     <div class="flex gap-3">
                         <form action="{{ route('trips.vote', $trip) }}" method="POST" class="flex-1">
                             @csrf
@@ -211,54 +213,71 @@
                 </button>
 
                 <x-modal name="confirm-join-trip" focusable>
-                    <div class="p-8 items-start">
-                        <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
-                            {{ __('Are you sure you want to join the trip?') }}
-                        </h2>
+                    <form action="{{ route('payment.create') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="trip_id" value="{{ $trip->id }}">
+                        <input type="hidden" name="amount" value="{{ $deposit }}">
+                        <input type="hidden" name="pickup_location" value="{{ session('location') }}">
+                        <div class="p-8 items-start">
+                            <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
+                                {{ __('Are you sure you want to join the trip?') }}
+                            </h2>
 
-                        <div class="mt-8 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
-                            <span class="font-normal">
-                                {{ __('A deposit fee (10% of the total fee) have to be paid to avoid malicious order cancelling, ') }}
-                            </span>
-                            <span class="text-red-500 dark:text-red-400 font-black">
-                                {{ __('which WILL NOT be refunded if you decided leave the carpool.') }}
-                            </span>
-                        </div>
-
-                        <div
-                            class="mt-1 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300 underline">
-                            <span class="font-normal">
-                                {{ __('Think carefully before joining.') }}
-                            </span>
-                        </div>
-                        <div class="flex mt-6">
-                            <div class="flex items-center h-5">
-                                <input id="confirm" type="checkbox" value=""
-                                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                            <div
+                                class="mt-8 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
+                                <span class="font-normal">
+                                    {{ __('deposit_warning') }}
+                                </span>
+                                <span class="text-red-500 dark:text-red-400 font-black">
+                                    {{ __('which WILL NOT be refunded if you decided leave the carpool.') }}
+                                </span>
                             </div>
-                            <div class="text-sm ms-2">
-                                <label for="confirm" class="font-normal text-gray-900 dark:text-gray-300">
-                                    {{ __('Confirm') }} </label>
-                                <p id="private-checkbox-text"
-                                    class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
-                                    {{ __('I have read and understand the terms.') }} </p>
+
+                            <div
+                                class="mt-1 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
+                                <span class="font-black">
+                                    {{ __('Think carefully before joining.') }}
+                                </span>
+                            </div>
+
+                            <div
+                                class="mt-3 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
+                                <span class="font-normal">
+                                    {{ __('Required Amount: ') }}
+                                </span>
+                                <span class="font-black underline">
+                                    {{ '$' . $deposit }}
+                                </span>
+                            </div>
+                            <div class="flex mt-6">
+                                <div class="flex items-center h-5">
+                                    <input id="confirm" type="checkbox" value=""
+                                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                </div>
+                                <div class="text-sm ms-2">
+                                    <label for="confirm" class="font-normal text-gray-900 dark:text-gray-300">
+                                        {{ __('Confirm') }} </label>
+                                    <p id="private-checkbox-text"
+                                        class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
+                                        {{ __('I have read and understand the terms.') }} </p>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end">
+                                <x-secondary-button x-on:click="$dispatch('close')">
+                                    {{ __('Cancel') }}
+                                </x-secondary-button>
+
+                                <x-primary-button id="proceed-button"
+                                    class="ms-3 disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:text-gray-300 dark:disabled:text-gray-700"
+                                    disabled>
+                                    {{ __('Proceed') }}
+                                </x-primary-button>
                             </div>
                         </div>
-                        <div class="mt-6 flex justify-end">
-                            <x-secondary-button x-on:click="$dispatch('close')">
-                                {{ __('Cancel') }}
-                            </x-secondary-button>
-
-                            <x-primary-button id="proceed-button"
-                                class="ms-3 disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:text-gray-300 dark:disabled:text-gray-700"
-                                disabled>
-                                {{ __('Proceed') }}
-                            </x-primary-button>
-                        </div>
-                    </div>
+                    </form>
                 </x-modal>
             @else
-                @if (!$currentVote && $trip->trip_status === 'pending')
+                @if (!$currentVote && $trip->trip_status === 'awaiting')
                     @php
                         $memberCount = $trip->joins->count();
                     @endphp
@@ -347,7 +366,7 @@
                     timer = 0;
                 }
                 days = parseInt(timer / 60 / 60 / 24, 10);
-                
+
                 if (days <= 1) {
                     $('#cd').show();
                 }

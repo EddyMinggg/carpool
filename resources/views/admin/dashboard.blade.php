@@ -584,8 +584,8 @@
                 <div class="stats-card-yellow" style="flex: 1;">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">Pending Trips</p>
-                            <p style="font-size: 1.875rem; font-weight: bold;">{{ $pendingTrips }}</p>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">awaiting Trips</p>
+                            <p style="font-size: 1.875rem; font-weight: bold;">{{ $awaitingTrips }}</p>
                         </div>
                         <div class="stats-icon-bg">
                             <i class="fas fa-clock" style="font-size: 1.5rem;"></i>
@@ -689,12 +689,12 @@
                             </div>
                         </div>
                         
-                        <!-- Pending Trips -->
+                        <!-- awaiting Trips -->
                         <div class="mobile-stat-card yellow">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <div style="min-width: 0; flex: 1;">
-                                    <p style="color: rgba(255,255,255,0.8); font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Pending</p>
-                                    <p style="font-size: 24px; font-weight: bold; margin: 0;">{{ $pendingTrips }}</p>
+                                    <p style="color: rgba(255,255,255,0.8); font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">awaiting</p>
+                                    <p style="font-size: 24px; font-weight: bold; margin: 0;">{{ $awaitingTrips }}</p>
                                 </div>
                                 <div style="background: rgba(255,255,255,0.2); border-radius: 50%; padding: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                     <i class="fas fa-clock" style="font-size: 14px;"></i>

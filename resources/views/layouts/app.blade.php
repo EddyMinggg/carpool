@@ -13,16 +13,21 @@
 
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-        <!-- Leaflet -->
-        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet/dist/leaflet-src.js"></script>
 
-        <!-- Esri Leaflet -->
-        <script src="https://unpkg.com/esri-leaflet"></script>
+        {{-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
 
-        <!-- Esri Leaflet Geocoder -->
-        <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder/dist/esri-leaflet-geocoder.css"/>
-        <script src="https://unpkg.com/esri-leaflet-geocoder"></script>
+        <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+        <!-- Load Esri Leaflet from CDN -->
+        <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
+        <!-- Load Esri Leaflet Geocoder from CDN -->
+        <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.6/dist/esri-leaflet-geocoder.css" crossorigin="" />
+        <script src="https://unpkg.com/esri-leaflet-geocoder@3.1.6/dist/esri-leaflet-geocoder.js" crossorigin=""></script>
+        <!-- Load Esri Leaflet Vector from CDN -->
+        <script src="https://unpkg.com/esri-leaflet-vector@4.3.1/dist/esri-leaflet-vector.js" crossorigin=""></script>
 
         <!-- Scripts -->
         <script>
@@ -32,12 +37,6 @@
                 document.querySelector('html').classList.remove('dark');
             }
         </script>
-
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-
-        <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" />
-        <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

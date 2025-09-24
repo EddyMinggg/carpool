@@ -34,7 +34,7 @@ class TripController extends Controller
         // Mobile device detection
         $userAgent = request()->header('User-Agent');
         $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
-        
+
         return view('admin.trips.create', compact('isMobile'));
     }
 
@@ -48,7 +48,7 @@ class TripController extends Controller
             'planned_departure_time' => 'required|date|after:now',
             'max_people' => 'required|integer|min:1|max:8',
             'base_price' => 'required|numeric|min:0',
-            'trip_status' => 'required|in:awaiting,pending,voting,departed,completed,cancelled'
+            'trip_status' => 'required|in:awaiting,awaiting,voting,departed,completed,cancelled'
         ]);
 
         $trip = Trip::create([
@@ -70,11 +70,11 @@ class TripController extends Controller
     public function show(Trip $trip)
     {
         $trip->load(['creator', 'joins.user']);
-        
+
         // Mobile device detection
         $userAgent = request()->header('User-Agent');
         $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
-        
+
         return view('admin.trips.show', compact('trip', 'isMobile'));
     }
 
@@ -84,11 +84,11 @@ class TripController extends Controller
     public function edit(Trip $trip)
     {
         $users = \App\Models\User::all();
-        
+
         // Mobile device detection
         $userAgent = request()->header('User-Agent');
         $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
-        
+
         return view('admin.trips.edit', compact('trip', 'users', 'isMobile'));
     }
 
@@ -102,7 +102,7 @@ class TripController extends Controller
             'planned_departure_time' => 'required|date',
             'max_people' => 'required|integer|min:1|max:8',
             'base_price' => 'required|numeric|min:0',
-            'trip_status' => 'required|in:awaiting,pending,voting,departed,completed,cancelled'
+            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled'
         ]);
 
         $trip->update($validated);

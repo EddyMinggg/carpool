@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\TripController;
@@ -25,9 +26,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('payment')->group(function () {
-        Route::get('/{id}', function () {
-            return view('payment.code');
-        })->name('payment.code');
+        Route::post('/', [PaymentController::class, 'store'])->name('payment.create');
+        Route::get('/{id}', [PaymentController::class, 'show'])->name('payment.code');
     });
 
     Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');

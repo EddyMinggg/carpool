@@ -1,12 +1,8 @@
 @section('Title', __('Payment'))
 
-@php
-    $reference_code = strtoupper(bin2hex(random_bytes(5)));
-@endphp
-
 <x-app-layout>
     <x-slot name="header">
-        <button onclick="history.back()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+        <button onclick="window.location='{{ route('dashboard') }}'" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
             <span class="material-icons text-gray-700 dark:text-gray-300">arrow_back</span>
         </button>
     </x-slot>
@@ -27,7 +23,7 @@
                             {{ __('Pay the required amount: ') }}
                         </span>
                         <span class="font-black underline">
-                            {{ __('$100') }}
+                            {{ '$' . $payment->amount }}
                         </span>
                     </li>
                     <li>
@@ -40,9 +36,9 @@
             <div class="w-full mt-6">
                 <div class="relative">
                     <x-input-label for="reference-copy-button">
-                        {{ __('Reference Number') }}
+                        {{ __('Reference Code') }}
                     </x-input-label>
-                    <x-text-input id="reference-copy-button" class="mt-2 w-full p-3.5" value="{{ $reference_code }}"
+                    <x-text-input id="reference-copy-button" class="mt-2 w-full p-3.5" value="{{ $payment->reference_code }}"
                         disabled readonly />
                     <button data-copy-to-clipboard-target="reference-copy-button"
                         data-tooltip-target="tooltip-copy-reference-copy-button"

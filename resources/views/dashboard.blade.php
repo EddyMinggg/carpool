@@ -142,6 +142,7 @@
     $(document).ready(function() {
 
         const _apiKey = '{{ env('GEOCODING_API_KEY') }}';
+
         const options = {
             enableHighAccuracy: true,
             timeout: 5000,

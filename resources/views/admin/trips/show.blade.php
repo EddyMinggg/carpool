@@ -227,10 +227,10 @@
                     <div class="mobile-trip-id">Trip #{{ $trip->id }}</div>
                     <div class="mobile-status">
                         <span class="mobile-status-badge" style="
-                            background-color: {{ $trip->trip_status === 'pending' ? '#dbeafe' : 
+                            background-color: {{ $trip->trip_status === 'awaiting' ? '#dbeafe' : 
                                ($trip->trip_status === 'voting' ? '#fef3c7' : 
                                ($trip->trip_status === 'completed' ? '#dcfce7' : '#fee2e2')) }};
-                            color: {{ $trip->trip_status === 'pending' ? '#1e40af' : 
+                            color: {{ $trip->trip_status === 'awaiting' ? '#1e40af' : 
                                ($trip->trip_status === 'voting' ? '#92400e' : 
                                ($trip->trip_status === 'completed' ? '#166534' : '#991b1b')) }};
                         ">
@@ -406,7 +406,7 @@
                     <div class="py-3">
                         <p class="text-sm text-gray-500">Status</p>
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                            {{ $trip->trip_status === 'pending' ? 'bg-blue-100 text-blue-800' : 
+                            {{ $trip->trip_status === 'awaiting' ? 'bg-blue-100 text-blue-800' : 
                                ($trip->trip_status === 'voting' ? 'bg-yellow-100 text-yellow-800' : 
                                ($trip->trip_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')) }}">
                             {{ ucfirst($trip->trip_status) }}

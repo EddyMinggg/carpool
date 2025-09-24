@@ -205,7 +205,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                {{ $trip->trip_status === 'pending'
+                                                {{ $trip->trip_status === 'awaiting'
                                                     ? 'bg-blue-100 text-blue-800'
                                                     : ($trip->trip_status === 'voting'
                                                         ? 'bg-yellow-100 text-yellow-800'
