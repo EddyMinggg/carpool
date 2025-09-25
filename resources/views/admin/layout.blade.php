@@ -10,6 +10,15 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <!-- 確保 jQuery 可用性檢查 -->
+    <script>
+        if (typeof jQuery === 'undefined') {
+            console.error('jQuery is not loaded! DataTables will not work.');
+        } else {
+            console.log('jQuery loaded successfully, version:', jQuery.fn.jquery);
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- DataTables CSS -->

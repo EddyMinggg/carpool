@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('reference_code', 10)->unique();
             $table->foreignId('trip_id')->constrained('trips', 'id')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users', 'id')->cascadeOnDelete();
+            $table->string('pickup_location', 100)->nullable();
             $table->float('amount');
             $table->enum('type', ['deposit', 'remaining'])->default('deposit');
             $table->boolean('paid')->default(false);
