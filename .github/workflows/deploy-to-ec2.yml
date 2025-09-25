@@ -34,7 +34,6 @@ jobs:
             sudo composer install --no-dev --no-interaction
             npm install
             npm run build
-            php artisan optimize:clear
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
