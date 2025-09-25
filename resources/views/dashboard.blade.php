@@ -56,14 +56,8 @@
                 <i class="text-gray-400 dark:text-gray-500 material-icons" id="location_pin">&#xe1b7;</i>
                 <span class="ms-2 {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100' }}" id="pickup_location">{{ session('location') ?? __('Pick your location...') }}</span>
             </div>
-
-            <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-6"
-                style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
-            <!-- 地址選擇組件 -->
-            <x-location-selector :initialLocation="session('location_details') ? json_encode(session('location_details')) : null" 
-                               @location-selected="$dispatch('location-updated', $event.detail)" />
             
-            <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-4" 
+            <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-6" 
                  style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
                 <template x-for="(date, index) in dates" :key="date">
                     <button
