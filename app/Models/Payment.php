@@ -16,6 +16,7 @@ class Payment extends Model
         'user_id',
         'amount',
         'type',
+        'pickup_location',
         'paid'
     ];
 

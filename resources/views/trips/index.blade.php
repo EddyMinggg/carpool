@@ -19,7 +19,7 @@
                 </div>
                 <input type="text" id="table-search-users"
                     class="block w-full md:w-64 pt-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="Search for orders">
+                    placeholder="Search for orders"/>
             </div>
         </div>
         <div class="rounded-lg overflow-auto shadow-md w-full">
@@ -77,7 +77,6 @@
                     @empty
                         <tr
                             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            >
                             <td colspan="8" class="px-6 py-10 text-center text-sm text-gray-500">
                                 No order history
                             </td>
