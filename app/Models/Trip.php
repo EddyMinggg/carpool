@@ -58,4 +58,9 @@ class Trip extends Model
     {
         return $this->hasMany(TripJoin::class, 'trip_id', 'id');
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'trip_id', 'id');
+    }
 }

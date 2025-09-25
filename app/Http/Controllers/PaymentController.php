@@ -29,16 +29,7 @@ class PaymentController extends Controller
             'pickup_location' => 'required|string|max:255',
         ]);
 
-        $payment = Payment::create([
-            'reference_code' => strtoupper(bin2hex(random_bytes(5))),
-            'trip_id' => $request->input('trip_id'),
-            'user_id' => $user->id,
-            'amount' => $request->input('amount'),
-        ]);
-
-
-        /**  ==================== Join Trip ==================== **/
-        $trip = Trip::find($payment->trip_id);
+        $trip = Trip::find($request->input('trip_id'));
 
         // 檢查用戶是否已經加入
         $existingJoin = $trip->joins()->where('user_id', $user->id)->first();
@@ -55,6 +46,16 @@ class PaymentController extends Controller
         if ($trip->trip_status !== 'awaiting') {
             return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
         }
+
+        $payment = Payment::create([
+            'reference_code' => strtoupper(bin2hex(random_bytes(5))),
+            'trip_id' => $request->input('trip_id'),
+            'user_id' => $user->id,
+            'amount' => $request->input('amount'),
+            'pickup_location' => $request->input('pickup_location'),
+        ]);
+
+        /**  ==================== Join Trip ==================== **/
 
         // 計算用戶費用（基於當前人數動態計算）
         $currentPeople = $trip->joins()->count();

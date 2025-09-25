@@ -18,9 +18,9 @@ class TripController extends Controller
      */
     public function index()
     {
-        $tripJoins = TripJoin::where('user_id', Auth::user()->id)->paginate(10);
+        $payments = Payment::where('user_id', Auth::user()->id)->paginate(10);
 
-        return view('trips.index', compact('tripJoins'));
+        return view('trips.index', compact('payments'));
     }
 
     /**
@@ -48,11 +48,13 @@ class TripController extends Controller
 
         $payment = Payment::where('trip_id', $id)->where('user_id', $currentUser->id)->first();
 
+        $hasLeft = !(TripJoin::where('trip_id', $id)->where('user_id', $currentUser->id)->exists()) && $payment != null;
+
         $madeDepositPayment = null;
         if ($payment) {
             $madeDepositPayment = $payment->paid;
         }
-        if ($madeDepositPayment !== null && !$madeDepositPayment) {
+        if ($madeDepositPayment !== null && !$madeDepositPayment && !$hasLeft) {
             return redirect()->route('payment.code', ['id' => $payment->id]);
         }
 
@@ -101,6 +103,7 @@ class TripController extends Controller
         return view('trips.show_mobile', compact(
             'trip',
             'hasJoined',
+            'hasLeft',
             'currentPeople',
             'price',
             'currentVote',
@@ -138,7 +141,7 @@ class TripController extends Controller
      */
     public function dashboard(Request $request)
     {
-        $trips = Trip::with('joins')->orderBy('planned_departure_time')->where('planned_departure_time', '>', Carbon::now())->get();
+        $trips = Trip::with('joins')->orderBy('planned_departure_time')->where('planned_departure_time', '>', Carbon::now()->addHours(8))->get();
         $groupedTrips = $trips->filter(function ($trip) {
             return !empty($trip->planned_departure_time);
         })->map(function ($trip) {

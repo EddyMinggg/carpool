@@ -31,6 +31,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');
+    Route::get('/map', function () {
+        return view('map');
+    })->name('map');
 });
 
 require __DIR__ . '/auth.php';
