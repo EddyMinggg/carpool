@@ -15,7 +15,5 @@ class SessionController extends Controller
 
         session()->put((string)$key, (string)$value);
         session()->save();
-
-        echo $key;
     }
 }
