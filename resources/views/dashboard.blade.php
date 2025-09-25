@@ -59,6 +59,12 @@
 
             <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-6"
                 style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
+            <!-- 地址選擇組件 -->
+            <x-location-selector :initialLocation="session('location_details') ? json_encode(session('location_details')) : null" 
+                               @location-selected="$dispatch('location-updated', $event.detail)" />
+            
+            <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-4" 
+                 style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
                 <template x-for="(date, index) in dates" :key="date">
                     <button
                         @click="selectDate(date, index); $el.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'})"
@@ -130,59 +136,3 @@
         }
     </style>
 </x-app-layout>
-
-{{-- <script type="module">
-    $(document).ready(function() {
-
-        const _apiKey = '{{ env('GEOCODING_API_KEY') }}';
-
-        const options = {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 10000,
-        };
-
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(success, error, options);
-            }
-        }
-        
-        function success(position) {
-            L.esri.Geocoding
-            .reverseGeocode({
-                apikey: _apiKey
-            })
-            .latlng(L.latLng(position.coords.latitude, position.coords.longitude))
-            .run(function (error, result) {
-                if (error) {
-                    return;
-                }
-
-                let res = result.address.Match_addr;
-
-                $.ajax({
-                    url: "/set-session",
-                    method: "POST",
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        location : res
-                    }
-                });
-                
-                $("#pickup_location").html(res);
-                $(".loader").removeClass("inline-block");
-                $(".loader").addClass("hidden");
-            });
-        }
-
-        function error() {
-            $("#pickup_location").html("Sorry, no position available. Please make sure location service is enabled.");
-            $("#location_pin").html("&#xe0c7;");
-            $(".loader").removeClass("inline-block");
-            $(".loader").addClass("hidden");
-        }
-
-        getLocation();
-    });
-</script> --}}

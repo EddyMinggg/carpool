@@ -313,7 +313,7 @@
         <!-- 分享按鈕 -->
         <div class="hidden operations">
             <div class="flex gap-3 mt-4">
-                <button
+                <button id="whatsapp-share-btn"
                     class="flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white"
                     style="background-color: #25D366;" onmouseover="this.style.backgroundColor='#1DA851'"
                     onmouseout="this.style.backgroundColor='#25D366'">
@@ -323,7 +323,7 @@
                     </svg>
                     {{ __('Whatsapp Share') }}
                 </button>
-                <button
+                <button id="copy-link-btn"
                     class="flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white"
                     style="background-color: #6b7280;" onmouseover="this.style.backgroundColor='#4b5563'"
                     onmouseout="this.style.backgroundColor='#6b7280'">
@@ -401,50 +401,201 @@
             }
         });
 
+        $('#confirm-leave').on('click', function() {
+            if ($(this).is(':checked')) {
+                $('#leave-button').prop("disabled", false);
+            } else {
+                $('#leave-button').prop("disabled", true);
+            }
+        });
+
+        // 倒計時器函數
         let timer = function(date) {
-            let timer = Math.round(new Date(date).getTime() / 1000) - Math.round(new Date().getTime() /
-                1000);
+            let timer = Math.round(new Date(date).getTime() / 1000) - Math.round(new Date().getTime() / 1000);
             let days, hours, minutes, seconds;
+            
+            // 如果超過24小時，不顯示倒計時
+            if (timer > 86400) { // 86400秒 = 24小時
+                $('#cd').hide();
+                return;
+            }
+            
             setInterval(function() {
                 if (--timer < 0) {
                     timer = 0;
                 }
-                days = parseInt(timer / 60 / 60 / 24, 10);
-
+                
                 // More than 1 hour left
                 if (timer > 3600) {
                     $('.operations').show();
                     $('.overlay').hide();
                 }
                 // 1 day left
-                if (days <= 1) {
+                // 如果倒計時進入24小時內，顯示倒計時
+                if (timer <= 86400) {
                     $('#cd').show();
-                }
 
                 // 1 hour left
                 if (timer <= 3600) {
                     $('.overlay').hide();
                 }
 
+                    
+                    hours = parseInt((timer / 60 / 60) % 24, 10);
+                    minutes = parseInt((timer / 60) % 60, 10);
+                    seconds = parseInt(timer % 60, 10);
 
-                hours = parseInt((timer / 60 / 60) % 24, 10);
-                minutes = parseInt((timer / 60) % 60, 10);
-                seconds = parseInt(timer % 60, 10);
+                    hours = hours < 10 ? "0" + hours : hours;
+                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                    seconds = seconds < 10 ? "0" + seconds : seconds;
 
-                hours = hours < 10 ? "0" + hours : hours;
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                $('#cd-hours').html(hours);
-                $('#cd-minutes').html(minutes);
-                $('#cd-seconds').html(seconds);
+                    $('#cd-hours').html(hours);
+                    $('#cd-minutes').html(minutes);
+                    $('#cd-seconds').html(seconds);
+                    
+                    // 根據剩餘時間改變顏色
+                    if (timer <= 3600) { // 1小時內
+                        $('#cd').removeClass().addClass('bg-red-600 text-white rounded-xl p-4 text-center shadow-md mt-6');
+                    } else {
+                        $('#cd').removeClass().addClass('bg-orange-600 text-white rounded-xl p-4 text-center shadow-md mt-6');
+                    }
+                } else {
+                    $('#cd').hide();
+                }
             }, 1000);
         };
 
 
-        //using the function
-        const today = new Date();
+
+        // 使用倒計時器
         const plannedDepartureTime = new Date('{{ $trip->planned_departure_time }}');
         timer(plannedDepartureTime);
-    })
+
+        // 複製連結功能
+        $('#copy-link-btn').on('click', function() {
+            const currentUrl = window.location.href;
+            const button = $(this);
+            const originalText = button.html();
+            
+            // 使用現代的 Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(currentUrl).then(function() {
+                    // 成功複製
+                    button.html('<span class="material-icons text-sm">check</span>{{ __("Copied!") }}');
+                    button.css('background-color', '#22c55e');
+                    
+                    // 2秒後恢復原狀
+                    setTimeout(function() {
+                        button.html(originalText);
+                        button.css('background-color', '#6b7280');
+                    }, 2000);
+                }).catch(function(err) {
+                    // 複製失敗，使用備用方法
+                    fallbackCopyTextToClipboard(currentUrl, button, originalText);
+                });
+            } else {
+                // 不支持 Clipboard API，使用備用方法
+                fallbackCopyTextToClipboard(currentUrl, button, originalText);
+            }
+        });
+
+        // 備用複製方法（針對較老的瀏覽器）
+        function fallbackCopyTextToClipboard(text, button, originalText) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // 避免在 iPhone 上出現縮放
+            textArea.style.position = "fixed";
+            textArea.style.top = 0;
+            textArea.style.left = 0;
+            textArea.style.width = "2em";
+            textArea.style.height = "2em";
+            textArea.style.padding = 0;
+            textArea.style.border = "none";
+            textArea.style.outline = "none";
+            textArea.style.boxShadow = "none";
+            textArea.style.background = "transparent";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    // 成功複製
+                    button.html('<span class="material-icons text-sm">check</span>{{ __("Copied!") }}');
+                    button.css('background-color', '#22c55e');
+                    
+                    // 2秒後恢復原狀
+                    setTimeout(function() {
+                        button.html(originalText);
+                        button.css('background-color', '#6b7280');
+                    }, 2000);
+                } else {
+                    // 複製失敗
+                    button.html('<span class="material-icons text-sm">error</span>{{ __("Copy Failed") }}');
+                    button.css('background-color', '#ef4444');
+                    
+                    setTimeout(function() {
+                        button.html(originalText);
+                        button.css('background-color', '#6b7280');
+                    }, 2000);
+                }
+            } catch (err) {
+                // 複製失敗
+                button.html('<span class="material-icons text-sm">error</span>{{ __("Copy Failed") }}');
+                button.css('background-color', '#ef4444');
+                
+                setTimeout(function() {
+                    button.html(originalText);
+                    button.css('background-color', '#6b7280');
+                }, 2000);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // WhatsApp 分享功能
+        $('#whatsapp-share-btn').on('click', function() {
+            // 生成分享訊息
+            const tripTitle = '{{ $trip->dropoff_location }}';
+            const departureTime = '{{ $departureTime->format("Y-m-d H:i") }}';
+            const price = 'HK$ {{ number_format($price, 0) }}';
+            const currentPeople = '{{ $currentPeople }}';
+            const maxPeople = '{{ $trip->max_people }}';
+            
+            // 獲取當前 URL，如果是 localhost 則替換為線上域名
+            let shareUrl = window.location.href;
+            if (shareUrl.includes('localhost') || shareUrl.includes('127.0.0.1')) {
+                // 替換為線上域名（從 Laravel config 讀取）
+                const appUrl = '{{ config("app.url") }}';
+                if (appUrl && !appUrl.includes('localhost')) {
+                    shareUrl = shareUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, appUrl);
+                } else {
+                    // 備用域名，請在這裡替換為你的實際域名
+                    // 例如: 'https://carpool.yourdomain.com' 或 'https://yourdomain.com'
+                    shareUrl = shareUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, 'https://your-actual-domain.com');
+                }
+            }
+            
+            // 構建分享訊息
+            const message = `🚗 拼車邀請！\n\n` +
+                           `📍 目的地: ${tripTitle}\n` +
+                           `🕐 出發時間: ${departureTime}\n` +
+                           `💰 費用: ${price} /人\n` +
+                           `👥 目前人數: ${currentPeople}/${maxPeople}\n\n` +
+                           `點擊連結查看詳情並加入:\n${shareUrl}\n\n` +
+                           `#拼車 #香港 #出行`;
+            
+            // 編碼訊息
+            const encodedMessage = encodeURIComponent(message);
+            
+            // 生成 WhatsApp 分享連結
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            
+            // 在新視窗打開 WhatsApp
+            window.open(whatsappUrl, '_blank');
+        });
+    });
 </script>
