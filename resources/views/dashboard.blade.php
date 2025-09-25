@@ -50,11 +50,9 @@
                 </button>
             </div> --}}
 
-            <div class="flex items-center text-sm mt-4">
-                <i class="text-gray-400 dark:text-gray-500 material-icons" id="location_pin">&#xe0c8;</i>
-                <span class="ms-2 text-gray-900 dark:text-gray-100" id="pickup_location"></span>
-                <span class="loader inline-block"></span>
-            </div>
+            <!-- 地址選擇組件 -->
+            <x-location-selector :initialLocation="session('location_details') ? json_encode(session('location_details')) : null" 
+                               @location-selected="$dispatch('location-updated', $event.detail)" />
             
             <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-4" 
                  style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
@@ -139,57 +137,17 @@
 </style>
 
 <script type="module">
-    $(document).ready(function() {
-
-        const _apiKey = '{{ env('GEOCODING_API_KEY') }}';
-
-        const options = {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 10000,
-        };
-
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(success, error, options);
+    document.addEventListener('DOMContentLoaded', function() {
+        // 監聽地址選擇事件
+        document.addEventListener('location-selected', function(event) {
+            const locationData = event.detail.location;
+            console.log('用戶選擇了新地址:', locationData);
+            
+            // 可以在這裡添加額外的處理邏輯，比如更新行程搜索等
+            if (locationData) {
+                // 顯示選中地址的反饋
+                console.log('當前接送地點:', locationData.formatted_address);
             }
-        }
-        
-        function success(position) {
-            L.esri.Geocoding
-            .reverseGeocode({
-                apikey: _apiKey
-            })
-            .latlng(L.latLng(position.coords.latitude, position.coords.longitude))
-            .run(function (error, result) {
-                if (error) {
-                    return;
-                }
-
-                let res = result.address.Match_addr;
-
-                $.ajax({
-                    url: "/set-session",
-                    method: "POST",
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        location : res
-                    }
-                });
-                
-                $("#pickup_location").html(res);
-                $(".loader").removeClass("inline-block");
-                $(".loader").addClass("hidden");
-            });
-        }
-
-        function error() {
-            $("#pickup_location").html("Sorry, no position available. Please make sure location service is enabled.");
-            $("#location_pin").html("&#xe0c7;");
-            $(".loader").removeClass("inline-block");
-            $(".loader").addClass("hidden");
-        }
-
-        getLocation();
+        });
     });
 </script>
