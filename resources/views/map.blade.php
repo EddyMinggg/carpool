@@ -12,7 +12,7 @@
 
 <script type="module">
     $(document).ready(function() {
-        const _apiKey = '{{ env('GEOCODING_API_KEY') }}';
+        const _apiKey = '{{ config('geocoding.api_key') }}';
 
         var _location = "";
 
