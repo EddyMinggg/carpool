@@ -13,7 +13,8 @@ class SessionController extends Controller
         $key = array_keys($_request)[1];
         $value = array_values($_request)[1];
 
-        Session::put((string)$key, (string)$value);
+        session()->put((string)$key, (string)$value);
+        session()->save();
 
         echo $key;
     }
