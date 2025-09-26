@@ -18,7 +18,10 @@ class TripController extends Controller
      */
     public function index()
     {
-        $payments = Payment::where('user_id', Auth::user()->id)->paginate(10);
+        $payments = Payment::with('trip')
+            ->where('user_id', Auth::user()->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
         return view('trips.index', compact('payments'));
     }
@@ -54,8 +57,18 @@ class TripController extends Controller
         if ($payment) {
             $madeDepositPayment = $payment->paid;
         }
+        // 只有當付款未完成且用戶未離開且行程仍在進行中時才跳轉到付款頁面
         if ($madeDepositPayment !== null && !$madeDepositPayment && !$hasLeft) {
-            return redirect()->route('payment.code', ['id' => $payment->id]);
+            $trip = Trip::findOrFail($id);
+            // 檢查行程是否已過期或已完成
+            $now = Carbon::now();
+            $isExpired = $trip->planned_departure_time < $now;
+            $isCompleted = in_array($trip->trip_status, ['departed', 'completed']);
+            
+            // 只有未過期且未完成的行程才跳轉到付款頁面
+            if (!$isExpired && !$isCompleted) {
+                return redirect()->route('payment.code', ['id' => $payment->id]);
+            }
         }
 
         $trip = Trip::with(['joins.user', 'creator'])->findOrFail($id);

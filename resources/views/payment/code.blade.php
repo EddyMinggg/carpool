@@ -9,9 +9,47 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
         <div class="p-4">
+            <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6 shadow-sm">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="w-5 h-5 text-blue-500 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-blue-800 dark:text-blue-100">
+                            {{ __('Payment Status: Pending') }} - {{ __('Waiting for admin confirmation') }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
             <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
                 {{ __('Make your deposit payment.') }}
             </h2>
+            
+            <!-- Trip Information -->
+            <div class="mt-6 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
+                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Trip Details') }}</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-start">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Destination') }}:</span>
+                        <span class="text-gray-900 dark:text-gray-100 font-semibold text-right">{{ $payment->trip->dropoff_location }}</span>
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Pickup Location') }}:</span>
+                        <span class="text-gray-900 dark:text-gray-100 font-semibold text-right max-w-xs break-words">{{ $payment->pickup_location }}</span>
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Departure Time') }}:</span>
+                        <span class="text-gray-900 dark:text-gray-100 font-semibold">{{ $payment->trip->planned_departure_time->format('Y-m-d H:i') }}</span>
+                    </div>
+                    <div class="flex justify-between items-start pt-2 border-t border-gray-200 dark:border-gray-600">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Deposit Amount') }}:</span>
+                        <span class="text-gray-900 dark:text-gray-100 font-bold text-lg text-blue-600 dark:text-blue-400">HK$ {{ number_format($payment->amount, 2) }}</span>
+                    </div>
+                </div>
+            </div>
 
             <div class="mt-8 sm:mx-0 text-md text-gray-900 dark:text-gray-300">
                 <ul class="list-disc list-inside">
@@ -69,6 +107,36 @@
             <div class="w-full mt-8 flex justify-center">
                 <img class="w-full md:w-96 object-contain" src="{{ asset('img/frame.png') }}" />
             </div>
+            
+            <!-- Manual refresh button -->
+            <div class="w-full mt-6 flex justify-center">
+                <button id="check-status-btn" 
+                    class="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white px-6 py-3 rounded-xl font-semibold transition shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    {{ __('Check Payment Status') }}
+                </button>
+            </div>
+            
+            <!-- Payment Instructions -->
+            <div class="mt-8 bg-yellow-50 dark:bg-yellow-900/40 border border-yellow-200 dark:border-yellow-600 rounded-lg p-4 shadow-sm">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-yellow-800 dark:text-yellow-50">
+                            {{ __('Important Instructions') }}
+                        </h3>
+                        <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-100">
+                            <p>{{ __('After completing the payment, please wait for admin confirmation. The page will automatically refresh when your payment is approved.') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>
@@ -108,5 +176,88 @@
             $successTooltipMessage.classList.add('hidden');
             tooltip.hide();
         }
+
+        // Auto-refresh to check payment status every 30 seconds
+        let checkPaymentStatus = function() {
+            fetch(window.location.href, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                // If the response is a redirect (payment confirmed), reload the page
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            })
+            .catch(error => {
+                console.log('Payment status check failed:', error);
+            });
+        };
+
+        // Check payment status every 30 seconds
+        setInterval(checkPaymentStatus, 30000);
+
+        // Manual check button functionality
+        document.getElementById('check-status-btn').addEventListener('click', function() {
+            const button = this;
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = `
+                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                {{ __('Checking...') }}
+            `;
+            button.disabled = true;
+            
+            // Check payment status
+            fetch(window.location.href, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    // Payment confirmed, redirect
+                    window.location.href = response.url;
+                } else {
+                    // Still pending, show feedback
+                    button.innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {{ __('Still Pending') }}
+                    `;
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                console.log('Manual payment check failed:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        });
+
+        // Add visual feedback that auto-checking is active
+        let statusIndicator = document.createElement('div');
+        statusIndicator.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm shadow-lg';
+        statusIndicator.innerHTML = '🔄 {{ __("Auto-checking payment status...") }}';
+        document.body.appendChild(statusIndicator);
+        
+        // Hide status indicator after 5 seconds
+        setTimeout(() => {
+            statusIndicator.style.opacity = '0.7';
+        }, 5000);
     })
 </script>

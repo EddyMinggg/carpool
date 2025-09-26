@@ -733,8 +733,18 @@
 $(document).ready(function() {
     var table; // 在全局作用域聲明
     
-    // 初始化 DataTable
-    table = $('#usersTable').DataTable({
+    // 等待 DataTables 加載完成
+    function initDataTable() {
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.log('Waiting for DataTables to load...');
+            setTimeout(initDataTable, 100);
+            return;
+        }
+        
+        console.log('DataTables is ready, initializing table...');
+        
+        // 初始化 DataTable
+        table = $('#usersTable').DataTable({
         responsive: true,
         pageLength: 10,
         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
@@ -829,6 +839,11 @@ $(document).ready(function() {
             console.error('Error updating stats:', error);
         }
     }
+    
+    } // 結束 initDataTable 函數
+    
+    // 調用初始化函數
+    initDataTable();
 });
 </script>
 @else

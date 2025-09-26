@@ -71,10 +71,17 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
                             <div class="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0"></div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">出發地</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Pickup</div>
                         </div>
+                        @php
+                            // 優先使用新的 session location，如果沒有則回退到 trip_join 中的記錄
+                            $sessionLocation = session('location');
+                            $userJoin = $trip->joins->where('user_id', auth()->id())->first();
+                            $fallbackLocation = $userJoin ? $userJoin->pickup_location : null;
+                            $displayLocation = $sessionLocation ?: $fallbackLocation;
+                        @endphp
                         <div id="pickup_location_display" class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
-                            {{ session('location') ?: '選擇接送地點' }}
+                            {{ $displayLocation ?: __('Select pickup location') }}
                         </div>
                     </div>
                 </div>
@@ -92,7 +99,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
                             <div class="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">目的地</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Destination</div>
                         </div>
                         <div class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
                             {{ $trip->dropoff_location }}
@@ -159,10 +166,7 @@
                             <div>
                                 <div class="font-medium text-gray-900 dark:text-gray-100">{{ $join->user->username }}
                                 </div>
-                                @if ($join->pickup_location)
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $join->pickup_location }}
-                                    </div>
-                                @endif
+                                {{-- 不再顯示任何地址信息，在等待司機區域會顯示自己的地址 --}}
                             </div>
                         </div>
                         <div class="text-sm">
@@ -192,6 +196,129 @@
             </div>
         </div>
 
+        <!-- 等待司機區域 (時間到了後顯示) -->
+        <div id="waiting-driver" class="hidden space-y-4 mt-6">
+            <!-- 司機信息卡片 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Driver Information') }}</h3>
+                    <span class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full animate-pulse">
+                        {{ __('Trip Started') }}
+                    </span>
+                </div>
+                
+                @php
+                    // Hardcode 司機列表 - 可以根據需要添加更多司機
+                    $drivers = [
+                        'driver1' => [
+                            'name' => 'Driver Chan',
+                            'phone' => '+852-9999-8888'
+                        ],
+                        'driver2' => [
+                            'name' => 'Driver Wong', 
+                            'phone' => '+852-9999-7777'
+                        ],
+                        // 可以添加更多司機...
+                    ];
+                    
+                    // 根據行程 ID 或其他邏輯分配司機（這裡用簡單的模運算）
+                    $driverKeys = array_keys($drivers);
+                    $assignedDriverKey = $driverKeys[$trip->id % count($driverKeys)];
+                    $assignedDriver = $drivers[$assignedDriverKey];
+                @endphp
+                
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                        <span class="text-blue-600 dark:text-blue-300 font-semibold text-lg">{{ substr($assignedDriver['name'], 0, 1) }}</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $assignedDriver['name'] }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Driver') }}</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="tel:{{ $assignedDriver['phone'] }}" 
+                            class="p-2 bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                        </a>
+                        <a href="https://wa.me/{{ str_replace(['+', '-', ' '], '', $assignedDriver['phone']) }}" 
+                            class="p-2 text-white rounded-lg hover:opacity-80 transition" style="background-color: #25D366;">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 基本信息 -->
+                <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
+                    <div class="text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            {{ __('Your pickup location') }}
+                        </div>
+                        @php
+                            // 等待司機時顯示確定的接送地址（trip_join 表中的記錄）
+                            $userJoin = $trip->joins->where('user_id', auth()->id())->first();
+                            $confirmedLocation = $userJoin ? $userJoin->pickup_location : null;
+                        @endphp
+                        <div class="font-medium text-gray-900 dark:text-gray-100 break-words">
+                            {{ $confirmedLocation ?: __('Location not set') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 安全和聯絡功能 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">{{ __('Emergency Contact') }}</h3>
+                <div class="space-y-3">
+                    <!-- 香港緊急電話 -->
+                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Hong Kong') }}</div>
+                        <a href="tel:999" class="flex items-center justify-center gap-2 py-2 px-3 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition text-sm font-medium">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>999 - {{ __('Emergency') }}</span>
+                        </a>
+                    </div>
+                    
+                    <!-- 內地緊急電話 -->
+                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Mainland China') }}</div>
+                        <div class="grid grid-cols-1 gap-2">
+                            <a href="tel:110" class="flex items-center justify-center gap-2 py-2 px-3 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition text-sm font-medium">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                                <span>110 - {{ __('Police') }}</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 簡單提醒 -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                <div class="flex items-start gap-3">
+                    <div class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-blue-900 dark:text-blue-100 text-sm">
+                            {{ __('Trip Started') }}
+                        </div>
+                        <div class="text-blue-700 dark:text-blue-300 text-sm mt-1">
+                            {{ __('Please wait for the driver to contact you. Make sure your phone is accessible.') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <!-- 操作按鈕 -->
         <div class="operations space-y-6 hidden">
@@ -210,14 +337,39 @@
                         x-on:click.prevent="
                             const pickupLocation = document.getElementById('join-pickup-location').value;
                             if (!pickupLocation || pickupLocation.trim() === '') {
-                                alert('請先選擇您的接送地點才能加入行程！');
-                                document.getElementById('location-picker').scrollIntoView({ behavior: 'smooth' });
+                                $dispatch('open-modal', 'location-required');
                                 return false;
                             }
                             $dispatch('open-modal', 'confirm-join-trip')
                         ">
                         {{ __('Join') }} - HK$ {{ number_format($price, 0) }}
                     </button>
+
+                    <!-- 位置選擇提醒 Modal -->
+                    <x-modal name="location-required" focusable>
+                        <div class="p-8 text-center">
+                            <div class="mb-4">
+                                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/50">
+                                    <i class="material-icons text-yellow-600 dark:text-yellow-400 text-2xl">location_on</i>
+                                </div>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                                Location Required
+                            </h3>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm mb-6">
+                                Please select your pickup location before joining the trip!
+                            </p>
+                            <div class="flex justify-center space-x-3">
+                                <x-secondary-button x-on:click="$dispatch('close')">
+                                    {{ __('Cancel') }}
+                                </x-secondary-button>
+                                <x-primary-button 
+                                    x-on:click="$dispatch('close'); setTimeout(() => { document.getElementById('location-picker').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => document.getElementById('location-picker').click(), 500); }, 100);">
+                                    Select Location
+                                </x-primary-button>
+                            </div>
+                        </div>
+                    </x-modal>
 
                     <x-modal name="confirm-join-trip" focusable>
                         <form action="{{ route('payment.create') }}" method="POST" id="join-trip-form">
@@ -434,11 +586,11 @@
 <script type="module">
     $(document).ready(function() {
 
-        // 監聽位置選擇事件
+        // Listen to location selection events
         window.addEventListener('location-selected', function(event) {
             const location = event.detail.location;
             if (location && location.formatted_address) {
-                // 更新顯示的位置
+                // Update displayed location
                 const displayElement = document.querySelector('#pickup_location_display span');
                 if (displayElement) {
                     displayElement.textContent = location.formatted_address;
@@ -446,18 +598,18 @@
                     displayElement.classList.add('text-gray-900', 'dark:text-gray-100');
                 }
                 
-                // 更新表單中的隱藏字段
+                // Update hidden field in form
                 const hiddenField = document.getElementById('join-pickup-location');
                 if (hiddenField) {
                     hiddenField.value = location.formatted_address;
                 }
                 
-                // 觸發自定義事件供 Alpine.js 監聽
+                // Trigger custom event for Alpine.js to listen
                 window.dispatchEvent(new CustomEvent('location-updated', {
                     detail: { address: location.formatted_address }
                 }));
 
-                // 隱藏位置選擇提示卡片
+                // Hide location selection prompt card
                 const locationAlert = document.querySelector('.bg-amber-50');
                 if (locationAlert) {
                     locationAlert.style.display = 'none';
@@ -481,15 +633,16 @@
             }
         });
 
-        // 倒計時器函數
+        // Countdown timer function
         let timer = function(date) {
             let timer = Math.round(new Date(date).getTime() / 1000) - Math.round(new Date().getTime() /
                 1000);
             let days, hours, minutes, seconds;
 
-            // 如果超過24小時，不顯示倒計時
-            if (timer > 86400) { // 86400秒 = 24小時
+            // If more than 24 hours, don't show countdown
+            if (timer > 86400) { // 86400 seconds = 24 hours
                 $('#cd').hide();
+                $('#waiting-driver').hide();
                 $('.operations').show();
                 $('.overlay').hide();
                 return;
@@ -498,12 +651,19 @@
             setInterval(function() {
                 if (--timer < 0) {
                     timer = 0;
+                    // Time's up! Show waiting for driver interface
+                    $('#cd').hide();
+                    $('#waiting-driver').show();
+                    $('.operations').hide();
+                    $('.overlay').hide();
+                    return;
                 }
                 
                 // 1 day left
-                // 如果倒計時進入24小時內，顯示倒計時
+                // If countdown is within 24 hours, show countdown
                 if (timer <= 86400) {
                     $('#cd').show();
+                    $('#waiting-driver').hide();
                     
                     // 1 hour left --> disallow operations
                     if (timer <= 3600) {
@@ -526,8 +686,8 @@
                     $('#cd-minutes').html(minutes);
                     $('#cd-seconds').html(seconds);
 
-                    // 根據剩餘時間改變顏色
-                    if (timer <= 3600) { // 1小時內
+                    // Change color based on remaining time
+                    if (timer <= 3600) { // Within 1 hour
                         $('#cd').removeClass().addClass(
                             'bg-red-600 text-white rounded-xl p-4 text-center shadow-md mt-6');
                     } else {
@@ -541,46 +701,46 @@
 
 
 
-        // 使用倒計時器
+        // Use countdown timer
         const plannedDepartureTime = new Date('{{ $trip->planned_departure_time }}');
         timer(plannedDepartureTime);
 
-        // 複製連結功能
+        // Copy link functionality
         $('#copy-link-btn').on('click', function() {
             const currentUrl = window.location.href;
             const button = $(this);
             const originalText = button.html();
 
-            // 使用現代的 Clipboard API
+            // Use modern Clipboard API
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(currentUrl).then(function() {
-                    // 成功複製
+                    // Successfully copied
                     button.html(
                         '<span class="material-icons text-sm">check</span>{{ __('Copied!') }}'
                         );
                     button.css('background-color', '#22c55e');
 
-                    // 2秒後恢復原狀
+                    // Restore after 2 seconds
                     setTimeout(function() {
                         button.html(originalText);
                         button.css('background-color', '#6b7280');
                     }, 2000);
                 }).catch(function(err) {
-                    // 複製失敗，使用備用方法
+                    // Copy failed, use fallback method
                     fallbackCopyTextToClipboard(currentUrl, button, originalText);
                 });
             } else {
-                // 不支持 Clipboard API，使用備用方法
+                // Clipboard API not supported, use fallback method
                 fallbackCopyTextToClipboard(currentUrl, button, originalText);
             }
         });
 
-        // 備用複製方法（針對較老的瀏覽器）
+        // Fallback copy method (for older browsers)
         function fallbackCopyTextToClipboard(text, button, originalText) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
 
-            // 避免在 iPhone 上出現縮放
+            // Avoid zoom on iPhone
             textArea.style.position = "fixed";
             textArea.style.top = 0;
             textArea.style.left = 0;
@@ -599,17 +759,17 @@
             try {
                 const successful = document.execCommand('copy');
                 if (successful) {
-                    // 成功複製
+                    // Successfully copied
                     button.html('<span class="material-icons text-sm">check</span>{{ __('Copied!') }}');
                     button.css('background-color', '#22c55e');
 
-                    // 2秒後恢復原狀
+                    // Restore after 2 seconds
                     setTimeout(function() {
                         button.html(originalText);
                         button.css('background-color', '#6b7280');
                     }, 2000);
                 } else {
-                    // 複製失敗
+                    // Copy failed
                     button.html('<span class="material-icons text-sm">error</span>{{ __('Copy Failed') }}');
                     button.css('background-color', '#ef4444');
 
@@ -619,7 +779,7 @@
                     }, 2000);
                 }
             } catch (err) {
-                // 複製失敗
+                // Copy failed
                 button.html('<span class="material-icons text-sm">error</span>{{ __('Copy Failed') }}');
                 button.css('background-color', '#ef4444');
 
@@ -632,46 +792,46 @@
             document.body.removeChild(textArea);
         }
 
-        // WhatsApp 分享功能
+        // WhatsApp share functionality
         $('#whatsapp-share-btn').on('click', function() {
-            // 生成分享訊息
+            // Generate share message
             const tripTitle = '{{ $trip->dropoff_location }}';
             const departureTime = '{{ $departureTime->format('Y-m-d H:i') }}';
             const price = 'HK$ {{ number_format($price, 0) }}';
             const currentPeople = '{{ $currentPeople }}';
             const maxPeople = '{{ $trip->max_people }}';
 
-            // 獲取當前 URL，如果是 localhost 則替換為線上域名
+            // Get current URL, replace localhost with online domain if needed
             let shareUrl = window.location.href;
             if (shareUrl.includes('localhost') || shareUrl.includes('127.0.0.1')) {
-                // 替換為線上域名（從 Laravel config 讀取）
+                // Replace with online domain (read from Laravel config)
                 const appUrl = '{{ config('app.url') }}';
                 if (appUrl && !appUrl.includes('localhost')) {
                     shareUrl = shareUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, appUrl);
                 } else {
-                    // 備用域名，請在這裡替換為你的實際域名
-                    // 例如: 'https://carpool.yourdomain.com' 或 'https://yourdomain.com'
+                    // Backup domain, replace with your actual domain here
+                    // e.g.: 'https://carpool.yourdomain.com' or 'https://yourdomain.com'
                     shareUrl = shareUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/,
                         'https://your-actual-domain.com');
                 }
             }
 
-            // 構建分享訊息
-            const message = `🚗 拼車邀請！\n\n` +
-                `📍 目的地: ${tripTitle}\n` +
-                `🕐 出發時間: ${departureTime}\n` +
-                `💰 費用: ${price} /人\n` +
-                `👥 目前人數: ${currentPeople}/${maxPeople}\n\n` +
-                `點擊連結查看詳情並加入:\n${shareUrl}\n\n` +
-                `#拼車 #香港 #出行`;
+            // Build share message
+            const message = `🚗 Carpool Invitation!\n\n` +
+                `📍 Destination: ${tripTitle}\n` +
+                `🕐 Departure Time: ${departureTime}\n` +
+                `💰 Price: ${price} per person\n` +
+                `👥 Current Occupancy: ${currentPeople}/${maxPeople}\n\n` +
+                `Click the link to view details and join:\n${shareUrl}\n\n` +
+                `#Carpool #HongKong #Travel`;
 
-            // 編碼訊息
+            // Encode message
             const encodedMessage = encodeURIComponent(message);
 
-            // 生成 WhatsApp 分享連結
+            // Generate WhatsApp share link
             const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
 
-            // 在新視窗打開 WhatsApp
+            // Open WhatsApp in new window
             window.open(whatsappUrl, '_blank');
         });
     });

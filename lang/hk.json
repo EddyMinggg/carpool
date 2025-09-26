@@ -7,5 +7,22 @@
     "Check Price": "查看價格",
     "Suggestions": "建議",
     "Home": "主頁",
-    "Status": "狀態"
+    "Status": "狀態",
+    "Payment Status: Pending": "付款狀態：待處理",
+    "Waiting for admin confirmation": "等待管理員確認",
+    "Important Instructions": "重要說明",
+    "After completing the payment, please wait for admin confirmation. The page will automatically refresh when your payment is approved.": "完成付款後，請等待管理員確認。付款獲得批准後，頁面將自動刷新。",
+    "Make your deposit payment.": "支付您的訂金。",
+    "Trip Details": "行程詳情",
+    "Destination": "目的地",
+    "Departure Time": "出發時間",
+    "Deposit Amount": "訂金金額",
+    "Scan the QR Code below.": "掃描下方二維碼。",
+    "Pay the required amount: ": "支付所需金額：",
+    "Enter the reference code as the note of the transaction.": "輸入參考代碼作為交易備註。",
+    "Reference Code": "參考代碼",
+    "Check Payment Status": "檢查付款狀態",
+    "Checking...": "檢查中...",
+    "Still Pending": "仍在待處理",
+    "Auto-checking payment status...": "自動檢查付款狀態中..."
 }

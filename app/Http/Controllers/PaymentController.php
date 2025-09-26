@@ -14,7 +14,15 @@ class PaymentController extends Controller
      */
     public function show(string $id)
     {
-        return view('payment.code', ['payment' => Payment::findOrFail($id)]);
+        $payment = Payment::findOrFail($id);
+        
+        // 如果付款已經確認，跳轉到行程詳情頁面
+        if ($payment->paid) {
+            return redirect()->route('trips.show', ['id' => $payment->trip_id])
+                ->with('success', __('Payment confirmed! You have successfully joined the trip.'));
+        }
+        
+        return view('payment.code', ['payment' => $payment]);
     }
 
     /**

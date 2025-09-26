@@ -9,16 +9,23 @@
     <!-- jQuery 必須在其他所有 JavaScript 之前加載 -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-    <!-- 確保 jQuery 可用性檢查 -->
+    <!-- 保存原始 jQuery 引用以供 DataTables 使用 -->
     <script>
-        if (typeof jQuery === 'undefined') {
-            console.error('jQuery is not loaded! DataTables will not work.');
-        } else {
-            console.log('jQuery loaded successfully, version:', jQuery.fn.jquery);
-        }
+        window.jQueryOriginal = window.jQuery.noConflict(true);
+        window.$Original = window.jQueryOriginal;
     </script>
+    
+    @vite(['resources/css/app.css'])
+    
+    <!-- 恢復 DataTables 所需的 jQuery -->
+    <script>
+        window.jQuery = window.jQueryOriginal;
+        window.$ = window.jQueryOriginal;
+    </script>
+    
+    <!-- Alpine.js 獨立加載 (用於 modal 和其他互動功能) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- DataTables CSS -->
@@ -411,26 +418,41 @@
     <!-- 全局 DataTables 初始化檢查 -->
     <script>
         window.dataTablesReady = false;
-        $(document).ready(function() {
-            console.log('=== DataTables Loading Check ===');
-            console.log('jQuery version:', $.fn.jquery);
-            console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
-            
-            if (typeof $.fn.DataTable !== 'undefined') {
-                console.log('DataTables version:', $.fn.dataTable.version);
-                window.dataTablesReady = true;
+        
+        // 確保使用正確的 jQuery 實例初始化 DataTables
+        (function($) {
+            $(document).ready(function() {
+                console.log('=== DataTables Loading Check ===');
+                console.log('jQuery version:', $.fn.jquery);
+                console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
                 
-                // 觸發自定義事件通知 DataTables 已準備好
-                $(document).trigger('dataTablesReady');
-            } else {
-                console.error('DataTables failed to load');
-            }
-        });
+                if (typeof $.fn.DataTable !== 'undefined') {
+                    console.log('DataTables version:', $.fn.dataTable.version);
+                    window.dataTablesReady = true;
+                    
+                    // 觸發自定義事件通知 DataTables 已準備好
+                    $(document).trigger('dataTablesReady');
+                } else {
+                    console.error('DataTables failed to load');
+                    
+                    // 如果 DataTables 未加載，嘗試延遲初始化
+                    setTimeout(function() {
+                        if (typeof $.fn.DataTable !== 'undefined') {
+                            console.log('DataTables loaded after delay');
+                            window.dataTablesReady = true;
+                            $(document).trigger('dataTablesReady');
+                        }
+                    }, 1000);
+                }
+            });
+        })(window.jQueryOriginal || window.jQuery);
     </script>
     
     <!-- 側邊欄控制 JavaScript -->
     <script>
-    $(document).ready(function() {
+    // 使用正確的 jQuery 實例
+    (function($) {
+        $(document).ready(function() {
         const hamburgerBtn = $('#hamburger-btn');
         const sidebar = $('#sidebar');
         const mainContent = $('#main-content');
@@ -514,7 +536,8 @@
         
         // 初始化
         initSidebar();
-    });
+        });
+    })(window.jQueryOriginal || window.jQuery);
     </script>
     
     @stack('scripts')
