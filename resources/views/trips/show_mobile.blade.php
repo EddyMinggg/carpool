@@ -53,12 +53,52 @@
             </div>
         @endif
 
+        <!-- 位置選擇器 -->
+        <div class="mb-4">
+            <div id="location-picker"
+                class="flex items-center text-sm mt-4 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-md border border-gray-100 dark:border-gray-700 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] active:scale-98"
+                onclick="window.location.href='{{ route('map') }}'">
+                <i class="text-gray-400 dark:text-gray-500 material-icons" id="location_pin">&#xe1b7;</i>
+                <span class="ms-2 {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100' }}" id="pickup_location">{{ session('location') ?? __('Pick your location...') }}</span>
+            </div>
+        </div>
+
         <!-- 行程資訊卡片 -->
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-            <div class="flex items-center text-sm">
-                <span id="pickup_location" class="text-gray-900 dark:text-gray-100">{{ session('location') }}</span>
-                <span class="text-xl text-gray-900 dark:text-gray-100 px-2 mb-1">&#10230;</span>
-                <span class="text-gray-900 dark:text-gray-100">{{ $trip->dropoff_location }}</span>
+            <!-- 路線顯示 - 垂直佈局，支持長地址名稱 -->
+            <div class="mb-4">
+                <div class="flex items-start text-sm space-x-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0"></div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">出發地</div>
+                        </div>
+                        <div id="pickup_location_display" class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
+                            {{ session('location') ?: '選擇接送地點' }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 箭頭 -->
+                <div class="flex justify-center my-3">
+                    <span class="text-gray-400 dark:text-gray-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </span>
+                </div>
+                
+                <div class="flex items-start text-sm space-x-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">目的地</div>
+                        </div>
+                        <div class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
+                            {{ $trip->dropoff_location }}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="flex justify-between items-start mt-2">
@@ -164,18 +204,27 @@
             @else
                 @if (!$hasJoined)
                     <!-- 加入拼車表單 -->
-                    <button type="submit"
+                    <button type="submit" id="join-trip-btn"
                         class="w-full mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md"
-                        x-data="" x-on:click.prevent="$dispatch('open-modal', 'confirm-join-trip')">
+                        x-data="" 
+                        x-on:click.prevent="
+                            const pickupLocation = document.getElementById('join-pickup-location').value;
+                            if (!pickupLocation || pickupLocation.trim() === '') {
+                                alert('請先選擇您的接送地點才能加入行程！');
+                                document.getElementById('location-picker').scrollIntoView({ behavior: 'smooth' });
+                                return false;
+                            }
+                            $dispatch('open-modal', 'confirm-join-trip')
+                        ">
                         {{ __('Join') }} - HK$ {{ number_format($price, 0) }}
                     </button>
 
                     <x-modal name="confirm-join-trip" focusable>
-                        <form action="{{ route('payment.create') }}" method="POST">
+                        <form action="{{ route('payment.create') }}" method="POST" id="join-trip-form">
                             @csrf
                             <input type="hidden" name="trip_id" value="{{ $trip->id }}">
                             <input type="hidden" name="amount" value="{{ $deposit }}">
-                            <input type="hidden" name="pickup_location" value="{{ session('location') }}">
+                            <input type="hidden" name="pickup_location" id="join-pickup-location" value="{{ session('location') }}">
                             <div class="p-8 items-start">
                                 <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
                                     {{ __('Are you sure you want to join the trip?') }}
@@ -384,6 +433,37 @@
 
 <script type="module">
     $(document).ready(function() {
+
+        // 監聽位置選擇事件
+        window.addEventListener('location-selected', function(event) {
+            const location = event.detail.location;
+            if (location && location.formatted_address) {
+                // 更新顯示的位置
+                const displayElement = document.querySelector('#pickup_location_display span');
+                if (displayElement) {
+                    displayElement.textContent = location.formatted_address;
+                    displayElement.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic');
+                    displayElement.classList.add('text-gray-900', 'dark:text-gray-100');
+                }
+                
+                // 更新表單中的隱藏字段
+                const hiddenField = document.getElementById('join-pickup-location');
+                if (hiddenField) {
+                    hiddenField.value = location.formatted_address;
+                }
+                
+                // 觸發自定義事件供 Alpine.js 監聽
+                window.dispatchEvent(new CustomEvent('location-updated', {
+                    detail: { address: location.formatted_address }
+                }));
+
+                // 隱藏位置選擇提示卡片
+                const locationAlert = document.querySelector('.bg-amber-50');
+                if (locationAlert) {
+                    locationAlert.style.display = 'none';
+                }
+            }
+        });
 
         $('#confirm-join').on('click', function() {
             if ($(this).is(':checked')) {

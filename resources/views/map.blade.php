@@ -1,6 +1,6 @@
 @section('Title', __('Map'))
 <x-app-layout>
-    <div id="map"></div>
+    <div id="map" style="height: 100vh; width: 100%;"></div>
     <div class="fixed bottom-24 w-full">
         <div class="flex justify-center w-full">
             <button id="select-button"
@@ -13,11 +13,22 @@
 
 <script type="module">
     $(document).ready(function() {
+        console.log('Map page loaded');
+        
         const _apiKey = '{{ config('geocoding.api_key') }}';
+        console.log('API Key loaded:', _apiKey ? 'Yes' : 'No');
 
         var _location = "";
 
+        // 檢查 Leaflet 是否加載
+        if (typeof L === 'undefined') {
+            console.error('Leaflet is not loaded');
+            return;
+        }
+
         var map = L.map("map").setView([22.3, 114.1], 10);
+        console.log('Map initialized');
+
         var tiles = L.esri.Vector.vectorBasemapLayer(localStorage.getItem('dark-mode') === 'true' ?
             "arcgis/streets-night" : "arcgis/streets", {
                 token: _apiKey
@@ -35,6 +46,7 @@
         var results = L.layerGroup().addTo(map);
 
         searchControl.on("results", function(data) {
+            console.log('Search results:', data);
             results.clearLayers();
             $.each(data.results, function(index, result) {
                 results.addLayer(L.marker(result.latlng));
@@ -45,6 +57,7 @@
         });
 
         $('#select-button').click(function() {
+            console.log('Select button clicked, location:', _location);
             $.ajax({
                 url: "/set-session",
                 method: "POST",
@@ -53,8 +66,18 @@
                     location: _location,
                 },
                 success: function(response) {
+                    console.log('Session updated successfully');
                     $('#select-button').prop('disabled', true);
-                    window.location.replace("{{ route('dashboard') }}");
+                    
+                    // 獲取來源頁面，如果沒有則默認回到 dashboard
+                    if (document.referrer && !document.referrer.includes('/map')) {
+                        window.location.replace(document.referrer);
+                    } else {
+                        window.location.replace("{{ route('dashboard') }}");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ajax error:', error);
                 }
             });
         });

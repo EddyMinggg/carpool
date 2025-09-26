@@ -34,22 +34,6 @@
 
         <!-- Carousel 日期選擇器 -->
         <div class="relative px-4 pt-4 pb-2">
-            {{-- <div class="flex items-center justify-between px-4 mb-2">
-                <button @click="prevDate()" :disabled="currentIndex === 0" 
-                        class="p-2 rounded-full transition" 
-                        :class="currentIndex === 0 ? 'text-gray-300 dark:text-gray-600' : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'">
-                    <span class="material-icons">chevron_left</span>
-                </button>
-                
-                <div class="text-lg font-bold text-gray-800 dark:text-gray-200" x-text="activeDate"></div>
-                
-                <button @click="nextDate()" :disabled="currentIndex === dates.length - 1"
-                        class="p-2 rounded-full transition"
-                        :class="currentIndex === dates.length - 1 ? 'text-gray-300 dark:text-gray-600' : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'">
-                    <span class="material-icons">chevron_right</span>
-                </button>
-            </div> --}}
-
             <div id="location-picker"
                 class="flex items-center text-sm mt-4 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-md border border-gray-100 dark:border-gray-700 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] active:scale-98"
                 @click="window.location='{{ route('map') }}'">
