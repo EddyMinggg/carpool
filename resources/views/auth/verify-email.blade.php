@@ -1,21 +1,21 @@
 <x-guest-layout>
-    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-        <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+    <div class="flex flex-col sm:justify-center items-center bg-gray-100 dark:bg-gray-900 mt-8">
+        <div class="w-full p-8 bg-white dark:bg-gray-800 overflow-hidden">
             
             <!-- Header -->
             <div class="mb-6 text-center">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/50">
                     <svg class="h-8 w-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-4">
                     {{ __('Verify Your Email') }}
                 </h2>
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
                     {{ __('We have sent a verification link to') }}
                 </p>
-                <p class="font-semibold text-gray-900 dark:text-gray-100">
+                <p class="font-semibold text-gray-900 dark:text-gray-100 mt-2">
                     {{ auth()->user()->email }}
                 </p>
             </div>
@@ -102,7 +102,7 @@
                 <!-- Resend Email Button -->
                 <form method="POST" action="{{ route('verification.send') }}">
                     @csrf
-                    <x-primary-button class="w-full justify-center">
+                    <x-primary-button class="w-full justify-center mb-4 text-sm">
                         {{ __('Resend Verification Email') }}
                     </x-primary-button>
                 </form>

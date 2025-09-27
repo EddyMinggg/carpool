@@ -59,19 +59,32 @@
                 class="flex items-center text-sm mt-4 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-md border border-gray-100 dark:border-gray-700 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] active:scale-98"
                 onclick="window.location.href='{{ route('map') }}'">
                 <i class="text-gray-400 dark:text-gray-500 material-icons" id="location_pin">&#xe1b7;</i>
-                <span class="ms-2 {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100' }}" id="pickup_location">{{ session('location') ?? __('Pick your location...') }}</span>
+                <span
+                    class="ms-2 {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100' }}"
+                    id="pickup_location">{{ session('location') ?? __('Pick your location...') }}</span>
             </div>
         </div>
 
         <!-- 行程資訊卡片 -->
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+            <div class="flex mb-6 items-center">
+                {{-- <span class="text-gray-600 dark:text-gray-300">{{ __('Status') }}</span> --}}
+                <span
+                    class="px-2 py-1 rounded-md text-xs
+                        @if ($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200
+                        @elseif($trip->trip_status === 'voting') bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200
+                        @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200
+                        @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
+                    {{ ucfirst($trip->trip_status) }}
+                </span>
+            </div>
             <!-- 路線顯示 - 垂直佈局，支持長地址名稱 -->
             <div class="mb-4">
                 <div class="flex items-start text-sm space-x-3">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
                             <div class="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0"></div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Pickup</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pickup</div>
                         </div>
                         @php
                             // 優先使用新的 session location，如果沒有則回退到 trip_join 中的記錄
@@ -80,26 +93,29 @@
                             $fallbackLocation = $userJoin ? $userJoin->pickup_location : null;
                             $displayLocation = $sessionLocation ?: $fallbackLocation;
                         @endphp
-                        <div id="pickup_location_display" class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
+                        <div id="pickup_location_display"
+                            class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
                             {{ $displayLocation ?: __('Select pickup location') }}
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- 箭頭 -->
-                <div class="flex justify-center my-3">
+                <div class="flex justify-center my-4">
                     <span class="text-gray-400 dark:text-gray-500">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                         </svg>
                     </span>
                 </div>
-                
+
                 <div class="flex items-start text-sm space-x-3">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
                             <div class="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Destination</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Destination
+                            </div>
                         </div>
                         <div class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
                             {{ $trip->dropoff_location }}
@@ -108,7 +124,7 @@
                 </div>
             </div>
 
-            <div class="flex justify-between items-start mt-2">
+            <div class="flex justify-between items-start mt-6">
                 <div>
                     <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
                         {{ $departureTime->format('H:i') }}
@@ -130,21 +146,10 @@
             <hr class="my-4 border-gray-200 dark:border-gray-600">
 
             <div>
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex justify-between items-center mt-4 mb-2">
                     <span class="text-gray-600 dark:text-gray-300">{{ __('Joined User') }}</span>
                     <span
                         class="font-semibold text-gray-900 dark:text-gray-100">{{ $currentPeople }}/{{ $trip->max_people }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-600 dark:text-gray-300">{{ __('Status') }}</span>
-                    <span
-                        class="px-2 py-1 rounded text-sm
-                        @if ($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200
-                        @elseif($trip->trip_status === 'voting') bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200
-                        @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200
-                        @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
-                        {{ ucfirst($trip->trip_status) }}
-                    </span>
                 </div>
             </div>
         </div>
@@ -201,51 +206,60 @@
             <!-- 司機信息卡片 -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Driver Information') }}</h3>
-                    <span class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full animate-pulse">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Driver Information') }}
+                    </h3>
+                    <span
+                        class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full animate-pulse">
                         {{ __('Trip Started') }}
                     </span>
                 </div>
-                
+
                 @php
                     // Hardcode 司機列表 - 可以根據需要添加更多司機
                     $drivers = [
                         'driver1' => [
                             'name' => 'Driver Chan',
-                            'phone' => '+852-9999-8888'
+                            'phone' => '+852-9999-8888',
                         ],
                         'driver2' => [
-                            'name' => 'Driver Wong', 
-                            'phone' => '+852-9999-7777'
+                            'name' => 'Driver Wong',
+                            'phone' => '+852-9999-7777',
                         ],
                         // 可以添加更多司機...
                     ];
-                    
+
                     // 根據行程 ID 或其他邏輯分配司機（這裡用簡單的模運算）
                     $driverKeys = array_keys($drivers);
                     $assignedDriverKey = $driverKeys[$trip->id % count($driverKeys)];
                     $assignedDriver = $drivers[$assignedDriverKey];
                 @endphp
-                
+
                 <div class="flex items-center gap-4 mb-4">
-                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                        <span class="text-blue-600 dark:text-blue-300 font-semibold text-lg">{{ substr($assignedDriver['name'], 0, 1) }}</span>
+                    <div
+                        class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                        <span
+                            class="text-blue-600 dark:text-blue-300 font-semibold text-lg">{{ substr($assignedDriver['name'], 0, 1) }}</span>
                     </div>
                     <div class="flex-1">
                         <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $assignedDriver['name'] }}</div>
                         <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Driver') }}</div>
                     </div>
                     <div class="flex gap-2">
-                        <a href="tel:{{ $assignedDriver['phone'] }}" 
+                        <a href="tel:{{ $assignedDriver['phone'] }}"
                             class="p-2 bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                </path>
                             </svg>
                         </a>
-                        <a href="https://wa.me/{{ str_replace(['+', '-', ' '], '', $assignedDriver['phone']) }}" 
-                            class="p-2 text-white rounded-lg hover:opacity-80 transition" style="background-color: #25D366;">
+                        <a href="https://wa.me/{{ str_replace(['+', '-', ' '], '', $assignedDriver['phone']) }}"
+                            class="p-2 text-white rounded-lg hover:opacity-80 transition"
+                            style="background-color: #25D366;">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787"></path>
+                                <path
+                                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787">
+                                </path>
                             </svg>
                         </a>
                     </div>
@@ -270,27 +284,37 @@
             </div>
 
             <!-- 安全和聯絡功能 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">{{ __('Emergency Contact') }}</h3>
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">
+                    {{ __('Emergency Contact') }}</h3>
                 <div class="space-y-3">
                     <!-- 香港緊急電話 -->
                     <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Hong Kong') }}</div>
-                        <a href="tel:999" class="flex items-center justify-center gap-2 py-2 px-3 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition text-sm font-medium">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Hong Kong') }}
+                        </div>
+                        <a href="tel:999"
+                            class="flex items-center justify-center gap-2 py-2 px-3 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition text-sm font-medium">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                </path>
                             </svg>
                             <span>999 - {{ __('Emergency') }}</span>
                         </a>
                     </div>
-                    
+
                     <!-- 內地緊急電話 -->
                     <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Mainland China') }}</div>
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ __('Mainland China') }}</div>
                         <div class="grid grid-cols-1 gap-2">
-                            <a href="tel:110" class="flex items-center justify-center gap-2 py-2 px-3 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition text-sm font-medium">
+                            <a href="tel:110"
+                                class="flex items-center justify-center gap-2 py-2 px-3 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition text-sm font-medium">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                    </path>
                                 </svg>
                                 <span>110 - {{ __('Police') }}</span>
                             </a>
@@ -304,7 +328,8 @@
                 <div class="flex items-start gap-3">
                     <div class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                     <div class="flex-1">
@@ -333,7 +358,7 @@
                     <!-- 加入拼車表單 -->
                     <button type="submit" id="join-trip-btn"
                         class="w-full mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md"
-                        x-data="" 
+                        x-data=""
                         x-on:click.prevent="
                             const pickupLocation = document.getElementById('join-pickup-location').value;
                             if (!pickupLocation || pickupLocation.trim() === '') {
@@ -349,8 +374,10 @@
                     <x-modal name="location-required" focusable>
                         <div class="p-8 text-center">
                             <div class="mb-4">
-                                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/50">
-                                    <i class="material-icons text-yellow-600 dark:text-yellow-400 text-2xl">location_on</i>
+                                <div
+                                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/50">
+                                    <i
+                                        class="material-icons text-yellow-600 dark:text-yellow-400 text-2xl">location_on</i>
                                 </div>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
@@ -363,7 +390,7 @@
                                 <x-secondary-button x-on:click="$dispatch('close')">
                                     {{ __('Cancel') }}
                                 </x-secondary-button>
-                                <x-primary-button 
+                                <x-primary-button
                                     x-on:click="$dispatch('close'); setTimeout(() => { document.getElementById('location-picker').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => document.getElementById('location-picker').click(), 500); }, 100);">
                                     Select Location
                                 </x-primary-button>
@@ -376,7 +403,8 @@
                             @csrf
                             <input type="hidden" name="trip_id" value="{{ $trip->id }}">
                             <input type="hidden" name="amount" value="{{ $deposit }}">
-                            <input type="hidden" name="pickup_location" id="join-pickup-location" value="{{ session('location') }}">
+                            <input type="hidden" name="pickup_location" id="join-pickup-location"
+                                value="{{ session('location') }}">
                             <div class="p-8 items-start">
                                 <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
                                     {{ __('Are you sure you want to join the trip?') }}
@@ -597,16 +625,18 @@
                     displayElement.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic');
                     displayElement.classList.add('text-gray-900', 'dark:text-gray-100');
                 }
-                
+
                 // Update hidden field in form
                 const hiddenField = document.getElementById('join-pickup-location');
                 if (hiddenField) {
                     hiddenField.value = location.formatted_address;
                 }
-                
+
                 // Trigger custom event for Alpine.js to listen
                 window.dispatchEvent(new CustomEvent('location-updated', {
-                    detail: { address: location.formatted_address }
+                    detail: {
+                        address: location.formatted_address
+                    }
                 }));
 
                 // Hide location selection prompt card
@@ -658,13 +688,13 @@
                     $('.overlay').hide();
                     return;
                 }
-                
+
                 // 1 day left
                 // If countdown is within 24 hours, show countdown
                 if (timer <= 86400) {
                     $('#cd').show();
                     $('#waiting-driver').hide();
-                    
+
                     // 1 hour left --> disallow operations
                     if (timer <= 3600) {
                         $('.operations').hide();
@@ -693,7 +723,7 @@
                     } else {
                         $('#cd').removeClass().addClass(
                             'bg-orange-600 text-white rounded-xl p-4 text-center shadow-md mt-6'
-                            );
+                        );
                     }
                 }
             }, 1000);
@@ -717,7 +747,7 @@
                     // Successfully copied
                     button.html(
                         '<span class="material-icons text-sm">check</span>{{ __('Copied!') }}'
-                        );
+                    );
                     button.css('background-color', '#22c55e');
 
                     // Restore after 2 seconds

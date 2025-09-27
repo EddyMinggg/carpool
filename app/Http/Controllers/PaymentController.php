@@ -7,6 +7,8 @@ use App\Models\Trip;
 use App\Models\TripJoin;
 use Illuminate\Http\Request;
 
+use Carbon\Carbon;
+
 class PaymentController extends Controller
 {
     /**
@@ -15,13 +17,13 @@ class PaymentController extends Controller
     public function show(string $id)
     {
         $payment = Payment::findOrFail($id);
-        
+
         // 如果付款已經確認，跳轉到行程詳情頁面
         if ($payment->paid) {
             return redirect()->route('trips.show', ['id' => $payment->trip_id])
                 ->with('success', __('Payment confirmed! You have successfully joined the trip.'));
         }
-        
+
         return view('payment.code', ['payment' => $payment]);
     }
 
@@ -51,9 +53,10 @@ class PaymentController extends Controller
         }
 
         // 檢查行程狀態
-        if ($trip->trip_status !== 'awaiting') {
+        if ($trip->trip_status !== 'awaiting' || $trip->planned_departure_time <= Carbon::now()->addHours(9)) {
             return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
         }
+
 
         $payment = Payment::create([
             'reference_code' => strtoupper(bin2hex(random_bytes(5))),

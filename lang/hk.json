@@ -12,7 +12,7 @@
     "Waiting for admin confirmation": "等待管理員確認",
     "Important Instructions": "重要說明",
     "After completing the payment, please wait for admin confirmation. The page will automatically refresh when your payment is approved.": "完成付款後，請等待管理員確認。付款獲得批准後，頁面將自動刷新。",
-    "Make your deposit payment.": "支付您的訂金。",
+    "Make your deposit payment.": "支付您的訂金",
     "Trip Details": "行程詳情",
     "Destination": "目的地",
     "Departure Time": "出發時間",
@@ -52,5 +52,8 @@
     "Skip for Now": "暫時跳過",
     "Log Out": "登出",
     "Email Verified Successfully!": "電子郵件驗證成功！",
-    "Your email address has been verified. You now have full access to all features.": "您的電子郵件地址已驗證。您現在可以完全存取所有功能。"
+    "Your email address has been verified. You now have full access to all features.": "您的電子郵件地址已驗證。您現在可以完全存取所有功能。",
+    "deposit_warning": "為避免惡意取消訂單，需於確定訂單30分鐘内支付訂金，金額為總費用的 20% 除以共乘允許的最大人數，",
+    "which WILL NOT be refunded if you decided leave the carpool.": "如果您決定退出共乘，該費用將不會退還。",
+    "Think carefully before joining.": "加入前請慎重考慮。"
 }

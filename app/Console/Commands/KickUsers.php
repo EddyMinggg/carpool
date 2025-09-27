@@ -29,16 +29,29 @@ class KickUsers extends Command
      */
     public function handle()
     {
-        $trips = Trip::where('planned_departure_time', '<=', Carbon::now()->addHours(9))->get();
+        $now = Carbon::now()->addHours(8);
 
-        foreach ($trips as $trip) {
-            $paidDeposit = Payment::where('trip_id', $trip->id)->where('type', 'deposit')->where('paid', 1)->pluck('user_id');
-            $newUserFee = $trip->base_price / ($paidDeposit->count() == 0 ? 1 : $paidDeposit->count());
+        Trip::where('planned_departure_time', '<=', $now)->update([
+            'trip_status' => 'departed',
+        ]);
 
-            TripJoin::where('trip_id', $trip->id)->whereNotIn('user_id', $paidDeposit->all())->delete();
+        $awaitingTrips = Trip::where('trip_status', 'awaiting')->get();
 
-            TripJoin::where('trip_id', $trip->id)
-                ->update(['user_fee' => round($newUserFee, 2)]);
+        foreach ($awaitingTrips as $trip) {
+            $unpaidDeposit = Payment::where('trip_id', $trip->id)
+                ->where('type', 'deposit')
+                ->where('paid', 0)
+                ->where('created_at', '<', $now->subMinutes(30))
+                ->pluck('user_id');
+
+            $joined = TripJoin::where('trip_id', $trip->id);
+            $joined->whereIn('user_id', $unpaidDeposit->all())->delete();
+
+            $currentPeople = $trip->joins()->count();
+            $totalCost = $trip->base_price;
+            $newUserFee = $totalCost / $currentPeople;
+
+            $joined->update(['user_fee' => round($newUserFee, 2)]);
         }
     }
 }

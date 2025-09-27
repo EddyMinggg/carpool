@@ -105,7 +105,7 @@
                     <!-- Phone Number -->
                     <div class="mt-4">
                         <x-input-label for="phone_register" :value="__('Phone Number')" />
-                        <div class="flex">
+                        <div class="flex mt-1">
                             <select id="phone_country_code" name="phone_country_code" 
                                 class="rounded-l-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 shadow-sm">
                                 <option value="+852" {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)</option>
