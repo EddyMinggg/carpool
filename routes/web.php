@@ -5,10 +5,15 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\SmsController;
 use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', [TripController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/sms-test/{phone_number}', [SmsController::class, 'send'])->name('sms.test');
+
+Route::get('/sms-test/{phone_number}', [SmsController::class, 'send'])->name('sms.test');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
