@@ -26,18 +26,18 @@
             </div>
 
             <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 active inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
+                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('username') || old('email') || old('phone')) ? '' : 'active' }} inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
                 data-dui-tab-target="tab1-group4">
                 {{ __('Login') }}
             </a>
             <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1"
+                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'active' : '' }} inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1"
                 data-dui-tab-target="tab2-group4">
                 {{ __('Register') }}
             </a>
         </div>
         <div class="mt-4 tab-content-container">
-            <div id="tab1-group4" class="tab-content block font-medium text-sm text-gray-700 dark:text-gray-300">
+            <div id="tab1-group4" class="tab-content {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'hidden' : 'block' }} font-medium text-sm text-gray-700 dark:text-gray-300">
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
                     <!-- Email Address -->
@@ -82,7 +82,7 @@
                     </div>
                 </form>
             </div>
-            <div id="tab2-group4" class="tab-content block font-medium text-sm text-gray-700 dark:text-gray-300">
+            <div id="tab2-group4" class="tab-content {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'block' : 'hidden' }} font-medium text-sm text-gray-700 dark:text-gray-300">
                 <form method="POST" action="{{ route('register') }}">
                     @csrf
 
@@ -100,6 +100,30 @@
                         <x-text-input id="email_register" class="block mt-1 w-full" type="email" name="email"
                             :value="old('email')" required autocomplete="username" />
                         <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="mt-4">
+                        <x-input-label for="phone_register" :value="__('Phone Number')" />
+                        <div class="flex">
+                            <select id="phone_country_code" name="phone_country_code" 
+                                class="rounded-l-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 shadow-sm">
+                                <option value="+852" {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)</option>
+                                <option value="+86" {{ old('phone_country_code') == '+86' ? 'selected' : '' }}>+86 (CN)</option>
+                            </select>
+                            <x-text-input id="phone_register" class="block w-full rounded-l-none border-l-0" 
+                                type="tel" 
+                                name="phone" 
+                                :value="old('phone')" 
+                                required 
+                                autocomplete="tel"
+                                placeholder="12345678" />
+                        </div>
+                        <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+                        <x-input-error :messages="$errors->get('phone_country_code')" class="mt-2" />
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {{ __('We will send you an OTP to verify your phone number') }}
+                        </p>
                     </div>
 
                     <!-- Password -->
@@ -128,10 +152,55 @@
                         </x-primary-button>
                     </div>
                 </form>
+                
+                <!-- Simple OTP Test (logs OTP code) -->
+                @if (app()->environment('local'))
+                    <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <p class="text-xs text-blue-700 dark:text-blue-300 mb-2">
+                            <strong>Debug Mode:</strong> Test OTP without AWS (OTP will be logged)
+                        </p>
+                        <form method="POST" action="{{ route('simple.register') }}">
+                            @csrf
+                            <button type="submit" 
+                                    class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                                    onclick="this.form.elements.namedItem('username').value = document.getElementById('username').value; 
+                                             this.form.elements.namedItem('email').value = document.getElementById('email_register').value;
+                                             this.form.elements.namedItem('phone_country_code').value = document.getElementById('phone_country_code').value;
+                                             this.form.elements.namedItem('phone').value = document.getElementById('phone_register').value;
+                                             this.form.elements.namedItem('password').value = document.getElementById('password_register').value;
+                                             this.form.elements.namedItem('password_confirmation').value = document.getElementById('password_confirmation').value;">
+                                Test with Simple OTP
+                            </button>
+                            <input type="hidden" name="username">
+                            <input type="hidden" name="email">
+                            <input type="hidden" name="phone_country_code">
+                            <input type="hidden" name="phone">
+                            <input type="hidden" name="password">
+                            <input type="hidden" name="password_confirmation">
+                        </form>
+                    </div>
+                @endif
+                
+
             </div>
         </div>
     </div>
 </x-guest-layout>
+
+<style>
+.tab-indicator {
+    transition: transform 0.3s ease, width 0.3s ease;
+    transform-origin: left;
+}
+
+.tab-content {
+    transition: opacity 0.2s ease;
+}
+
+.tab-content.hidden {
+    display: none !important;
+}
+</style>
 
 <script>
     const lightSwitches = document.querySelectorAll('.light-switch');
@@ -159,4 +228,66 @@
             });
         });
     }
+
+    // Tab functionality and error handling
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const tabIndicator = document.querySelector('.tab-indicator');
+        
+        // Check if we should show register tab (due to validation errors)
+        const hasRegisterErrors = @json($errors->any() && (old('username') || old('email') || old('phone')));
+        
+        function showTab(targetId, activeLink) {
+            // Hide all tab contents
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+                content.classList.remove('block');
+            });
+            
+            // Remove active class from all links
+            tabLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show target tab content
+            const targetContent = document.getElementById(targetId);
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+                targetContent.classList.add('block');
+            }
+            
+            // Add active class to clicked link
+            activeLink.classList.add('active');
+            
+            // Move tab indicator
+            const linkRect = activeLink.getBoundingClientRect();
+            const containerRect = activeLink.parentElement.getBoundingClientRect();
+            const offsetLeft = linkRect.left - containerRect.left;
+            const width = linkRect.width;
+            
+            tabIndicator.style.transform = `translateX(${offsetLeft}px) scaleX(1)`;
+            tabIndicator.style.width = `${width}px`;
+        }
+        
+        // Initialize tabs
+        if (hasRegisterErrors) {
+            // Show register tab if there are register errors
+            const registerLink = document.querySelector('[data-dui-tab-target="tab2-group4"]');
+            showTab('tab2-group4', registerLink);
+        } else {
+            // Show login tab by default
+            const loginLink = document.querySelector('[data-dui-tab-target="tab1-group4"]');
+            showTab('tab1-group4', loginLink);
+        }
+        
+        // Add click handlers to tab links
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('data-dui-tab-target');
+                showTab(targetId, this);
+            });
+        });
+    });
 </script>

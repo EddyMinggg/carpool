@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\TripController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentConfirmationController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__ . '/auth.php';
@@ -19,5 +20,14 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
 
     Route::prefix('payment')->group(function () {
         Route::post('/', [PaymentController::class, 'approve'])->name('payment.approve');
+    });
+
+    // Payment Confirmation routes
+    Route::prefix('payment-confirmation')->name('payment-confirmation.')->group(function () {
+        Route::get('/trip/{trip}', [PaymentConfirmationController::class, 'index'])->name('index');
+        Route::get('/payment/{payment}', [PaymentConfirmationController::class, 'show'])->name('show');
+        Route::post('/payment/{payment}', [PaymentConfirmationController::class, 'confirm'])->name('confirm');
+        Route::post('/trip/{trip}/bulk-confirm', [PaymentConfirmationController::class, 'bulkConfirm'])->name('bulk-confirm');
+        Route::get('/statistics', [PaymentConfirmationController::class, 'statistics'])->name('statistics');
     });
 });

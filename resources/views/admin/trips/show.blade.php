@@ -359,6 +359,14 @@
                         </a>
                     </div>
                     
+                    <!-- Payment Confirmation Button -->
+                    <a href="{{ route('admin.payment-confirmation.index', $trip->id) }}" class="mobile-action-btn" style="background: #059669 !important; color: white !important;">
+                        <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 20 20">
+                            <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"></path>
+                        </svg>
+                        Payment Confirmation
+                    </a>
+                    
                     <!-- Delete Button -->
                     <button onclick="showMobileDeleteModal({{ $trip->id }})" class="mobile-action-btn" style="background: #ef4444 !important; color: white !important;">
                         <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 20 20">
@@ -470,7 +478,13 @@
 
             <!-- Payment Records -->
             <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Payment Records</h3>
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 class="text-lg font-semibold text-gray-800">Payment Records</h3>
+                    <a href="{{ route('admin.payment-confirmation.index', $trip->id) }}" 
+                       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
+                        💰 Manage Payment Confirmations
+                    </a>
+                </div>
                 @if(empty($trip->payments) || $trip->payments->isEmpty())
                     <p class="text-gray-500">No payment records yet</p>
                 @else

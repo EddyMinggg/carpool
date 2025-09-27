@@ -24,4 +24,30 @@ class Payment extends Model
     {
         return $this->belongsTo(Trip::class, 'trip_id', 'id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    // Scopes
+    public function scopePending($query)
+    {
+        return $query->where('paid', false);
+    }
+
+    public function scopeConfirmed($query)
+    {
+        return $query->where('paid', true);
+    }
+
+    public function scopeDeposits($query)
+    {
+        return $query->where('type', 'deposit');
+    }
+
+    public function scopeRemaining($query)
+    {
+        return $query->where('type', 'remaining');
+    }
 }

@@ -19,13 +19,19 @@ class TripJoin extends Model
         'join_role',
         'join_time',
         'user_fee',
-        'pickup_location', // 新增
+        'pickup_location',
+        'reference_code',
+        'payment_confirmed',
+        'payment_confirmed_at',
+        'confirmed_by',
         'vote_info'
     ];
 
     protected $casts = [
         'join_time' => 'datetime',
         'user_fee' => 'decimal:2',
+        'payment_confirmed' => 'boolean',
+        'payment_confirmed_at' => 'datetime',
         'vote_info' => 'array' // Automatically cast JSON to array
     ];
 
@@ -51,5 +57,29 @@ class TripJoin extends Model
     public function getVoteResult(): ?string
     {
         return $this->vote_info['vote_result'] ?? null;
+    }
+
+    // Relationship: Admin who confirmed the payment
+    public function confirmedBy()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by', 'id');
+    }
+
+    // Check if payment is confirmed
+    public function isPaymentConfirmed(): bool
+    {
+        return $this->payment_confirmed;
+    }
+
+    // Scope for confirmed payments
+    public function scopeConfirmed($query)
+    {
+        return $query->where('payment_confirmed', true);
+    }
+
+    // Scope for pending payments
+    public function scopePending($query)
+    {
+        return $query->where('payment_confirmed', false);
     }
 }

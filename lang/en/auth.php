@@ -16,5 +16,7 @@ return [
     'failed' => 'These credentials do not match our records.',
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'Phone Number' => 'Phone Number',
+    'We will send you an OTP to verify your phone number' => 'We will send you an OTP to verify your phone number',
 
 ];

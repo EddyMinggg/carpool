@@ -13,7 +13,7 @@ use Carbon\Carbon;
 
 class TripController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $trips = Trip::with(['creator', 'joins.user'])
             ->orderBy('planned_departure_time', 'desc')
@@ -22,6 +22,27 @@ class TripController extends Controller
         // Mobile device detection
         $userAgent = request()->header('User-Agent');
         $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+
+        // Return JSON for AJAX requests
+        if ($request->wantsJson()) {
+            return response()->json(
+                Trip::with(['creator', 'joins'])
+                    ->orderBy('planned_departure_time', 'desc')
+                    ->limit(20)
+                    ->get()
+                    ->map(function ($trip) {
+                        return [
+                            'id' => $trip->id,
+                            'dropoff_location' => $trip->dropoff_location,
+                            'planned_departure_time' => $trip->planned_departure_time->format('M d, H:i'),
+                            'joins_count' => $trip->joins->count(),
+                            'max_people' => $trip->max_people,
+                            'trip_status' => $trip->trip_status,
+                            'creator' => $trip->creator->username ?? 'Unknown'
+                        ];
+                    })
+            );
+        }
 
         return view('admin.trips.index', compact('trips', 'isMobile'));
     }

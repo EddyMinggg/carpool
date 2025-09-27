@@ -10,11 +10,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [TripController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('lang', [LanguageController::class, 'change'])->name("change.lang");
 
     Route::prefix('trips')->group(function () {
         Route::get('/', [TripController::class, 'index'])->name('trips');
@@ -29,7 +28,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [PaymentController::class, 'store'])->name('payment.create');
         Route::get('/{id}', [PaymentController::class, 'show'])->name('payment.code');
     });
+});
 
+Route::middleware('auth')->group(function () {
+    // These routes don't require email verification
+    Route::get('lang', [LanguageController::class, 'change'])->name("change.lang");
     Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');
     Route::get('/map', function () {
         return view('map');

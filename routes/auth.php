@@ -17,6 +17,26 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
+    // OTP Verification routes
+    Route::get('verify-otp', [RegisteredUserController::class, 'showOtpForm'])
+        ->name('otp.verify');
+    
+    Route::post('verify-otp', [RegisteredUserController::class, 'verifyOtp']);
+    
+    Route::post('resend-otp', [RegisteredUserController::class, 'resendOtp'])
+        ->name('otp.resend');
+    
+    Route::post('resend-otp-form', [RegisteredUserController::class, 'resendOtpForm'])
+        ->name('otp.resend.form');
+
+    // Test registration (bypasses OTP - for testing email verification)
+    Route::post('test-register', [App\Http\Controllers\Auth\TestRegisterController::class, 'testRegister'])
+        ->name('test.register');
+
+    // Simple OTP registration (logs OTP instead of sending SMS)
+    Route::post('simple-register', [App\Http\Controllers\Auth\SimpleOtpController::class, 'simpleRegister'])
+        ->name('simple.register');
+
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
@@ -46,6 +66,20 @@ Route::middleware('auth')->group(function () {
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
+    
+    // Manual email verification for development
+    Route::post('manual-verify-email', function() {
+        if (!app()->environment('local')) {
+            abort(403, 'Only available in development mode');
+        }
+        
+        $user = auth()->user();
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+        
+        return redirect()->route('dashboard')->with('success', 'Email verified successfully (manual verification)!');
+    })->name('manual.verify.email');
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');

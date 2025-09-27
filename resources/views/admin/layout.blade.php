@@ -331,8 +331,11 @@
                 <a href="{{ route('admin.users.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-users mr-3"></i>Users
                 </a>
-                <a href="{{ route('admin.trips.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.trips.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                <a href="{{ route('admin.trips.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.trips.*') && !request()->routeIs('admin.payment-confirmation.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-route mr-3"></i>Trips
+                </a>
+                <a href="#" onclick="showPaymentConfirmationMenu()" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.payment-confirmation.*') ? 'bg-green-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                    <i class="fas fa-credit-card mr-3"></i>Payment Confirmation
                 </a>
                 <a href="{{ route('admin.orders.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.orders.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-shopping-cart mr-3"></i>Orders
@@ -538,6 +541,106 @@
         initSidebar();
         });
     })(window.jQueryOriginal || window.jQuery);
+    </script>
+    
+    <!-- Payment Confirmation Menu Script -->
+    <script>
+    function showPaymentConfirmationMenu() {
+        // 創建一個簡單的下拉菜單來選擇要查看的行程
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);">
+                <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Select Trip for Payment Confirmation</h3>
+                </div>
+                <div id="trip-list" style="padding: 20px;">
+                    <div style="text-align: center; color: #6b7280;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px;"></i>
+                        <p>Loading trips...</p>
+                    </div>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid #e5e7eb; text-align: right;">
+                    <button onclick="closePaymentConfirmationMenu()" style="background: #6b7280; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closePaymentConfirmationMenu();
+            }
+        };
+        
+        document.body.appendChild(modal);
+        window.paymentConfirmationModal = modal;
+        
+        // 獲取行程列表
+        fetch('/admin/trips', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tripList = document.getElementById('trip-list');
+            if (data && data.length > 0) {
+                tripList.innerHTML = data.slice(0, 10).map(trip => `
+                    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;" 
+                         onmouseover="this.style.backgroundColor='#f3f4f6'" 
+                         onmouseout="this.style.backgroundColor='white'"
+                         onclick="window.location.href='/admin/payment-confirmation/trip/${trip.id}'">
+                        <div style="font-weight: 600; color: #111827;">#${trip.id} - ${trip.dropoff_location}</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                            ${trip.planned_departure_time} | ${trip.joins_count || 0} participants
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                tripList.innerHTML = `
+                    <div style="text-align: center; color: #6b7280;">
+                        <i class="fas fa-inbox" style="font-size: 24px; margin-bottom: 8px;"></i>
+                        <p>No trips found</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading trips:', error);
+            const tripList = document.getElementById('trip-list');
+            tripList.innerHTML = `
+                <div style="text-align: center; color: #ef4444;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 8px;"></i>
+                    <p>Failed to load trips. Please try again.</p>
+                    <button onclick="window.location.href='/admin/trips'" style="background: #3b82f6; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px;">
+                        Go to Trip Management
+                    </button>
+                </div>
+            `;
+        });
+    }
+    
+    function closePaymentConfirmationMenu() {
+        if (window.paymentConfirmationModal) {
+            document.body.removeChild(window.paymentConfirmationModal);
+            window.paymentConfirmationModal = null;
+        }
+    }
     </script>
     
     @stack('scripts')

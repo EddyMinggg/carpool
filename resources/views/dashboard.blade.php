@@ -6,6 +6,31 @@
         $activeDate = request('date') ?? ($dates->first() ?? null);
     @endphp
 
+    <!-- Success Messages -->
+    @if (session('verified'))
+        <div class="mb-4 bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg"
+             x-data="{ show: true }" x-show="show" x-transition>
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <div>
+                    <div class="font-medium">{{ __('Email Verified Successfully!') }}</div>
+                    <div class="text-sm">{{ __('Your email address has been verified. You now have full access to all features.') }}</div>
+                </div>
+            </div>
+            <button @click="show = false" class="float-right text-green-500 hover:text-green-700 ml-2">&times;</button>
+        </div>
+    @endif
+
+    @if (session('success'))
+        <div class="mb-4 bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg"
+             x-data="{ show: true }" x-show="show" x-transition>
+            {{ session('success') }}
+            <button @click="show = false" class="float-right text-green-500 hover:text-green-700 ml-2">&times;</button>
+        </div>
+    @endif
+
     <div x-data="{
         activeDate: '{{ $activeDate }}',
         dates: {{ json_encode($dates->values()) }},

@@ -495,6 +495,12 @@
                                                title="View Trip">
                                                 <i class="fas fa-eye"></i>
                                             </a>
+                                            <a href="{{ route('admin.payment-confirmation.index', $trip->id) }}" 
+                                               class="action-btn"
+                                               style="background: #059669; color: white;"
+                                               title="Payment Confirmation">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </a>
                                             <a href="{{ route('admin.trips.edit', $trip->id) }}" 
                                                class="action-btn action-btn-yellow"
                                                title="Edit Trip">
