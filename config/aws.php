@@ -1,7 +1,5 @@
 <?php
 
-use Aws\Laravel\AwsServiceProvider;
-
 return [
 
     /*
@@ -22,7 +20,13 @@ return [
     ],
     'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     'version' => 'latest',
-    'ua_append' => [
-        'L5MOD/' . AwsServiceProvider::VERSION,
+    
+    /*
+    |--------------------------------------------------------------------------
+    | SNS Configuration for SMS
+    |--------------------------------------------------------------------------
+    */
+    'sns' => [
+        'region' => env('AWS_SNS_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
     ],
 ];
