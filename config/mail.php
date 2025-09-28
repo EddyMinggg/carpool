@@ -45,8 +45,10 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            'timeout' => env('MAIL_SMTP_TIMEOUT', 10), // 優化：設置超時時間
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'), // 優化：明確指定加密方式
+            'verify_peer' => env('MAIL_VERIFY_PEER', true), // 優化：控制 SSL 驗證
         ],
 
         'ses' => [

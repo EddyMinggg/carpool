@@ -100,4 +100,12 @@ class User extends Authenticatable implements MustVerifyEmail
             'phone_verified_at' => $this->freshTimestamp(),
         ])->save();
     }
+
+    /**
+     * Send the email verification notification with fast delivery.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\FastVerifyEmail);
+    }
 }
