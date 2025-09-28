@@ -240,8 +240,7 @@
                 </div>
 
                 <div class="mobile-route">
-                    <span class="mobile-location">{{ $trip->pickup_location ?: 'TBD' }}</span>
-                    <i class="fas fa-arrow-right mobile-route-icon"></i>
+                    <i class="fas fa-map-marker-alt mobile-route-icon"></i>
                     <span class="mobile-location">{{ $trip->dropoff_location }}</span>
                 </div>
 
@@ -396,8 +395,8 @@
                         <p class="text-gray-900">{{ $trip->creator->username ?? 'Unknown User' }}</p>
                     </div>
                     <div class="py-3">
-                        <p class="text-sm text-gray-500">Route</p>
-                        <p class="text-gray-900">{{ $trip->pickup_location }} → {{ $trip->dropoff_location }}</p>
+                        <p class="text-sm text-gray-500">Destination</p>
+                        <p class="text-gray-900">{{ $trip->dropoff_location }}</p>
                     </div>
                     <div class="py-3">
                         <p class="text-sm text-gray-500">Planned Departure</p>
