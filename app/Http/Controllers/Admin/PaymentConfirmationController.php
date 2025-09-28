@@ -47,11 +47,16 @@ class PaymentConfirmationController extends Controller
             'total_pending_amount' => $pendingPayments->sum('amount'),
         ];
 
+        // Mobile device detection
+        $userAgent = request()->header('User-Agent');
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+
         return view('admin.payment-confirmation.index', compact(
             'trip', 
             'pendingPayments', 
             'confirmedPayments',
-            'tripStats'
+            'tripStats',
+            'isMobile'
         ));
     }
 
@@ -70,7 +75,11 @@ class PaymentConfirmationController extends Controller
         // Load relationships
         $payment->load(['trip', 'user']);
 
-        return view('admin.payment-confirmation.show', compact('payment'));
+        // Mobile device detection
+        $userAgent = request()->header('User-Agent');
+        $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
+
+        return view('admin.payment-confirmation.show', compact('payment', 'isMobile'));
     }
 
     /**

@@ -9,6 +9,21 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
         <div class="p-4">
+            <!-- Payment Countdown Timer -->
+            <div id="countdown-container" class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 rounded-r-lg p-4 mb-4">
+                <div class="text-center">
+                    <div class="flex items-center justify-center mb-2">
+                        <span class="text-red-500 dark:text-red-400 mr-2 text-lg">⏰</span>
+                        <span class="text-sm font-semibold text-red-700 dark:text-red-300">
+                            {{ __('Payment Deadline') }}
+                        </span>
+                    </div>
+                    <div id="countdown-timer" class="text-5xl font-mono font-bold text-red-800 dark:text-red-200 tracking-wide">
+                        --:--
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6 shadow-sm">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -105,7 +120,7 @@
                 </div>
             </div>
             <div class="w-full mt-8 flex justify-center">
-                <img class="w-full md:w-96 object-contain" src="{{ asset('img/frame.png') }}" />
+                <img class="w-full md:w-96 object-contain" src="{{ asset('img/payme_code.jpg') }}" />
             </div>
             
             <!-- Manual refresh button -->
@@ -143,6 +158,66 @@
 
 <script>
     window.addEventListener('load', function() {
+        // Payment deadline countdown timer
+        const paymentCreatedAt = new Date("{{ $payment->created_at->toISOString() }}");
+        const paymentDeadline = new Date(paymentCreatedAt.getTime() + (30 * 60 * 1000)); // 30 minutes from creation
+        
+        const countdownTimer = document.getElementById('countdown-timer');
+        const countdownProgress = document.getElementById('countdown-progress');
+        const countdownContainer = document.getElementById('countdown-container');
+        
+        function updateCountdown() {
+            const now = new Date();
+            const timeLeft = paymentDeadline - now;
+            
+            if (timeLeft <= 0) {
+                // Time's up
+                countdownTimer.textContent = '{{ __("EXPIRED") }}';
+                countdownContainer.className = 'bg-gray-50 dark:bg-gray-800 border-l-4 border-gray-400 dark:border-gray-500 rounded-r-lg p-3 mb-4';
+                countdownContainer.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-gray-500 mr-2">⏰</span>
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                            {{ __('Payment deadline has passed. Please contact support.') }}
+                        </span>
+                    </div>
+                `;
+                return false; // Stop the timer
+            }
+            
+            // Calculate minutes and seconds
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            
+            // Update timer display
+            countdownTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Change colors based on time remaining
+            if (minutes <= 5) {
+                // Last 5 minutes - critical (pulsing red)
+                countdownContainer.className = 'bg-red-100 dark:bg-red-900/40 border-l-4 border-red-600 dark:border-red-400 rounded-r-lg p-4 mb-4 animate-pulse';
+                countdownTimer.className = 'text-6xl font-mono font-bold text-red-900 dark:text-red-100 tracking-wide';
+            } else if (minutes <= 10) {
+                // Last 10 minutes - warning (orange)
+                countdownContainer.className = 'bg-orange-50 dark:bg-orange-900/30 border-l-4 border-orange-500 dark:border-orange-400 rounded-r-lg p-4 mb-4';
+                countdownTimer.className = 'text-5xl font-mono font-bold text-orange-900 dark:text-orange-100 tracking-wide';
+            } else {
+                // Normal state (red)
+                countdownContainer.className = 'bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 rounded-r-lg p-4 mb-4';
+                countdownTimer.className = 'text-5xl font-mono font-bold text-red-800 dark:text-red-200 tracking-wide';
+            }
+            
+            return true; // Continue the timer
+        }
+        
+        // Start the countdown
+        updateCountdown();
+        const countdownInterval = setInterval(() => {
+            if (!updateCountdown()) {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+
         const clipboard = FlowbiteInstances.getInstance('CopyClipboard', 'reference-copy-button');
         const tooltip = FlowbiteInstances.getInstance('Tooltip', 'tooltip-copy-reference-copy-button');
 
@@ -249,15 +324,6 @@
             });
         });
 
-        // Add visual feedback that auto-checking is active
-        let statusIndicator = document.createElement('div');
-        statusIndicator.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm shadow-lg';
-        statusIndicator.innerHTML = '🔄 {{ __("Auto-checking payment status...") }}';
-        document.body.appendChild(statusIndicator);
-        
-        // Hide status indicator after 5 seconds
-        setTimeout(() => {
-            statusIndicator.style.opacity = '0.7';
-        }, 5000);
+        // No status indicator needed - keep it clean
     })
 </script>
