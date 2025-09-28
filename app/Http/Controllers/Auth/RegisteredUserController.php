@@ -79,9 +79,6 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        // Send email verification notification
-        $user->sendEmailVerificationNotification();
-
         return redirect(route('verification.notice'))->with(
             'success',
             'Registration completed! Please check your email to verify your email address.'
