@@ -113,6 +113,12 @@ class TripController extends Controller
         // 格式化時間
         $departureTime = Carbon::parse($trip->planned_departure_time);
 
+        // 獲取分配的司機信息
+        $assignedDriver = null;
+        if ($trip->tripDriver && $trip->tripDriver->status === 'confirmed') {
+            $assignedDriver = $trip->assignedDriver;
+        }
+
         return view('trips.show_mobile', compact(
             'trip',
             'hasJoined',
@@ -121,7 +127,8 @@ class TripController extends Controller
             'price',
             'currentVote',
             'userVoteStatus',
-            'departureTime'
+            'departureTime',
+            'assignedDriver'
         ))->with('userHasJoined', $hasJoined);
     }
 

@@ -88,6 +88,12 @@ class User extends Authenticatable implements MustVerifyEmail
         };
     }
 
+    // Check if user is driver
+    public function isDriver(): bool
+    {
+        return $this->user_role === self::ROLE_DRIVER;
+    }
+
     // Check if phone is verified
     public function hasVerifiedPhone(): bool
     {
@@ -100,6 +106,19 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->forceFill([
             'phone_verified_at' => $this->freshTimestamp(),
         ])->save();
+    }
+
+    // Driver relationships
+    public function driverTrips()
+    {
+        return $this->hasMany(TripDriver::class, 'driver_id');
+    }
+
+    public function assignedTrips()
+    {
+        return $this->belongsToMany(Trip::class, 'trip_drivers', 'driver_id', 'trip_id')
+                    ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
+                    ->withTimestamps();
     }
 
     /**

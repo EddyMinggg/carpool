@@ -63,4 +63,33 @@ class Trip extends Model
     {
         return $this->hasMany(Payment::class, 'trip_id', 'id');
     }
+
+    // Driver relationships
+    public function tripDriver()
+    {
+        return $this->hasOne(TripDriver::class);
+    }
+
+    public function assignedDriver()
+    {
+        return $this->belongsToMany(User::class, 'trip_drivers', 'trip_id', 'driver_id')
+                    ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
+                    ->withTimestamps();
+    }
+
+    // Helper methods for driver
+    public function hasDriver(): bool
+    {
+        return $this->tripDriver()->exists();
+    }
+
+    public function getDriver()
+    {
+        return $this->assignedDriver()->first();
+    }
+
+    public function getDriverAssignment()
+    {
+        return $this->tripDriver()->first();
+    }
 }
