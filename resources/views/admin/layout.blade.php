@@ -304,12 +304,11 @@
         /* 側邊欄內容在移動設備上的優化 */
         @media (max-width: 768px) {
             .sidebar nav a {
-                padding: 12px 16px;
-                font-size: 16px;
+                padding: 12px 10px;
             }
             
             .sidebar nav a i {
-                margin-right: 12px;
+                margin-right: 5px;
                 width: 20px;
             }
         }
@@ -325,42 +324,48 @@
                 <h1 class="text-xl font-bold">Carpool Management</h1>
             </div>
             <nav class="p-4">
-                <a href="{{ route('admin.dashboard') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                <a href="{{ route('admin.dashboard') }}" class="text-sm block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
                 </a>
-                <a href="{{ route('admin.users.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                <a href="{{ route('admin.users.index') }}" class="text-sm block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-users mr-3"></i>Users
                 </a>
-                <a href="{{ route('admin.trips.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.trips.*') && !request()->routeIs('admin.payment-confirmation.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                <a href="{{ route('admin.drivers.index') }}" class="text-sm block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.drivers.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                    <i class="fa fa-drivers-license mr-3"></i>Drivers
+                </a>
+                <a href="{{ route('admin.trips.index') }}" class="text-sm block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.trips.*') && !request()->routeIs('admin.payment-confirmation.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-route mr-3"></i>Trips
                 </a>
-                <a href="#" onclick="showPaymentConfirmationMenu()" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.payment-confirmation.*') ? 'bg-green-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                <a href="#" onclick="showPaymentConfirmationMenu()" class="text-sm block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.payment-confirmation.*') ? 'bg-green-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-credit-card mr-3"></i>Payment Confirmation
                 </a>
-                <a href="{{ route('admin.orders.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.orders.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                <a href="{{ route('admin.orders.index') }}" class="text-sm block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.orders.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-shopping-cart mr-3"></i>Orders
                 </a>
-                <a href="{{ route('admin.coupons.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.coupons.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
+                <a href="{{ route('admin.coupons.index') }}" class="text-sm block py-2 px-3 rounded mb-2 {{ request()->routeIs('admin.coupons.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-200' }}">
                     <i class="fas fa-ticket-alt mr-3"></i>Coupons
                 </a>
                 
                 @if(Auth::user()->isSuperAdmin())
-                    <div class="border-t border-gray-700 mt-4 pt-4">
+                    <div class="border-t border-gray-700 mt-6 pt-4">
                         <div class="mb-2">
                             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3">Super Admin</span>
                         </div>
-                        <a href="{{ route('super-admin.admins.index') }}" class="block py-2 px-3 rounded mb-2 {{ request()->routeIs('super-admin.admins.*') ? 'bg-red-600 text-white' : 'bg-red-600 hover:bg-red-700 text-white' }}">
+                        <a href="{{ route('super-admin.admins.index') }}" class="text-sm block py-2 px-3 rounded mb-2 {{ request()->routeIs('super-admin.admins.*') ? 'bg-red-600 text-white' : '' }}">
                             <i class="fas fa-users-cog mr-3"></i>Manage Admins
                         </a>
                     </div>
                 @endif
                 
-                <form action="{{ route('logout') }}" method="POST" class="mt-6">
-                    @csrf
-                    <button type="submit" class="w-full text-left py-2 px-3 rounded hover:bg-gray-700 text-gray-200">
-                        <i class="fas fa-sign-out-alt mr-3"></i>Logout
-                    </button>
-                </form>
+                <div class="border-t border-gray-700 mt-6">
+                    <form action="{{ route('logout') }}" method="POST" class="mt-2">
+                        @csrf
+                        <button type="submit" class="text-sm w-full text-left py-2 px-3 rounded hover:bg-red-600 text-gray-200">
+                            <i class="fas fa-sign-out-alt mr-3"></i>Logout
+                        </button>
+                    </form>
+                </div>
+
             </nav>
         </aside>
 

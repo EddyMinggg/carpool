@@ -1,7 +1,7 @@
 @extends('admin.layout')
 
-@section('title', 'User Management - Details')
-@section('page-title', 'User Details')
+@section('title', 'Driver Management - Details')
+@section('page-title', 'Driver Details')
 
 @section('content')
     {{-- 移動版 CSS 重設和專用樣式 --}}
@@ -134,13 +134,13 @@
     @endif
 
     @php
-        $bgColorClass = match ($user->user_role) {
+        $bgColorClass = match ($driver->user_role) {
             'super_admin' => 'bg-red-100 text-red-800',
             'admin' => 'bg-blue-100 text-blue-800',
             default => 'bg-gray-100 text-gray-800',
         };
 
-        $userRoleText = match ($user->user_role) {
+        $userRoleText = match ($driver->user_role) {
             'super_admin' => 'Super Admin',
             'admin' => 'Admin',
             'driver' => 'Driver',
@@ -151,9 +151,9 @@
     {{-- ============ 桌面版內容 ============ --}}
     @if(!$isMobile)
         <div class="mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">User Details #{{ $user->id }}</h2>
-            <a href="{{ route('admin.users.index') }}" class="text-blue-600 hover:text-blue-900 text-sm">
-                ← Back to User List
+            <h2 class="text-2xl font-bold text-gray-800">Driver Details #{{ $driver->id }}</h2>
+            <a href="{{ route('admin.drivers.index') }}" class="text-blue-600 hover:text-blue-900 text-sm">
+                ← Back to Driver List
             </a>
         </div>
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -161,15 +161,15 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12 py-2">
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Username</p>
-                    <p class="text-gray-900">{{ $user->username }}</p>
+                    <p class="text-gray-900">{{ $driver->username }}</p>
                 </div>
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Email</p>
-                    <p class="text-gray-900">{{ $user->email }}</p>
+                    <p class="text-gray-900">{{ $driver->email }}</p>
                 </div>
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Phone</p>
-                    <p class="text-gray-900">{{ $user->phone }}</p>
+                    <p class="text-gray-900">{{ $driver->phone }}</p>
                 </div>
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Role</p>
@@ -180,27 +180,25 @@
                 </div>
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Registered At</p>
-                    <p class="text-gray-900">{{ $user->created_at->format('Y-m-d H:i') }}</p>
+                    <p class="text-gray-900">{{ $driver->created_at->format('Y-m-d H:i') }}</p>
                 </div>
             </div>
         </div>
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Actions</h3>
             <div class="flex space-x-4">
-                @if(!(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin'))
-                    <a href="{{ route('admin.users.edit', $user->id) }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit</a>
-                @endif
+                <a href="{{ route('admin.drivers.edit', $driver->id) }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit</a>
                 
-                @if(Auth::user()->id !== $user->id && !(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin'))
-                    <button onclick="showDeleteModal(document.getElementById('deleteForm'), '{{ $user->username }}')" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete</button>
+                @if(Auth::user()->id !== $driver->id && !(Auth::user()->user_role === 'admin' && $driver->user_role === 'super_admin'))
+                    <button onclick="showDeleteModal(document.getElementById('deleteForm'), '{{ $driver->username }}')" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete</button>
                     
-                    <form id="deleteForm" action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display: none;">
+                    <form id="deleteForm" action="{{ route('admin.drivers.destroy', $driver->id) }}" method="POST" style="display: none;">
                         @csrf
                         @method('DELETE')
                     </form>
                 @endif
                 
-                @if(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin')
+                @if(Auth::user()->user_role === 'admin' && $driver->user_role === 'super_admin')
                     <p class="text-gray-500 italic">Super Admin can only be managed by another Super Admin</p>
                 @endif
             </div>
@@ -213,17 +211,17 @@
         <div class="mobile-info-card">
             {{-- 頭像 --}}
             <div style="text-align: center; margin-bottom: 20px;">
-                <div class="avatar-large {{ $user->user_role === 'super_admin' ? 'avatar-super' : ($user->user_role === 'admin' ? 'avatar-admin' : 'avatar-user') }}">
-                    {{ strtoupper(substr($user->username ?? 'U', 0, 1)) }}
+                <div class="avatar-large {{ $driver->user_role === 'super_admin' ? 'avatar-super' : ($driver->user_role === 'admin' ? 'avatar-admin' : 'avatar-user') }}">
+                    {{ strtoupper(substr($driver->username ?? 'U', 0, 1)) }}
                 </div>
                 
                 {{-- 用戶名和角色 --}}
                 <div style="text-align: center;">
                     <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0; max-width: 100%; word-wrap: break-word;">
-                        {{ $user->username }}
+                        {{ $driver->username }}
                     </h2>
-                    <span class="role-badge {{ $user->user_role === 'super_admin' ? 'role-super' : ($user->user_role === 'admin' ? 'role-admin' : 'role-user') }}">
-                        {{ $user->user_role === 'super_admin' ? 'SUPER ADMIN' : ($user->user_role === 'admin' ? 'ADMIN' : 'USER') }}
+                    <span class="role-badge {{ $driver->user_role === 'super_admin' ? 'role-super' : ($driver->user_role === 'admin' ? 'role-admin' : 'role-user') }}">
+                        {{ $driver->user_role === 'super_admin' ? 'SUPER ADMIN' : ($driver->user_role === 'admin' ? 'ADMIN' : 'USER') }}
                     </span>
                 </div>
             </div>
@@ -239,7 +237,7 @@
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Email</div>
                 <div style="font-size: 16px; color: #1f2937; word-wrap: break-word; max-width: 100%;">
-                    {{ strlen($user->email) > 25 ? substr($user->email, 0, 25) . '...' : $user->email }}
+                    {{ strlen($driver->email) > 25 ? substr($driver->email, 0, 25) . '...' : $driver->email }}
                 </div>
             </div>
             
@@ -247,7 +245,7 @@
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Phone</div>
                 <div style="font-size: 16px; color: #1f2937; word-wrap: break-word;">
-                    {{ $user->phone ?: 'Not Set' }}
+                    {{ $driver->phone ?: 'Not Set' }}
                 </div>
             </div>
             
@@ -255,7 +253,7 @@
             <div>
                 <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Registered At</div>
                 <div style="font-size: 16px; color: #1f2937;">
-                    {{ $user->created_at->format('Y-m-d H:i') }}
+                    {{ $driver->created_at->format('Y-m-d H:i') }}
                 </div>
             </div>
         </div>
@@ -266,7 +264,7 @@
                 Actions
             </h3>
             
-            @if(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin')
+            @if(Auth::user()->user_role === 'admin' && $driver->user_role === 'super_admin')
                 <div style="text-align: center; padding: 20px; color: #6b7280; font-style: italic;">
                     Super Admin can only be managed by another Super Admin
                 </div>
@@ -274,8 +272,8 @@
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     {{-- 編輯和返回按鈕同一行 --}}
                     <div style="display: flex; gap: 12px;">
-                        @if(!(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin'))
-                            <a href="{{ route('admin.users.edit', $user->id) }}" class="mobile-action-btn mobile-btn-blue" style="flex: 1;">
+                        @if(!(Auth::user()->user_role === 'admin' && $driver->user_role === 'super_admin'))
+                            <a href="{{ route('admin.drivers.edit', $driver->id) }}" class="mobile-action-btn mobile-btn-blue" style="flex: 1;">
                                 <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 20 20">
                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                                 </svg>
@@ -283,7 +281,7 @@
                             </a>
                         @endif
                         
-                        <a href="{{ route('admin.users.index') }}" class="mobile-action-btn mobile-btn-gray" style="flex: 1;">
+                        <a href="{{ route('admin.drivers.index') }}" class="mobile-action-btn mobile-btn-gray" style="flex: 1;">
                             <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
                             </svg>
@@ -292,8 +290,8 @@
                     </div>
                     
                     {{-- 刪除按鈕 --}}
-                    @if(Auth::user()->id !== $user->id && !(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin'))
-                        <button onclick="showMobileDeleteModal('{{ $user->username }}')" class="mobile-action-btn" style="background: #ef4444 !important; color: white !important;">
+                    @if(Auth::user()->id !== $driver->id && !(Auth::user()->user_role === 'admin' && $driver->user_role === 'super_admin'))
+                        <button onclick="showMobileDeleteModal('{{ $driver->username }}')" class="mobile-action-btn" style="background: #ef4444 !important; color: white !important;">
                             <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                             </svg>
@@ -362,7 +360,7 @@
         </div>
         
         {{-- 手機版隱藏的刪除表單 --}}
-        <form id="mobileDeleteForm" action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display: none;">
+        <form id="mobileDeleteForm" action="{{ route('admin.drivers.destroy', $driver->id) }}" method="POST" style="display: none;">
             @csrf
             @method('DELETE')
         </form>

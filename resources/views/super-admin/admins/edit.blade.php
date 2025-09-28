@@ -152,8 +152,8 @@
                         <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
                         <select name="role" id="role" 
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <option value="1" {{ old('role', $admin->is_admin) == '1' ? 'selected' : '' }}>Admin</option>
-                            <option value="2" {{ old('role', $admin->is_admin) == '2' ? 'selected' : '' }}>Super Admin</option>
+                            <option value="admin" {{ old('role', $admin->user_role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="super_admin" {{ old('role', $admin->user_role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                         </select>
                         @error('role')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -235,8 +235,8 @@
                     <div style="margin-bottom: 16px;">
                         <label for="mobile-role" style="display: block; font-weight: 600; color: #374151; margin-bottom: 6px;">Role <span style="color: #dc2626;">*</span></label>
                         <select name="role" id="mobile-role" class="mobile-input" required>
-                            <option value="1" {{ old('role', $admin->is_admin) == '1' ? 'selected' : '' }}>Admin</option>
-                            <option value="2" {{ old('role', $admin->is_admin) == '2' ? 'selected' : '' }}>Super Admin</option>
+                            <option value="admin" {{ old('role', $admin->user_role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="super_admin" {{ old('role', $admin->user_role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                         </select>
                         @error('role')
                             <p style="margin-top: 4px; font-size: 14px; color: #dc2626;">{{ $message }}</p>

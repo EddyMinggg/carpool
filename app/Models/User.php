@@ -30,7 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'phone',
         'phone_verified_at',
-        'is_admin'
+        'user_role'
     ];
 
     /**
@@ -55,32 +55,33 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     // Role constants
-    public const ROLE_USER = 0;
-    public const ROLE_ADMIN = 1;
-    public const ROLE_SUPER_ADMIN = 2;
+    public const ROLE_USER = 'user';
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_SUPER_ADMIN = 'super_admin';
+    public const ROLE_DRIVER = 'driver';
 
     // Check if user is admin (includes super admin)
     public function isAdmin(): bool
     {
-        return $this->is_admin >= self::ROLE_ADMIN;
+        return $this->user_role === self::ROLE_ADMIN || $this->user_role === self::ROLE_SUPER_ADMIN;
     }
 
     // Check if user is super admin
     public function isSuperAdmin(): bool
     {
-        return $this->is_admin === self::ROLE_SUPER_ADMIN;
+        return $this->user_role === self::ROLE_SUPER_ADMIN;
     }
 
     // Check if user is regular admin (not super admin)
     public function isRegularAdmin(): bool
     {
-        return $this->is_admin === self::ROLE_ADMIN;
+        return $this->user_role === self::ROLE_ADMIN;
     }
 
     // Get role name
     public function getRoleName(): string
     {
-        return match($this->is_admin) {
+        return match ($this->user_role) {
             self::ROLE_SUPER_ADMIN => 'Super Admin',
             self::ROLE_ADMIN => 'Admin',
             default => 'User'

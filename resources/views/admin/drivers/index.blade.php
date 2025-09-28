@@ -1,7 +1,7 @@
 @extends('admin.layout')
 
-@section('title', 'User Management')
-@section('page-title', 'User Management')
+@section('title', 'Driver Management')
+@section('page-title', 'Driver Management')
 
 @section('content')
     {{-- 移動版 CSS 重設和專用樣式 --}}
@@ -227,11 +227,11 @@
             border-color: #3b82f6;
         }
 
-        #usersTable {
+        #driversTable {
             width: 100% !important;
         }
 
-        #usersTable thead th {
+        #driversTable thead th {
             background-color: #f9fafb;
             border-bottom: 2px solid #e5e7eb;
             padding: 0.75rem;
@@ -239,13 +239,13 @@
             text-align: left;
         }
 
-        #usersTable tbody td {
+        #driversTable tbody td {
             padding: 0.75rem;
             border-bottom: 1px solid #e5e7eb;
             vertical-align: middle;
         }
 
-        #usersTable tbody tr:hover {
+        #driversTable tbody tr:hover {
             background-color: #f9fafb;
         }
 
@@ -437,8 +437,6 @@
             padding: 1rem;
         }
     </style>
-
-
     {{-- ============ 桌面版內容 ============ --}}
     @if (!$isMobile)
         <!-- Stats Summary (只顯示用戶相關統計) -->
@@ -449,7 +447,7 @@
                         <p
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             Total Users</p>
-                        <p style="font-size: 1.875rem; font-weight: bold;" id="total-users">{{ $users->count() }}</p>
+                        <p style="font-size: 1.875rem; font-weight: bold;" id="total-users">{{ $drivers->count() }}</p>
                     </div>
                     <div class="stats-icon-bg">
                         <i class="fas fa-users" style="font-size: 1.5rem;"></i>
@@ -464,7 +462,7 @@
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             Active Users</p>
                         <p style="font-size: 1.875rem; font-weight: bold;" id="active-users">
-                            {{ $users->whereNotNull('email_verified_at')->count() }}
+                            {{ $drivers->whereNotNull('email_verified_at')->count() }}
                         </p>
                     </div>
                     <div class="stats-icon-bg">
@@ -480,7 +478,7 @@
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             New This Month</p>
                         <p style="font-size: 1.875rem; font-weight: bold;" id="new-users">
-                            {{ $users->where('created_at', '>=', now()->startOfMonth())->count() }}
+                            {{ $drivers->where('created_at', '>=', now()->startOfMonth())->count() }}
                         </p>
                     </div>
                     <div class="stats-icon-bg">
@@ -493,73 +491,56 @@
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-6">
                 <!-- Search only (Role filter removed since we only show regular users) -->
-                <div class="mb-4">
-                    <label for="search-input" class="block text-sm font-medium text-gray-700 mb-2">Search Users:</label>
-                    <input type="text" id="search-input" placeholder="Search by username or email..."
-                        class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-sm">
+                <div class="flex justify-between">
+                    <div class="mb-4">
+                        <label for="search-input" class="block text-sm font-medium text-gray-700 mb-2">Search Users:</label>
+                        <input type="text" id="search-input" placeholder="Search by username or email..."
+                            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-sm">
+                    </div>
+                    <div class="flex items-center">
+                        <a href="{{ route('admin.drivers.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Create New Driver
+                        </a>
+                    </div>
                 </div>
 
-                <table id="usersTable" class="display" style="width:100%">
+                <table id="driversTable" class="display" style="width:100%">
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Username</th>
                             <th>Email</th>
                             <th>Phone</th>
-                            <th>Role</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($users as $user)
+                        @foreach ($drivers as $driver)
                             <tr>
-                                <td>{{ $user->id }}</td>
-                                <td>{{ $user->username }}</td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->phone ?: 'N/A' }}</td>
-                                <td>
-                                    @php
-                                        $bgColorClass = match ($user->user_role) {
-                                            'super_admin' => 'bg-red-100 text-red-800',
-                                            'admin' => 'bg-blue-100 text-blue-800',
-                                            default => 'bg-gray-100 text-gray-800',
-                                        };
-
-                                        $userRoleText = match ($user->user_role) {
-                                            'super_admin' => 'Super Admin',
-                                            'admin' => 'Admin',
-                                            'driver' => 'Driver',
-                                            default => 'User',
-                                        };
-                                    @endphp
-                                    <span
-                                        class="px-2 py-1 text-xs font-semibold rounded-full
-                                        {{ $bgColorClass }}">
-                                        {{ $userRoleText }}
-                                    </span>
-                                </td>
+                                <td>{{ $driver->id }}</td>
+                                <td>{{ $driver->username }}</td>
+                                <td>{{ $driver->email }}</td>
+                                <td>{{ $driver->phone ?: 'N/A' }}</td>
                                 <td>
                                     <div class="flex space-x-1">
-                                        <a href="{{ route('admin.users.show', $user->id) }}"
-                                            class="action-btn action-btn-blue" title="View User">
+                                        <a href="{{ route('admin.drivers.show', $driver->id) }}"
+                                            class="action-btn action-btn-blue" title="View Driver">
                                             <i class="fas fa-eye"></i>
                                         </a>
 
-                                        @if (!(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin'))
-                                            <a href="{{ route('admin.users.edit', $user->id) }}"
-                                                class="action-btn action-btn-yellow" title="Edit User">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        @endif
+                                        <a href="{{ route('admin.drivers.edit', $driver->id) }}"
+                                            class="action-btn action-btn-yellow" title="Edit Driver">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
 
-                                        @if (Auth::user()->id !== $user->id && !(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin'))
+                                        @if (Auth::user()->id !== $driver->id && !(Auth::user()->user_role === 'admin' && $driver->user_role === 'super_admin'))
                                             <button
-                                                onclick="showDeleteModal(document.getElementById('delete-form-{{ $user->id }}'), '{{ $user->username }}')"
-                                                class="action-btn action-btn-red" title="Delete User">
+                                                onclick="showDeleteModal(document.getElementById('delete-form-{{ $driver->id }}'), '{{ $driver->username }}')"
+                                                class="action-btn action-btn-red" title="Delete Driver">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                            <form id="delete-form-{{ $user->id }}"
-                                                action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
+                                            <form id="delete-form-{{ $driver->id }}"
+                                                action="{{ route('admin.users.destroy', $driver->id) }}" method="POST"
                                                 style="display: none;">
                                                 @csrf
                                                 @method('DELETE')
@@ -590,7 +571,7 @@
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     Total</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-total-users">
-                                    {{ $users->count() }}</p>
+                                    {{ $drivers->count() }}</p>
                             </div>
                         </div>
 
@@ -602,7 +583,7 @@
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     Active</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-active-users">
-                                    {{ $users->whereNotNull('email_verified_at')->count() }}</p>
+                                    {{ $drivers->whereNotNull('email_verified_at')->count() }}</p>
                             </div>
                         </div>
 
@@ -614,7 +595,7 @@
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     New</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-new-users">
-                                    {{ $users->where('created_at', '>=', now()->startOfMonth())->count() }}</p>
+                                    {{ $drivers->where('created_at', '>=', now()->startOfMonth())->count() }}</p>
                             </div>
                         </div>
                     </div>
@@ -631,26 +612,18 @@
 
             <!-- 用戶列表 -->
             <div style="padding: 16px; box-sizing: border-box;">
-                @if ($users->count() > 0)
+                @if ($drivers->count() > 0)
                     <div style="display: flex; flex-direction: column; gap: 12px;" id="mobile-users-container">
-                        @foreach ($users as $user)
-                            @php
-                                $userRoleText = match ($user->user_role) {
-                                    'super_admin' => 'Super Admin',
-                                    'admin' => 'Admin',
-                                    'driver' => 'Driver',
-                                    default => 'User',
-                                };
-                            @endphp
-                            <a href="{{ route('admin.users.show', $user->id) }}" class="mobile-user-card"
-                                data-role="{{ $userRoleText }}" data-username="{{ strtolower($user->username) }}"
-                                data-email="{{ strtolower($user->email) }}"
+                        @foreach ($drivers as $driver)
+                            <a href="{{ route('admin.users.show', $driver->id) }}" class="mobile-user-card"
+                                data-role="driver" data-username="{{ strtolower($driver->username) }}"
+                                data-email="{{ strtolower($driver->email) }}"
                                 style="text-decoration: none; display: block; transition: all 0.2s ease;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <!-- 頭像 -->
                                     <div
-                                        class="avatar {{ $user->user_role === 'super_admin' ? 'avatar-super' : ($user->user_role === 'admin' ? 'avatar-admin' : 'avatar-user') }}">
-                                        {{ strtoupper(substr($user->username, 0, 1)) }}
+                                        class="avatar {{ $driver->user_role === 'super_admin' ? 'avatar-super' : ($driver->user_role === 'admin' ? 'avatar-admin' : 'avatar-user') }}">
+                                        {{ strtoupper(substr($driver->username, 0, 1)) }}
                                     </div>
 
                                     <!-- 用戶資訊 -->
@@ -658,19 +631,19 @@
                                         <div style="display: flex; align-items: center; margin-bottom: 6px;">
                                             <h3
                                                 style="font-weight: 600; color: #1f2937; font-size: 16px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">
-                                                {{ $user->username }}</h3>
+                                                {{ $driver->username }}</h3>
                                             <span
-                                                class="role-badge {{ $user->user_role === 2 ? 'super_admin' : ($user->user_role === 'admin' ? 'role-admin' : 'role-user') }}">
-                                                {{ $user->user_role === 'super_admin' ? 'SUPER' : ($user->user_role === 'admin' ? 'ADMIN' : 'USER') }}
+                                                class="role-badge {{ $driver->user_role === 2 ? 'super_admin' : ($driver->user_role === 'admin' ? 'role-admin' : 'role-user') }}">
+                                                {{ $driver->user_role === 'super_admin' ? 'SUPER' : ($driver->user_role === 'admin' ? 'ADMIN' : 'USER') }}
                                             </span>
                                         </div>
                                         <p
                                             style="font-size: 14px; color: #6b7280; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                            {{ $user->email }}</p>
-                                        @if ($user->phone)
+                                            {{ $driver->email }}</p>
+                                        @if ($driver->phone)
                                             <p
                                                 style="font-size: 12px; color: #9ca3af; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                {{ $user->phone }}</p>
+                                                {{ $driver->phone }}</p>
                                         @endif
                                     </div>
 
@@ -697,9 +670,9 @@
             </div>
 
             <!-- 移動版分頁 -->
-            @if ($users instanceof \Illuminate\Pagination\LengthAwarePaginator && $users->hasPages())
+            @if ($drivers instanceof \Illuminate\Pagination\LengthAwarePaginator && $drivers->hasPages())
                 <div style="margin-top: 30px; padding-bottom: 20px;">
-                    {{ $users->links('pagination::mobile') }}
+                    {{ $drivers->links('pagination::mobile') }}
                 </div>
             @endif
 
@@ -729,7 +702,7 @@
                     style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 14px; color: #dc2626;">
                         <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
-                        User: <strong id="userToDelete"></strong>
+                        Driver: <strong id="userToDelete"></strong>
                     </p>
                 </div>
             </div>
@@ -746,7 +719,7 @@
                     style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
                     onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
                     <i class="fas fa-trash" style="margin-right: 6px;"></i>
-                    Delete User
+                    Delete Driver
                 </button>
             </div>
         </div>
@@ -821,7 +794,7 @@
                     console.log('DataTables is ready, initializing table...');
 
                     // 初始化 DataTable
-                    table = $('#usersTable').DataTable({
+                    table = $('#driversTable').DataTable({
                         responsive: true,
                         pageLength: 10,
                         lengthMenu: [
@@ -832,7 +805,7 @@
                             [0, 'asc']
                         ],
                         columnDefs: [{
-                            targets: [5], // Actions column
+                            targets: [4], // Actions column
                             orderable: false,
                             searchable: false
                         }],
