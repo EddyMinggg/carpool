@@ -19,6 +19,7 @@ class Trip extends Model
         'planned_departure_time',
         'actual_departure_time',
         'max_people',
+        'type',
         'trip_status',
         'base_price'
     ];
@@ -67,14 +68,14 @@ class Trip extends Model
     // Driver relationships
     public function tripDriver()
     {
-        return $this->hasOne(TripDriver::class);
+        return $this->hasOne(TripDriver::class, 'trip_id', 'id');
     }
 
     public function assignedDriver()
     {
         return $this->belongsToMany(User::class, 'trip_drivers', 'trip_id', 'driver_id')
-                    ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
-                    ->withTimestamps();
+            ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
+            ->withTimestamps();
     }
 
     // Helper methods for driver

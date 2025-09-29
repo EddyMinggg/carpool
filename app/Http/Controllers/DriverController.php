@@ -20,12 +20,12 @@ class DriverController extends Controller
     public function dashboard(Request $request)
     {
         $driver = Auth::user();
-        
+
         // Check if user is a driver
         if (!$driver || !$driver->isDriver()) {
             abort(403, 'Access denied. Driver role required.');
         }
-        
+
         // Mobile device detection
         $userAgent = request()->header('User-Agent');
         $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
@@ -84,7 +84,6 @@ class DriverController extends Controller
             DB::commit();
 
             return back()->with('success', "Successfully assigned to trip #{$trip->id} to {$trip->dropoff_location}");
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Failed to assign trip. Please try again.');
@@ -159,13 +158,12 @@ class DriverController extends Controller
         try {
             // Update trip status
             $tripDriver->update(['status' => 'completed']);
-            
+
             // Update the trip status as well
             $tripDriver->trip->update(['trip_status' => 'completed']);
 
             DB::commit();
             return back()->with('success', 'Trip marked as completed!');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Failed to complete trip. Please try again.');
@@ -178,7 +176,7 @@ class DriverController extends Controller
     public function myTrips(Request $request)
     {
         $driver = Auth::user();
-        
+
         // Check if user is a driver
         if (!$driver || !$driver->isDriver()) {
             abort(403, 'Access denied. Driver role required.');
@@ -214,7 +212,7 @@ class DriverController extends Controller
     public function showTrip(Trip $trip)
     {
         $driver = Auth::user();
-        
+
         // Mobile device detection
         $userAgent = request()->header('User-Agent');
         $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
@@ -223,7 +221,7 @@ class DriverController extends Controller
 
         // Check if driver has access to this trip
         $hasAccess = $trip->tripDriver && $trip->tripDriver->driver_id === $driver->id;
-        
+
         if (!$hasAccess && $trip->hasDriver()) {
             abort(403, 'This trip is assigned to another driver.');
         }
