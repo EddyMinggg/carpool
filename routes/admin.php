@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\TripController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\DriverController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PaymentConfirmationController;
@@ -15,6 +16,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::resource('trips', TripController::class)->parameters(['trips' => 'trip:id']);
     Route::resource('users', UserController::class)->parameters(['users' => 'user:id']);
+    Route::resource('drivers', DriverController::class)->parameters(['drivers' => 'driver:id']);
     Route::resource('coupons', CouponController::class)->parameters(['coupons' => 'coupon:id']);
     Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show']);
 

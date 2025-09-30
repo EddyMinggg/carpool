@@ -1,7 +1,7 @@
 @extends('admin.layout')
 
-@section('title', 'User Management - Edit')
-@section('page-title', 'Edit User')
+@section('title', 'Driver Management - Edit')
+@section('page-title', 'Edit Driver')
 
 @section('content')
     {{-- 移動版 CSS 重設和專用樣式 --}}
@@ -145,26 +145,26 @@
     {{-- ============ 桌面版內容 ============ --}}
     @if(!$isMobile)
         <div class="bg-white rounded-lg shadow-md p-6 max-w-3xl">
-            <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
+            <form action="{{ route('admin.drivers.update', $driver->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="mb-4">
                     <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                    <input type="text" name="username" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('username', $user->username) }}">
+                    <input type="text" name="username" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('username', $driver->username) }}">
                     @error('username')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="mb-4">
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" name="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('email', $user->email) }}">
+                    <input type="email" name="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('email', $driver->email) }}">
                     @error('email')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="mb-4">
                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <input type="text" name="phone" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('phone', $user->phone) }}">
+                    <input type="text" name="phone" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('phone', $driver->phone) }}">
                     @error('phone')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -174,26 +174,26 @@
                         <!-- Super Admin 可以設定任何角色 -->
                         <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                         <select name="user_role" id="role" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="user" {{ old('user_role', $user->user_role) == 'user' ? 'selected' : '' }}>User</option>
-                            <option value="driver" {{ old('user_role', $user->user_role) == 'driver' ? 'selected' : '' }}>Driver</option>
-                            <option value="admin" {{ old('user_role', $user->user_role) == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="super_admin" {{ old('user_role', $user->user_role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                            <option value="user" {{ old('user_role', $driver->user_role) == 'user' ? 'selected' : '' }}>Driver</option>
+                            <option value="driver" {{ old('user_role', $driver->user_role) == 'driver' ? 'selected' : '' }}>Driver</option>
+                            <option value="admin" {{ old('user_role', $driver->user_role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="super_admin" {{ old('user_role', $driver->user_role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                         </select>
                     @else
-                        <!-- 普通 Admin 只能設定 User/Admin (不能設定 Super Admin) -->
+                        <!-- 普通 Admin 只能設定 Driver/Admin (不能設定 Super Admin) -->
                         <label class="flex items-center">
-                            <input type="checkbox" name="user_role" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {{ old('user_role', $user->user_role) == 'admin' ? 'checked' : '' }}>
+                            <input type="checkbox" name="user_role" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {{ old('user_role', $driver->user_role) == 'admin' ? 'checked' : '' }}>
                             <span class="ml-2 text-sm text-gray-700">Admin</span>
                         </label>
-                        @if($user->user_role === 'super_admin')
+                        @if($driver->user_role === 'super_admin')
                             <p class="mt-2 text-sm text-gray-500">This user is a Super Admin and cannot be modified by regular admins.</p>
-                            <input type="hidden" name="user_role" value="{{ $user->user_role }}">
+                            <input type="hidden" name="user_role" value="{{ $driver->user_role }}">
                         @endif
                     @endif
                 </div>
                 <div class="flex space-x-4">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Update User</button>
-                    <a href="{{ route('admin.users.show', $user->id) }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors">Cancel</a>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Update Driver</button>
+                    <a href="{{ route('admin.drivers.show', $driver->id) }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors">Cancel</a>
                 </div>
             </form>
         </div>
@@ -203,7 +203,7 @@
     @if($isMobile)
         {{-- 表單卡片 --}}
         <div class="mobile-form-card">
-            <form action="{{ route('admin.users.update', $user->id) }}" method="POST" id="editUserForm">
+            <form action="{{ route('admin.drivers.update', $driver->id) }}" method="POST" id="editUserForm">
                 @csrf
                 @method('PUT')
                 
@@ -214,7 +214,7 @@
                            name="username" 
                            id="username" 
                            class="mobile-input"
-                           value="{{ old('username', $user->username) }}"
+                           value="{{ old('username', $driver->username) }}"
                            placeholder="Enter username">
                     @error('username')
                         <div class="error-text">{{ $message }}</div>
@@ -228,7 +228,7 @@
                            name="email" 
                            id="email" 
                            class="mobile-input"
-                           value="{{ old('email', $user->email) }}"
+                           value="{{ old('email', $driver->email) }}"
                            placeholder="Enter email address">
                     @error('email')
                         <div class="error-text">{{ $message }}</div>
@@ -242,7 +242,7 @@
                            name="phone" 
                            id="phone" 
                            class="mobile-input"
-                           value="{{ old('phone', $user->phone) }}"
+                           value="{{ old('phone', $driver->phone) }}"
                            placeholder="Enter phone number">
                     @error('phone')
                         <div class="error-text">{{ $message }}</div>
@@ -256,25 +256,25 @@
                     @if(Auth::user()->user_role === 'super_admin')
                         {{-- Super Admin 可以設定任何角色 --}}
                         <select name="user_role" class="mobile-select">
-                            <option value="user" {{ old('user_role', $user->user_role) == 'user' ? 'selected' : '' }}>User</option>
-                            <option value="driver" {{ old('user_role', $user->user_role) == 'driver' ? 'selected' : '' }}>Driver</option>
-                            <option value="admin" {{ old('user_role', $user->user_role) == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="super_admin" {{ old('user_role', $user->user_role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                            <option value="user" {{ old('user_role', $driver->user_role) == 'user' ? 'selected' : '' }}>Driver</option>
+                            <option value="driver" {{ old('user_role', $driver->user_role) == 'driver' ? 'selected' : '' }}>Driver</option>
+                            <option value="admin" {{ old('user_role', $driver->user_role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="super_admin" {{ old('user_role', $driver->user_role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                         </select>
                     @else
-                        {{-- 普通 Admin 只能設定 User/Admin --}}
-                        @if($user->user_role === 'admin')
+                        {{-- 普通 Admin 只能設定 Driver/Admin --}}
+                        @if($driver->user_role === 'admin')
                             <div style="padding: 16px; background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; color: #92400e; font-size: 14px;">
                                 This user is a Super Admin and can only be modified by another Super Admin
                             </div>
-                            <input type="hidden" name="user_role" value="{{ $user->user_role }}">
+                            <input type="hidden" name="user_role" value="{{ $driver->user_role }}">
                         @else
                             <div class="mobile-checkbox-wrapper">
                                 <input type="checkbox" 
                                        name="user_role" 
                                        value="admin" 
                                        class="mobile-checkbox"
-                                       {{ old('user_role', $user->user_role) == 'admin' ? 'checked' : '' }}>
+                                       {{ old('user_role', $driver->user_role) == 'admin' ? 'checked' : '' }}>
                                 <span style="font-size: 16px; color: #374151;">Set as Admin</span>
                             </div>
                         @endif
@@ -292,7 +292,7 @@
                             Update
                         </button>
                         
-                        <a href="{{ route('admin.users.show', $user->id) }}" class="mobile-action-btn mobile-btn-gray" style="flex: 1;">
+                        <a href="{{ route('admin.drivers.show', $driver->id) }}" class="mobile-action-btn mobile-btn-gray" style="flex: 1;">
                             <svg style="width: 20px; height: 20px; fill: currentColor; margin-right: 8px;" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
                             </svg>

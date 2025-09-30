@@ -22,9 +22,9 @@ class AdminController extends Controller
 
         // 根據設備類型設置不同的分頁大小
         $perPage = $isMobile ? 5 : 10;
-        
-        $admins = User::where('is_admin', '>=', User::ROLE_ADMIN)
-            ->orderBy('is_admin', 'desc')
+
+        $admins = User::where('user_role', User::ROLE_ADMIN)
+            ->orWhere('user_role', User::ROLE_SUPER_ADMIN)
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
@@ -52,14 +52,14 @@ class AdminController extends Controller
             'username' => ['required', 'string', 'max:50', 'unique:users'],
             'email' => ['required', 'string', 'email', 'max:319', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:1,2'], // Only allow Admin or Super Admin
+            'role' => ['required', 'in:user,driver,admin,super_admin'], // Only allow Admin or Super Admin
         ]);
 
         User::create([
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'is_admin' => $request->role,
+            'user_role' => $request->role,
             'email_verified_at' => now(), // Auto-verify admin emails
         ]);
 
@@ -114,13 +114,13 @@ class AdminController extends Controller
         $request->validate([
             'username' => ['required', 'string', 'max:50', 'unique:users,username,' . $admin->id],
             'email' => ['required', 'string', 'email', 'max:319', 'unique:users,email,' . $admin->id],
-            'role' => ['required', 'in:1,2'], // Only allow Admin or Super Admin
+            'role' => ['required', 'in:user,driver,admin,super_admin'], // Only allow Admin or Super Admin
         ]);
 
         $updateData = [
             'username' => $request->username,
             'email' => $request->email,
-            'is_admin' => $request->role,
+            'user_role' => $request->role,
         ];
 
         // Only update password if provided

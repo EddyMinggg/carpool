@@ -30,7 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'phone',
         'phone_verified_at',
-        'is_admin'
+        'user_role'
     ];
 
     /**
@@ -55,36 +55,43 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     // Role constants
-    public const ROLE_USER = 0;
-    public const ROLE_ADMIN = 1;
-    public const ROLE_SUPER_ADMIN = 2;
+    public const ROLE_USER = 'user';
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_SUPER_ADMIN = 'super_admin';
+    public const ROLE_DRIVER = 'driver';
 
     // Check if user is admin (includes super admin)
     public function isAdmin(): bool
     {
-        return $this->is_admin >= self::ROLE_ADMIN;
+        return $this->user_role === self::ROLE_ADMIN || $this->user_role === self::ROLE_SUPER_ADMIN;
     }
 
     // Check if user is super admin
     public function isSuperAdmin(): bool
     {
-        return $this->is_admin === self::ROLE_SUPER_ADMIN;
+        return $this->user_role === self::ROLE_SUPER_ADMIN;
     }
 
     // Check if user is regular admin (not super admin)
     public function isRegularAdmin(): bool
     {
-        return $this->is_admin === self::ROLE_ADMIN;
+        return $this->user_role === self::ROLE_ADMIN;
     }
 
     // Get role name
     public function getRoleName(): string
     {
-        return match($this->is_admin) {
+        return match ($this->user_role) {
             self::ROLE_SUPER_ADMIN => 'Super Admin',
             self::ROLE_ADMIN => 'Admin',
             default => 'User'
         };
+    }
+
+    // Check if user is driver
+    public function isDriver(): bool
+    {
+        return $this->user_role === self::ROLE_DRIVER;
     }
 
     // Check if phone is verified
@@ -99,5 +106,26 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->forceFill([
             'phone_verified_at' => $this->freshTimestamp(),
         ])->save();
+    }
+
+    // Driver relationships
+    public function driverTrips()
+    {
+        return $this->hasMany(TripDriver::class, 'driver_id');
+    }
+
+    public function assignedTrips()
+    {
+        return $this->belongsToMany(Trip::class, 'trip_drivers', 'driver_id', 'trip_id')
+                    ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
+                    ->withTimestamps();
+    }
+
+    /**
+     * Send the email verification notification with fast delivery.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\FastVerifyEmail);
     }
 }

@@ -36,8 +36,8 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'phone_country_code' => ['required', 'string', 'in:+852,+86,+1,+44'],
             'phone' => [
-                'required', 
-                'string', 
+                'required',
+                'string',
                 'regex:/^[0-9]{8,15}$/', // 8-15 digits for phone number
                 function ($attribute, $value, $fail) use ($request) {
                     $fullPhone = $request->phone_country_code . $value;
@@ -61,7 +61,7 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'phone' => $fullPhoneNumber,
             'password' => Hash::make($request->password),
-            'is_admin' => User::ROLE_USER,
+            'user_role' => User::ROLE_USER,
         ];
 
         // Temporarily skip phone verification and create user directly
@@ -71,7 +71,7 @@ class RegisteredUserController extends Controller
             'email' => $userData['email'],
             'phone' => $userData['phone'],
             'password' => $userData['password'], // Already hashed
-            'is_admin' => $userData['is_admin'],
+            'user_role' => $userData['user_role'],
             'phone_verified_at' => now(), // Mark phone as verified temporarily
             // Note: email_verified_at will be set when user clicks email verification link
         ]);
@@ -79,10 +79,8 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        // Send email verification notification
-        $user->sendEmailVerificationNotification();
-
-        return redirect(route('verification.notice'))->with('success', 
+        return redirect(route('verification.notice'))->with(
+            'success',
             'Registration completed! Please check your email to verify your email address.'
         );
     }
@@ -132,7 +130,7 @@ class RegisteredUserController extends Controller
             'email' => $userData['email'],
             'phone' => $userData['phone'],
             'password' => $userData['password'], // Already hashed
-            'is_admin' => $userData['is_admin'],
+            'user_role' => $userData['user_role'],
             'phone_verified_at' => now(),
             // Note: email_verified_at will be set when user clicks email verification link
         ]);
@@ -147,7 +145,8 @@ class RegisteredUserController extends Controller
         // Send email verification notification
         $user->sendEmailVerificationNotification();
 
-        return redirect(route('verification.notice'))->with('success', 
+        return redirect(route('verification.notice'))->with(
+            'success',
             'Registration completed! Your phone is verified. Please check your email to verify your email address.'
         );
     }
@@ -159,7 +158,7 @@ class RegisteredUserController extends Controller
     {
         $phone = Session::get('otp_phone');
         $userData = Session::get('otp_user_data');
-        
+
         if (!$phone) {
             return response()->json([
                 'success' => false,
@@ -183,7 +182,7 @@ class RegisteredUserController extends Controller
     {
         $phone = Session::get('otp_phone');
         $userData = Session::get('otp_user_data');
-        
+
         if (!$phone) {
             return redirect()->route('register')->withErrors(['general' => 'Session expired. Please register again.']);
         }

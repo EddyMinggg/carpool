@@ -12,7 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('phone_verified_at')->nullable()->after('email_verified_at');
+            $table->dropColumn('is_admin');
+            $table->enum('user_role', [
+                'user',
+                'driver',
+                'admin',
+                'super_admin',
+            ])
+                ->default('user')
+                ->after('phone');
         });
     }
 
@@ -22,7 +30,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('phone_verified_at');
+            $table->dropColumn('user_role');
+            $table->tinyInteger('is_admin')->default(0)->after('phone');
         });
     }
 };

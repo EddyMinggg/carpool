@@ -35,6 +35,10 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        if ($user->isDriver()) {
+            return redirect()->route('driver.dashboard');
+        }
+
         return redirect()->route('dashboard');
     }
 

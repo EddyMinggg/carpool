@@ -248,6 +248,24 @@
             }
         }
 
+        /* Mobile Status Filter Styles */
+        .status-filter-btn {
+            transition: all 0.2s ease;
+        }
+
+        .status-filter-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .status-filter-btn:active {
+            transform: translateY(0px);
+        }
+
+        .status-filter-btn.active {
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+        }
+
         /* 統一的 DataTables 按鈕樣式 */
         .dt-buttons {
             margin-bottom: 1rem;
@@ -389,10 +407,76 @@
                 <input type="text" id="mobileSearch" class="mobile-search-input" placeholder="Search trips...">
             </div>
 
+            <!-- Mobile Status Filter -->
+            <div class="mobile-filter-container" style="
+                margin-bottom: 16px;
+                padding: 12px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            ">
+                <div style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #374151;">Filter by Status:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <!-- First Row -->
+                    <button onclick="filterByStatus('all')" class="status-filter-btn active" data-status="all" style="
+                        padding: 10px 12px;
+                        border: 2px solid #3b82f6;
+                        background: #3b82f6;
+                        color: white;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    ">All Trips</button>
+                    
+                    <button onclick="filterByStatus('awaiting')" class="status-filter-btn" data-status="awaiting" style="
+                        padding: 10px 12px;
+                        border: 2px solid #dbeafe;
+                        background: #dbeafe;
+                        color: #1e40af;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    ">Awaiting</button>
+
+                    <!-- Second Row -->
+                    <button onclick="filterByStatus('voting')" class="status-filter-btn" data-status="voting" style="
+                        padding: 10px 12px;
+                        border: 2px solid #fef3c7;
+                        background: #fef3c7;
+                        color: #92400e;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    ">Voting</button>
+                    
+                    <button onclick="filterByStatus('completed')" class="status-filter-btn" data-status="completed" style="
+                        padding: 10px 12px;
+                        border: 2px solid #dcfce7;
+                        background: #dcfce7;
+                        color: #166534;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    ">Completed</button>
+                </div>
+            </div>
+
             <!-- Mobile Trip Cards -->
             <div id="mobileTripsContainer">
                 @foreach($trips as $trip)
-                    <a href="{{ route('admin.trips.show', $trip->id) }}" class="mobile-trip-card" data-search="{{ strtolower($trip->id . ' ' . ($trip->creator->username ?? 'Unknown') . ' ' . $trip->pickup_location . ' ' . $trip->dropoff_location . ' ' . $trip->trip_status) }}" style="text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                    <a href="{{ route('admin.trips.show', $trip->id) }}" class="mobile-trip-card" data-search="{{ strtolower($trip->id . ' ' . ($trip->creator->username ?? 'Unknown') . ' ' . $trip->dropoff_location . ' ' . $trip->trip_status) }}" data-status="{{ $trip->trip_status }}" style="text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
                         <div class="mobile-trip-header">
                             <div class="mobile-trip-id">#{{ $trip->id }}</div>
                             <div class="mobile-trip-status" style="
@@ -413,8 +497,7 @@
                         </div>
 
                         <div class="mobile-route">
-                            <span class="mobile-location">{{ $trip->pickup_location ?: 'TBD' }}</span>
-                            <i class="fas fa-arrow-right mobile-route-icon"></i>
+                            <i class="fas fa-map-marker-alt mobile-route-icon"></i>
                             <span class="mobile-location">{{ $trip->dropoff_location }}</span>
                         </div>
 
@@ -463,8 +546,7 @@
                             <tr>
                                 <th>Trip ID</th>
                                 <th>Creator</th>
-                                <th>Start Place</th>
-                                <th>End Place</th>
+                                <th>Destination</th>
                                 <th>Departure Time</th>
                                 <th>Max People</th>
                                 <th>Status</th>
@@ -476,7 +558,6 @@
                                 <tr>
                                     <td>{{ $trip->id }}</td>
                                     <td>{{ $trip->creator->username ?? 'Unknown User' }}</td>
-                                    <td>{{ $trip->pickup_location }}</td>
                                     <td>{{ $trip->dropoff_location }}</td>
                                     <td>{{ $trip->planned_departure_time->format('Y-m-d H:i') }}</td>
                                     <td>{{ $trip->max_people }}</td>
@@ -558,24 +639,89 @@ let currentTripId = null;
 const isMobile = {{ $isMobile ? 'true' : 'false' }};
 
 if (isMobile) {
-    // Mobile search functionality
+    // Mobile search and filter functionality
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('mobileSearch');
         const tripCards = document.querySelectorAll('.mobile-trip-card');
+        let currentStatusFilter = 'all';
 
+        // Search functionality
         if (searchInput) {
             searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                
-                tripCards.forEach(card => {
-                    const searchData = card.getAttribute('data-search');
-                    if (searchData.includes(searchTerm)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+                applyFilters();
             });
+        }
+
+        // Apply both search and status filters
+        function applyFilters() {
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            tripCards.forEach(card => {
+                const searchData = card.getAttribute('data-search');
+                const cardStatus = card.getAttribute('data-status');
+                const statusMatch = currentStatusFilter === 'all' || cardStatus === currentStatusFilter;
+                const searchMatch = searchTerm === '' || searchData.includes(searchTerm);
+                
+                if (statusMatch && searchMatch) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Status filter function
+        window.filterByStatus = function(status) {
+            currentStatusFilter = status;
+            
+            // Update button styles
+            document.querySelectorAll('.status-filter-btn').forEach(btn => {
+                const btnStatus = btn.getAttribute('data-status');
+                if (btnStatus === status) {
+                    btn.classList.add('active');
+                    // Active button styles
+                    if (status === 'all') {
+                        btn.style.background = '#3b82f6';
+                        btn.style.borderColor = '#3b82f6';
+                        btn.style.color = 'white';
+                    } else if (status === 'awaiting') {
+                        btn.style.background = '#1e40af';
+                        btn.style.borderColor = '#1e40af';
+                        btn.style.color = 'white';
+                    } else if (status === 'voting') {
+                        btn.style.background = '#92400e';
+                        btn.style.borderColor = '#92400e';
+                        btn.style.color = 'white';
+                    } else if (status === 'completed') {
+                        btn.style.background = '#166534';
+                        btn.style.borderColor = '#166534';
+                        btn.style.color = 'white';
+                    }
+                } else {
+                    btn.classList.remove('active');
+                    // Inactive button styles
+                    const btnStatus = btn.getAttribute('data-status');
+                    if (btnStatus === 'all') {
+                        btn.style.background = '#f3f4f6';
+                        btn.style.borderColor = '#d1d5db';
+                        btn.style.color = '#374151';
+                    } else if (btnStatus === 'awaiting') {
+                        btn.style.background = '#dbeafe';
+                        btn.style.borderColor = '#dbeafe';
+                        btn.style.color = '#1e40af';
+                    } else if (btnStatus === 'voting') {
+                        btn.style.background = '#fef3c7';
+                        btn.style.borderColor = '#fef3c7';
+                        btn.style.color = '#92400e';
+                    } else if (btnStatus === 'completed') {
+                        btn.style.background = '#dcfce7';
+                        btn.style.borderColor = '#dcfce7';
+                        btn.style.color = '#166534';
+                    }
+                }
+            });
+            
+            applyFilters();
         }
 
         // Touch feedback for mobile trip cards and create button
@@ -612,10 +758,10 @@ if (isMobile) {
             responsive: true,
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[4, 'desc']], // 按出發時間排序
+            order: [[3, 'desc']], // 按出發時間排序（現在是第3欄）
             columnDefs: [
                 {
-                    targets: [7], // Actions column
+                    targets: [6], // Actions column（現在是第6欄）
                     orderable: false,
                     searchable: false
                 }

@@ -541,7 +541,7 @@
                             <div>
                                 <p class="text-white text-opacity-80 text-sm font-medium mb-1">Super Admins</p>
                                 <p class="text-3xl font-bold" id="super-admins-desktop">
-                                    {{ $admins->where('is_admin', 2)->count() }}
+                                    {{ $admins->where('user_role', 'super_admin')->count() }}
                                 </p>
                             </div>
                             <div class="stats-icon-bg">
@@ -555,7 +555,7 @@
                             <div>
                                 <p class="text-white text-opacity-80 text-sm font-medium mb-1">Admins</p>
                                 <p class="text-3xl font-bold" id="regular-admins-desktop">
-                                    {{ $admins->where('is_admin', 1)->count() }}
+                                    {{ $admins->where('user_role', 'admin')->count() }}
                                 </p>
                             </div>
                             <div class="stats-icon-bg">
@@ -613,7 +613,7 @@
                                 </td>
                                 <td>
                                     <div class="flex space-x-1">
-                                        <a href="{{ route('super-admin.admins.show', $admin->id) }}" 
+                                        <a href="{{ route('super-admin.admins.show', ['admin' => $admin->id]) }}" 
                                            class="action-btn action-btn-blue"
                                            title="View Admin">
                                             <i class="fas fa-eye"></i>
@@ -684,7 +684,7 @@
                                 <div style="min-width: 0; flex: 1;">
                                     <p style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Super Admins</p>
                                     <p style="font-size: 20px; font-weight: bold; margin: 0;" id="super-admins-mobile">
-                                        {{ $admins->where('is_admin', 2)->count() }}
+                                        {{ $admins->where('user_role', 'super_admin')->count() }}
                                     </p>
                                 </div>
                                 <div style="background: rgba(255,255,255,0.2); border-radius: 50%; padding: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -699,7 +699,7 @@
                                 <div style="min-width: 0; flex: 1;">
                                     <p style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Admins</p>
                                     <p style="font-size: 20px; font-weight: bold; margin: 0;" id="regular-admins-mobile">
-                                        {{ $admins->where('is_admin', 1)->count() }}
+                                        {{ $admins->where('user_role', 'admin')->count() }}
                                     </p>
                                 </div>
                                 <div style="background: rgba(255,255,255,0.2); border-radius: 50%; padding: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -716,7 +716,7 @@
                 @if($admins->count() > 0)
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         @foreach($admins as $admin)
-                            <a href="{{ route('super-admin.admins.show', $admin->id) }}" 
+                            <a href="{{ route('super-admin.admins.show', ['admin' => $admin->id]) }}" 
                                class="mobile-admin-row" 
                                data-role="{{ $admin->getRoleName() }}" 
                                data-username="{{ strtolower($admin->username) }}" 

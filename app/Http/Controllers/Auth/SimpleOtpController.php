@@ -28,9 +28,9 @@ class SimpleOtpController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'phone_country_code' => ['required', 'string', 'in:+852,+86,+1,+44'],
             'phone' => [
-                'required', 
-                'string', 
-                'regex:/^[0-9]{8,15}$/', 
+                'required',
+                'string',
+                'regex:/^[0-9]{8,15}$/',
                 function ($attribute, $value, $fail) use ($request) {
                     $fullPhone = $request->phone_country_code . $value;
                     if (User::where('phone', $fullPhone)->exists()) {
@@ -57,7 +57,7 @@ class SimpleOtpController extends Controller
             'email' => $request->email,
             'phone' => $fullPhoneNumber,
             'password' => Hash::make($request->password),
-            'is_admin' => User::ROLE_USER,
+            'user_role' => User::ROLE_USER,
         ];
 
         // Clean up old OTP records for this phone
@@ -86,7 +86,8 @@ class SimpleOtpController extends Controller
         // Store phone number in session for OTP verification page
         Session::put('otp_phone', $fullPhoneNumber);
 
-        return redirect()->route('otp.verify')->with('success', 
+        return redirect()->route('otp.verify')->with(
+            'success',
             'A verification code has been generated. Check the logs for the code: ' . $otpCode
         );
     }

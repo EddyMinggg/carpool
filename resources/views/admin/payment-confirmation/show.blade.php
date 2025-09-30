@@ -4,18 +4,570 @@
 @section('page-title', 'Confirm Payment')
 
 @section('content')
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">Confirm Payment</h2>
-            <p class="text-gray-600">User: {{ $payment->user->username }} ({{ ucfirst($payment->type) }})</p>
-        </div>
-        <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" 
-           class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
-            Back to List
-        </a>
-    </div>
+    {{-- Mobile CSS Reset and Styles --}}
+    @if($isMobile)
+        <style>
+            /* Mobile strict CSS reset */
+            * {
+                box-sizing: border-box !important;
+                max-width: 100vw !important;
+            }
+            
+            html, body {
+                overflow-x: hidden !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .container, .container-fluid, .row, .col, [class*="col-"] {
+                width: 100vw !important;
+                max-width: 100vw !important;
+                margin: 0 !important;
+                padding: 12px !important;
+                overflow-x: hidden !important;
+            }
+            
+            /* Mobile card styles */
+            .mobile-card {
+                background: white;
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 16px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .mobile-section-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: #1f2937;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .mobile-info-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .mobile-info-item {
+                padding-bottom: 12px;
+                border-bottom: 1px solid #f3f4f6;
+            }
+            
+            .mobile-info-item:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+            
+            .mobile-info-label {
+                font-size: 12px;
+                color: #6b7280;
+                text-transform: uppercase;
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+            
+            .mobile-info-value {
+                font-size: 16px;
+                color: #1f2937;
+                font-weight: 500;
+            }
+            
+            .mobile-amount {
+                font-size: 24px !important;
+                font-weight: 700 !important;
+                color: #3b82f6 !important;
+            }
+            
+            .mobile-payment-badge {
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                text-align: center;
+                display: inline-block;
+            }
+            
+            .mobile-payment-badge.deposit {
+                background: #fed7aa;
+                color: #9a3412;
+                border: 2px solid #fb923c;
+            }
+            
+            .mobile-payment-badge.remaining {
+                background: #c7d2fe;
+                color: #3730a3;
+                border: 2px solid #6366f1;
+            }
+            
+            .mobile-form-group {
+                margin-bottom: 20px;
+            }
+            
+            .mobile-form-label {
+                font-size: 14px;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 8px;
+                display: block;
+            }
+            
+            .mobile-form-input {
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: 16px;
+                background: white;
+                transition: all 0.2s;
+            }
+            
+            .mobile-form-input:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+            
+            .mobile-form-textarea {
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: 16px;
+                background: white;
+                min-height: 100px;
+                resize: vertical;
+                transition: all 0.2s;
+            }
+            
+            .mobile-form-textarea:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+            
+            .mobile-help-text {
+                font-size: 12px;
+                color: #6b7280;
+                margin-top: 4px;
+            }
+            
+            .mobile-info-box {
+                background: #eff6ff;
+                border: 2px solid #bfdbfe;
+                border-radius: 12px;
+                padding: 16px;
+                margin: 16px 0;
+            }
+            
+            .mobile-info-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: #1e40af;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            
+            .mobile-info-text {
+                font-size: 13px;
+                color: #1e40af;
+                margin-bottom: 8px;
+            }
+            
+            .mobile-info-list {
+                font-size: 12px;
+                color: #2563eb;
+                margin: 0;
+                padding-left: 16px;
+            }
+            
+            .mobile-checkbox-container {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                margin: 20px 0;
+                padding: 16px;
+                background: #f9fafb;
+                border-radius: 8px;
+                border: 2px solid #e5e7eb;
+            }
+            
+            .mobile-checkbox {
+                margin-top: 2px;
+                width: 18px;
+                height: 18px;
+                accent-color: #3b82f6;
+            }
+            
+            .mobile-checkbox-label {
+                font-size: 13px;
+                color: #374151;
+                line-height: 1.4;
+            }
+            
+            .mobile-action-buttons {
+                display: grid;
+                grid-template-columns: 1fr 2fr;
+                gap: 12px;
+                margin-top: 24px;
+                padding-top: 20px;
+                border-top: 2px solid #f3f4f6;
+            }
+            
+            .mobile-btn {
+                padding: 14px 20px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                text-align: center;
+                text-decoration: none;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            .mobile-btn-secondary {
+                background: #f3f4f6;
+                color: #374151;
+                border: 2px solid #d1d5db;
+            }
+            
+            .mobile-btn-secondary:hover {
+                background: #e5e7eb;
+                color: #374151;
+            }
+            
+            .mobile-btn-primary {
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                border: 2px solid #10b981;
+            }
+            
+            .mobile-btn-primary:hover {
+                background: linear-gradient(135deg, #059669, #047857);
+                color: white;
+            }
+            
+            .mobile-quick-actions {
+                background: #f8fafc;
+                border-radius: 12px;
+                padding: 16px;
+                margin: 16px 0 80px 0;
+            }
+            
+            .mobile-quick-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 12px;
+            }
+            
+            .mobile-quick-buttons {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .mobile-quick-btn {
+                padding: 10px 12px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 500;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.2s;
+            }
+            
+            .mobile-quick-btn.blue {
+                background: #dbeafe;
+                color: #1e40af;
+                border: 1px solid #bfdbfe;
+            }
+            
+            .mobile-quick-btn.purple {
+                background: #e0e7ff;
+                color: #3730a3;
+                border: 1px solid #c7d2fe;
+            }
+            
+            .mobile-quick-btn.green {
+                background: #dcfce7;
+                color: #166534;
+                border: 1px solid #bbf7d0;
+            }
+            
+            .mobile-quick-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            .mobile-back-btn {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                background: linear-gradient(135deg, #6b7280, #4b5563);
+                color: white;
+                border-radius: 50%;
+                border: none;
+                font-size: 20px;
+                box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+                cursor: pointer;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                transition: all 0.3s;
+            }
+            
+            .mobile-back-btn:hover {
+                transform: scale(1.05);
+                color: white;
+            }
+            
+            /* Hide desktop elements on mobile */
+            .desktop-only {
+                display: none !important;
+            }
+        </style>
+    @endif
+    
+    <style>
+        /* Desktop styles - hide on mobile */
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none !important;
+            }
+        }
 
-    <div class="max-w-4xl mx-auto">
+        /* Mobile styles - hide on desktop */
+        @media (min-width: 769px) {
+            .mobile-only {
+                display: none !important;
+            }
+        }
+    </style>
+    @if($isMobile)
+        <!-- Mobile Layout -->
+        <div class="mobile-only" style="padding: 12px; background-color: #f1f5f9; min-height: 100vh;">
+            <!-- Mobile Header -->
+            <div class="mobile-card">
+                <div class="mobile-section-title">
+                    💰 Confirm Payment
+                </div>
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
+                    User: {{ $payment->user->username }}
+                </div>
+                <div class="mobile-payment-badge {{ $payment->type }}">
+                    {{ $payment->type === 'deposit' ? '💰 DEPOSIT (20%)' : '💳 REMAINING (80%)' }}
+                </div>
+            </div>
+
+            @if (session('success'))
+                <div style="background: #dcfce7; border: 2px solid #bbf7d0; color: #166534; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div style="background: #fecaca; border: 2px solid #f87171; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    @foreach ($errors->all() as $error)
+                        <div style="font-size: 14px;">• {{ $error }}</div>
+                    @endforeach
+                </div>
+            @endif
+
+            <!-- User Information -->
+            <div class="mobile-card">
+                <div class="mobile-section-title">
+                    👤 User Information
+                </div>
+                <div class="mobile-info-grid">
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Username</div>
+                        <div class="mobile-info-value">{{ $payment->user->username }}</div>
+                    </div>
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Email</div>
+                        <div class="mobile-info-value">{{ $payment->user->email }}</div>
+                    </div>
+                    @if($payment->user->phone_number)
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Phone</div>
+                        <div class="mobile-info-value">{{ $payment->user->phone_number }}</div>
+                    </div>
+                    @endif
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Payment Created</div>
+                        <div class="mobile-info-value">{{ $payment->created_at->format('Y-m-d H:i') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trip Information -->
+            <div class="mobile-card">
+                <div class="mobile-section-title">
+                    🚗 Trip Information
+                </div>
+                <div class="mobile-info-grid">
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Trip ID</div>
+                        <div class="mobile-info-value">#{{ $payment->trip->id }}</div>
+                    </div>
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Destination</div>
+                        <div class="mobile-info-value">{{ $payment->trip->dropoff_location }}</div>
+                    </div>
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Departure Time</div>
+                        <div class="mobile-info-value">{{ $payment->trip->planned_departure_time->format('Y-m-d H:i') }}</div>
+                    </div>
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Payment Amount</div>
+                        <div class="mobile-info-value mobile-amount">HK$ {{ number_format($payment->amount, 2) }}</div>
+                    </div>
+                    @if($payment->pickup_location)
+                    <div class="mobile-info-item">
+                        <div class="mobile-info-label">Pickup Location</div>
+                        <div class="mobile-info-value">{{ $payment->pickup_location }}</div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Payment Confirmation Form -->
+            <div class="mobile-card">
+                <div class="mobile-section-title">
+                    ✅ Confirm Payment Receipt
+                </div>
+                
+                <form action="{{ route('admin.payment-confirmation.confirm', $payment) }}" method="POST">
+                    @csrf
+
+                    <!-- Reference Code -->
+                    <div class="mobile-form-group">
+                        <label for="reference_code" class="mobile-form-label">
+                            Payment Reference Code *
+                        </label>
+                        <input type="text" 
+                               name="reference_code" 
+                               id="reference_code" 
+                               value="{{ old('reference_code') }}"
+                               placeholder="Enter reference code"
+                               class="mobile-form-input"
+                               required>
+                        <div class="mobile-help-text">
+                            Enter the reference code from the user's payment proof
+                        </div>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="mobile-form-group">
+                        <label for="notes" class="mobile-form-label">
+                            Additional Notes (Optional)
+                        </label>
+                        <textarea name="notes" 
+                                  id="notes" 
+                                  placeholder="Any additional notes..."
+                                  class="mobile-form-textarea">{{ old('notes') }}</textarea>
+                    </div>
+
+                    <!-- Email Notification Preview -->
+                    <div class="mobile-info-box">
+                        <div class="mobile-info-title">
+                            📧 Email Notification Preview
+                        </div>
+                        <div class="mobile-info-text">
+                            After confirming, an email will be sent to <strong>{{ $payment->user->email }}</strong> with:
+                        </div>
+                        <ul class="mobile-info-list">
+                            <li>{{ ucfirst($payment->type) }} payment confirmation for trip #{{ $payment->trip->id }}</li>
+                            <li>Payment amount: HK$ {{ number_format($payment->amount, 2) }}</li>
+                            <li>Trip details and departure time</li>
+                            <li>Further instructions for the trip</li>
+                        </ul>
+                    </div>
+
+                    <!-- Confirmation Checkbox -->
+                    <div class="mobile-checkbox-container">
+                        <input type="checkbox" 
+                               name="confirm_payment" 
+                               id="confirm_payment" 
+                               value="1"
+                               class="mobile-checkbox"
+                               required>
+                        <label for="confirm_payment" class="mobile-checkbox-label">
+                            I confirm that I have verified the payment proof and the payment amount is correct. An email notification will be sent to the user.
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mobile-action-buttons">
+                        <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" 
+                           class="mobile-btn mobile-btn-secondary">
+                            Cancel
+                        </a>
+                        <button type="submit" class="mobile-btn mobile-btn-primary">
+                            ✅ Confirm & Send Email
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mobile-quick-actions">
+                <div class="mobile-quick-title">Quick Actions</div>
+                <div class="mobile-quick-buttons">
+                    <a href="{{ route('admin.trips.show', $payment->trip) }}" class="mobile-quick-btn blue">
+                        🚗 View Trip Details
+                    </a>
+                    <a href="{{ route('admin.users.show', $payment->user) }}" class="mobile-quick-btn purple">
+                        👤 View User Profile
+                    </a>
+                    <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" class="mobile-quick-btn green">
+                        💰 All Trip Payments
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mobile Back Button -->
+            <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" class="mobile-back-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        </div>
+    @else
+        <!-- Desktop Layout -->
+        <div class="desktop-only">
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Confirm Payment</h2>
+                    <p class="text-gray-600">User: {{ $payment->user->username }} ({{ ucfirst($payment->type) }})</p>
+                </div>
+                <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
+                    Back to List
+                </a>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
             @if (session('success'))
                 <div class="mb-6 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded">
                     {{ session('success') }}
@@ -241,6 +793,58 @@
                 const submitBtn = form.querySelector('button[type="submit"]');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '⏳ Confirming Payment...';
+            });
+        });
+    </script>
+        </div>
+    @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const referenceInput = document.getElementById('reference_code');
+            const confirmCheckbox = document.getElementById('confirm_payment');
+            
+            // Auto-generate reference code suggestion
+            function generateReferenceCode() {
+                if (!referenceInput.value) {
+                    const now = new Date();
+                    const timestamp = now.toISOString().slice(2, 10).replace(/-/g, '');
+                    const tripId = "{{ $payment->trip->id }}";
+                    const userId = "{{ $payment->user->id }}";
+                    const paymentId = "{{ $payment->id }}";
+                    referenceInput.value = `REF${tripId}${userId}P${paymentId}${timestamp}`;
+                }
+            }
+
+            // Focus on reference code input
+            referenceInput.focus();
+
+            // Generate reference code suggestion on focus if empty
+            referenceInput.addEventListener('focus', generateReferenceCode);
+
+            // Form validation
+            form.addEventListener('submit', function(e) {
+                if (!confirmCheckbox.checked) {
+                    e.preventDefault();
+                    alert('Please confirm that you have verified the payment proof.');
+                    confirmCheckbox.focus();
+                    return false;
+                }
+
+                if (!referenceInput.value.trim()) {
+                    e.preventDefault();
+                    alert('Please enter a payment reference code.');
+                    referenceInput.focus();
+                    return false;
+                }
+
+                // Show loading state
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '⏳ Confirming Payment...';
+                }
             });
         });
     </script>

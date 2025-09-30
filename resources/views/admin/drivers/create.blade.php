@@ -1,8 +1,8 @@
 @extends('admin.layout')
 
-@section('page-title', 'Create New Admin')
+@section('page-title', 'Create New Driver')
 
-@section('title', 'Create New Admin')
+@section('title', 'Create New Driver')
 
 @push('head-styles')
     @if($isMobile)
@@ -111,7 +111,7 @@
     @if(!$isMobile)
         <div class="desktop-content">
             <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">
-                <form action="{{ route('super-admin.admins.store') }}" method="POST">
+                <form action="{{ route('admin.drivers.store') }}" method="POST">
                     @csrf
 
                     @if ($errors->any())
@@ -146,21 +146,6 @@
                         @enderror
                     </div>
 
-                    <!-- Role -->
-                    <div class="mb-4">
-                        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
-                        <select name="role" id="role" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <option value="">Select Role</option>
-                            {{-- <option value="driver" {{ old('role') == 'driver' ? 'selected' : '' }}>Driver</option> --}}
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                        </select>
-                        @error('role')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
                     <!-- Password -->
                     <div class="mb-4">
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
@@ -183,9 +168,9 @@
                     <!-- Submit Buttons -->
                     <div class="flex space-x-4">
                         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-                            Create Admin
+                            Create Driver
                         </button>
-                        <a href="{{ route('super-admin.admins.index') }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors">
+                        <a href="{{ route('admin.drivers.index') }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors">
                             Cancel
                         </a>
                     </div>
@@ -198,7 +183,7 @@
     @if($isMobile)
         <div class="mobile-container">
             <div class="mobile-form-container">
-                <form action="{{ route('super-admin.admins.store') }}" method="POST">
+                <form action="{{ route('admin.drivers.store') }}" method="POST">
                     @csrf
 
                     @if ($errors->any())
@@ -233,20 +218,6 @@
                         @enderror
                     </div>
 
-                    <!-- Role -->
-                    <div style="margin-bottom: 16px;">
-                        <label for="mobile-role" style="display: block; font-weight: 600; color: #374151; margin-bottom: 6px;">Role <span style="color: #dc2626;">*</span></label>
-                        <select name="role" id="mobile-role" class="mobile-input" required>
-                            <option value="">Select Role</option>
-                            {{-- <option value="driver" {{ old('role') == 'driver' ? 'selected' : '' }}>Driver</option> --}}
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                        </select>
-                        @error('role')
-                            <p style="margin-top: 4px; font-size: 14px; color: #dc2626;">{{ $message }}</p>
-                        @enderror
-                    </div>
-
                     <!-- Password -->
                     <div style="margin-bottom: 16px;">
                         <label for="mobile-password" style="display: block; font-weight: 600; color: #374151; margin-bottom: 6px;">Password <span style="color: #dc2626;">*</span></label>
@@ -267,9 +238,9 @@
                     <!-- Submit Buttons -->
                     <div>
                         <button type="submit" class="mobile-btn mobile-btn-primary">
-                            Create Admin
+                            Create Driver
                         </button>
-                        <a href="{{ route('super-admin.admins.index') }}" class="mobile-btn mobile-btn-secondary" style="display: block; text-align: center; text-decoration: none;">
+                        <a href="{{ route('admin.drivers.index') }}" class="mobile-btn mobile-btn-secondary" style="display: block; text-align: center; text-decoration: none;">
                             Cancel
                         </a>
                     </div>

@@ -69,16 +69,17 @@ class TripController extends Controller
             'planned_departure_time' => 'required|date|after:now',
             'max_people' => 'required|integer|min:1|max:8',
             'base_price' => 'required|numeric|min:0',
+            'type' => 'required|in:normal,fixed',
             'trip_status' => 'required|in:awaiting,awaiting,voting,departed,completed,cancelled'
         ]);
 
-        $trip = Trip::create([
+        Trip::create([
             'creator_id' => Auth::id(),
-            'pickup_location' => null, // 管理員創建時不設定上車地點
             'dropoff_location' => $validated['dropoff_location'],
             'planned_departure_time' => $validated['planned_departure_time'],
             'max_people' => $validated['max_people'],
             'base_price' => $validated['base_price'],
+            'type' =>  $validated['type'],
             'trip_status' => $validated['trip_status']
         ]);
 
@@ -123,6 +124,7 @@ class TripController extends Controller
             'planned_departure_time' => 'required|date',
             'max_people' => 'required|integer|min:1|max:8',
             'base_price' => 'required|numeric|min:0',
+            'type' => 'required|in:normal,fixed',
             'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled'
         ]);
 

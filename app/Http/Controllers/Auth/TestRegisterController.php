@@ -24,9 +24,9 @@ class TestRegisterController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'phone_country_code' => ['required', 'string', 'in:+852,+86,+1,+44'],
             'phone' => [
-                'required', 
-                'string', 
-                'regex:/^[0-9]{8,15}$/', 
+                'required',
+                'string',
+                'regex:/^[0-9]{8,15}$/',
                 function ($attribute, $value, $fail) use ($request) {
                     $fullPhone = $request->phone_country_code . $value;
                     if (User::where('phone', $fullPhone)->exists()) {
@@ -49,7 +49,7 @@ class TestRegisterController extends Controller
             'email' => $request->email,
             'phone' => $fullPhoneNumber,
             'password' => Hash::make($request->password),
-            'is_admin' => User::ROLE_USER,
+            'user_role' => User::ROLE_USER,
             'phone_verified_at' => now(), // Mark phone as verified for testing
             // Note: email_verified_at will be set when user clicks email verification link
         ]);
@@ -60,7 +60,8 @@ class TestRegisterController extends Controller
         // Send email verification notification
         $user->sendEmailVerificationNotification();
 
-        return redirect(route('verification.notice'))->with('success', 
+        return redirect(route('verification.notice'))->with(
+            'success',
             'Test registration completed! Phone is auto-verified. Please check your email (or logs) to verify your email address.'
         );
     }
