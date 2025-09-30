@@ -345,7 +345,7 @@
         </div>
 
 
-        @if ($trip->trip_status == 'charging')
+        @if ($trip->trip_status == 'charging' && $hasJoined)
             <div
                 class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <div class="flex flex-col items-center gap-3">
@@ -397,7 +397,6 @@
                         <img class="w-full md:w-96 object-contain" src="{{ asset('img/payme_code.jpg') }}" />
                     </div>
                 </div>
-
             </div>
         @endif
 
