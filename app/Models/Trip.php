@@ -32,8 +32,8 @@ class Trip extends Model
 
     // Status constants
     public const STATUS_AWAITING = 'awaiting';
-    public const STATUS_VOTING = 'voting';
     public const STATUS_DEPARTED = 'departed';
+    public const STATUS_CHARGING = 'charging';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
 
@@ -41,8 +41,8 @@ class Trip extends Model
     {
         return [
             self::STATUS_AWAITING => 'Awaiting',
-            self::STATUS_VOTING => 'Voting',
             self::STATUS_DEPARTED => 'Departed',
+            self::STATUS_CHARGING => 'Charging',
             self::STATUS_COMPLETED => 'Completed',
             self::STATUS_CANCELLED => 'Cancelled'
         ];

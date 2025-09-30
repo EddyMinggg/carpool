@@ -64,7 +64,7 @@ class TripController extends Controller
             $now = Carbon::now();
             $isExpired = $trip->planned_departure_time < $now;
             $isCompleted = in_array($trip->trip_status, ['departed', 'completed']);
-            
+
             // 只有未過期且未完成的行程才跳轉到付款頁面
             if (!$isExpired && !$isCompleted) {
                 return redirect()->route('payment.code', ['id' => $payment->id]);

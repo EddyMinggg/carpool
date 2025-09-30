@@ -214,7 +214,7 @@
                     </span>
                 </div>
 
-                @if($assignedDriver)
+                @if ($assignedDriver)
                     <!-- 顯示實際分配的司機 -->
                     <div class="flex items-center gap-4 mb-4">
                         <div
@@ -223,10 +223,11 @@
                                 class="text-blue-600 dark:text-blue-300 font-semibold text-lg">{{ substr($assignedDriver->name ?? $assignedDriver->username, 0, 1) }}</span>
                         </div>
                         <div class="flex-1">
-                            <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $assignedDriver->name ?? $assignedDriver->username }}</div>
+                            <div class="font-semibold text-gray-900 dark:text-gray-100">
+                                {{ $assignedDriver->name ?? $assignedDriver->username }}</div>
                             <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Driver') }}</div>
                         </div>
-                        @if($assignedDriver->phone)
+                        @if ($assignedDriver->phone)
                             <div class="flex gap-2">
                                 <a href="tel:{{ $assignedDriver->phone }}"
                                     class="p-2 bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition">
@@ -253,12 +254,13 @@
                     <div class="flex items-center gap-4 mb-4">
                         <div
                             class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                            <span
-                                class="text-gray-500 dark:text-gray-400 font-semibold text-lg">?</span>
+                            <span class="text-gray-500 dark:text-gray-400 font-semibold text-lg">?</span>
                         </div>
                         <div class="flex-1">
-                            <div class="font-semibold text-gray-500 dark:text-gray-400">{{ __('Driver assigning...') }}</div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Please wait for driver assignment') }}</div>
+                            <div class="font-semibold text-gray-500 dark:text-gray-400">
+                                {{ __('Driver assigning...') }}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('Please wait for driver assignment') }}</div>
                         </div>
                     </div>
                 @endif
@@ -341,6 +343,63 @@
                 </div>
             </div>
         </div>
+
+
+        @if ($trip->trip_status == 'charging')
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="text-blue-600 dark:text-blue-400 mt-0.5">
+                        <i class="fas fa-exclamation-circle fa-2x" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-blue-900 dark:text-blue-100 text-xl text-center my-4">
+                            {{ __('Reminder') }}
+                        </div>
+                        <div class="text-blue-700 dark:text-blue-300 text-sm mt-1">
+                            {{ __('Time to make your remaining payment! You will be denied of the trip if you didn\'t finish the payment before departure!') }}
+                        </div>
+                    </div>
+                    <div class="w-full mt-6">
+                        <div class="relative">
+                            <x-input-label for="reference-copy-button">
+                                {{ __('Reference Code') }}
+                            </x-input-label>
+                            <x-text-input id="reference-copy-button" class="mt-2 w-full p-3.5" value="ABC1239090"
+                                disabled readonly />
+                            <button data-copy-to-clipboard-target="reference-copy-button"
+                                data-tooltip-target="tooltip-copy-reference-copy-button"
+                                class="mt-1 absolute end-2 top-4 translate-y-5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-2 inline-flex items-center justify-center">
+                                <span id="default-icon">
+                                    <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        fill="currentColor" viewBox="0 0 18 20">
+                                        <path
+                                            d="M16 1h-3.278A1.992 1.992 0 0 0 11 0H7a1.993 1.993 0 0 0-1.722 1H2a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2Zm-3 14H5a1 1 0 0 1 0-2h8a1 1 0 0 1 0 2Zm0-4H5a1 1 0 0 1 0-2h8a1 1 0 1 1 0 2Zm0-5H5a1 1 0 0 1 0-2h2V2h4v2h2a1 1 0 1 1 0 2Z" />
+                                    </svg>
+                                </span>
+                                <span id="success-icon" class="hidden">
+                                    <svg class="w-3.5 h-3.5 text-blue-700 dark:text-blue-500" aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 12">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="M1 5.917 5.724 10.5 15 1.5" />
+                                    </svg>
+                                </span>
+                            </button>
+                            <div id="tooltip-copy-reference-copy-button" role="tooltip"
+                                class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
+                                <span id="default-tooltip-message">Copy to clipboard</span>
+                                <span id="success-tooltip-message" class="hidden">Copied!</span>
+                                <div class="tooltip-arrow" data-popper-arrow></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full mt-8 flex md:justify-start justify-center">
+                        <img class="w-full md:w-96 object-contain" src="{{ asset('img/payme_code.jpg') }}" />
+                    </div>
+                </div>
+
+            </div>
+        @endif
 
 
         <!-- 操作按鈕 -->
