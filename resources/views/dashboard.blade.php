@@ -6,30 +6,7 @@
         $activeDate = request('date') ?? ($dates->first() ?? null);
     @endphp
 
-    <!-- Success Messages -->
-    @if (session('verified'))
-        <div class="mb-4 bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg"
-             x-data="{ show: true }" x-show="show" x-transition>
-            <div class="flex items-center gap-3">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <div>
-                    <div class="font-medium">{{ __('Email Verified Successfully!') }}</div>
-                    <div class="text-sm">{{ __('Your email address has been verified. You now have full access to all features.') }}</div>
-                </div>
-            </div>
-            <button @click="show = false" class="float-right text-green-500 hover:text-green-700 ml-2">&times;</button>
-        </div>
-    @endif
 
-    @if (session('success'))
-        <div class="mb-4 bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg"
-             x-data="{ show: true }" x-show="show" x-transition>
-            {{ session('success') }}
-            <button @click="show = false" class="float-right text-green-500 hover:text-green-700 ml-2">&times;</button>
-        </div>
-    @endif
 
     <div x-data="{
         activeDate: '{{ $activeDate }}',
@@ -57,17 +34,41 @@
         }
     }" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+        <!-- Success Messages -->
+        @if (session('verified'))
+        <div class="px-4 pt-4">
+            <div class="flex items-center justify-between bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg"
+                x-data="{ show: true }" x-show="show" x-transition>
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div>
+                        <div class="font-medium">{{ __('Email Verified Successfully!') }}</div>
+                        <div class="text-sm">
+                            {{ __('Your email address has been verified. You now have full access to all features.') }}
+                        </div>
+                    </div>
+                </div>
+                <button @click="show = false"
+                    class="float-right text-green-500 hover:text-green-700 ml-2">&times;</button>
+            </div>
+        </div>
+        @endif
+    
         <!-- Carousel 日期選擇器 -->
         <div class="relative px-4 pt-4 pb-2">
             <div id="location-picker"
                 class="flex items-center text-sm mt-4 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-md border border-gray-100 dark:border-gray-700 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] active:scale-98"
                 @click="window.location='{{ route('map') }}'">
                 <i class="text-gray-400 dark:text-gray-500 material-icons" id="location_pin">&#xe1b7;</i>
-                <span class="ms-2 {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100' }}" id="pickup_location">{{ session('location') ?? __('Pick your location...') }}</span>
+                <span
+                    class="ms-2 {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100' }}"
+                    id="pickup_location">{{ session('location') ?? __('Pick your location...') }}</span>
             </div>
-            
-            <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-6" 
-                 style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
+
+            <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory mt-6"
+                style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
                 <template x-for="(date, index) in dates" :key="date">
                     <button
                         @click="selectDate(date, index); $el.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'})"

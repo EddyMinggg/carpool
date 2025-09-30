@@ -19,6 +19,7 @@ class Trip extends Model
         'planned_departure_time',
         'actual_departure_time',
         'max_people',
+        'type',
         'trip_status',
         'base_price'
     ];
@@ -31,8 +32,8 @@ class Trip extends Model
 
     // Status constants
     public const STATUS_AWAITING = 'awaiting';
-    public const STATUS_VOTING = 'voting';
     public const STATUS_DEPARTED = 'departed';
+    public const STATUS_CHARGING = 'charging';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
 
@@ -40,8 +41,8 @@ class Trip extends Model
     {
         return [
             self::STATUS_AWAITING => 'Awaiting',
-            self::STATUS_VOTING => 'Voting',
             self::STATUS_DEPARTED => 'Departed',
+            self::STATUS_CHARGING => 'Charging',
             self::STATUS_COMPLETED => 'Completed',
             self::STATUS_CANCELLED => 'Cancelled'
         ];
@@ -67,14 +68,14 @@ class Trip extends Model
     // Driver relationships
     public function tripDriver()
     {
-        return $this->hasOne(TripDriver::class);
+        return $this->hasOne(TripDriver::class, 'trip_id', 'id');
     }
 
     public function assignedDriver()
     {
         return $this->belongsToMany(User::class, 'trip_drivers', 'trip_id', 'driver_id')
-                    ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
-                    ->withTimestamps();
+            ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
+            ->withTimestamps();
     }
 
     // Helper methods for driver

@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [TripController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/sms-test/{phone_number}', [SmsController::class, 'send'])->name('sms.test');
-
-Route::get('/sms-test/{phone_number}', [SmsController::class, 'send'])->name('sms.test');
+Route::get('/verified', function () {
+    return view('email-verified');
+})->name('email-verified');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

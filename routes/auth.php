@@ -20,12 +20,12 @@ Route::middleware('guest')->group(function () {
     // OTP Verification routes
     Route::get('verify-otp', [RegisteredUserController::class, 'showOtpForm'])
         ->name('otp.verify');
-    
+
     Route::post('verify-otp', [RegisteredUserController::class, 'verifyOtp']);
-    
+
     Route::post('resend-otp', [RegisteredUserController::class, 'resendOtp'])
         ->name('otp.resend');
-    
+
     Route::post('resend-otp-form', [RegisteredUserController::class, 'resendOtpForm'])
         ->name('otp.resend.form');
 
@@ -55,29 +55,30 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 
-    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
 
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
-    
+
     // Manual email verification for development
-    Route::post('manual-verify-email', function() {
+    Route::post('manual-verify-email', function () {
         if (!app()->environment('local')) {
             abort(403, 'Only available in development mode');
         }
-        
+
         $user = auth()->user();
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
-        
+
         return redirect()->route('dashboard')->with('success', 'Email verified successfully (manual verification)!');
     })->name('manual.verify.email');
 
@@ -90,8 +91,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
-        
-    Route::get('logout', function() {
+
+    Route::get('logout', function () {
         return redirect()->route('login')->with('message', __('Please use the logout button to sign out.'));
     });
 });

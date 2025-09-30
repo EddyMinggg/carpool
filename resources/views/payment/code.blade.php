@@ -10,7 +10,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
         <div class="p-4">
             <!-- Payment Countdown Timer -->
-            <div id="countdown-container" class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 rounded-r-lg p-4 mb-4">
+            <div id="countdown-container" class="bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-400 rounded-r-lg p-4 mb-4">
                 <div class="text-center">
                     <div class="flex items-center justify-center mb-2">
                         <span class="text-red-500 dark:text-red-400 mr-2 text-lg">⏰</span>
@@ -126,7 +126,7 @@
             <!-- Manual refresh button -->
             <div class="w-full mt-6 flex justify-center">
                 <button id="check-status-btn" 
-                    class="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white px-6 py-3 rounded-xl font-semibold transition shadow-md flex items-center gap-2">
+                    class="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800 disabled:bg-green-900 dark:disabled:bg-green-900 text-white px-6 py-3 rounded-xl font-semibold transition shadow-md flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -173,7 +173,7 @@
             if (timeLeft <= 0) {
                 // Time's up
                 countdownTimer.textContent = '{{ __("EXPIRED") }}';
-                countdownContainer.className = 'bg-gray-50 dark:bg-gray-800 border-l-4 border-gray-400 dark:border-gray-500 rounded-r-lg p-3 mb-4';
+                countdownContainer.className = 'bg-gray-50 dark:bg-gray-800 border-l-2 border-gray-400 dark:border-gray-500 rounded-r-lg p-3 mb-4';
                 countdownContainer.innerHTML = `
                     <div class="flex items-center">
                         <span class="text-gray-500 mr-2">⏰</span>
@@ -195,15 +195,15 @@
             // Change colors based on time remaining
             if (minutes <= 5) {
                 // Last 5 minutes - critical (pulsing red)
-                countdownContainer.className = 'bg-red-100 dark:bg-red-900/40 border-l-4 border-red-600 dark:border-red-400 rounded-r-lg p-4 mb-4 animate-pulse';
+                countdownContainer.className = 'bg-red-100 dark:bg-red-900/40 border-l-2 border-red-600 dark:border-red-400 rounded-r-lg p-4 mb-4 animate-pulse';
                 countdownTimer.className = 'text-6xl font-mono font-bold text-red-900 dark:text-red-100 tracking-wide';
             } else if (minutes <= 10) {
                 // Last 10 minutes - warning (orange)
-                countdownContainer.className = 'bg-orange-50 dark:bg-orange-900/30 border-l-4 border-orange-500 dark:border-orange-400 rounded-r-lg p-4 mb-4';
+                countdownContainer.className = 'bg-orange-50 dark:bg-orange-900/30 border-l-2 border-orange-500 dark:border-orange-400 rounded-r-lg p-4 mb-4';
                 countdownTimer.className = 'text-5xl font-mono font-bold text-orange-900 dark:text-orange-100 tracking-wide';
             } else {
                 // Normal state (red)
-                countdownContainer.className = 'bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 rounded-r-lg p-4 mb-4';
+                countdownContainer.className = 'bg-red-50 dark:bg-red-900/20 border-l-2 border-red-500 dark:border-red-400 rounded-r-lg p-4 mb-4';
                 countdownTimer.className = 'text-5xl font-mono font-bold text-red-800 dark:text-red-200 tracking-wide';
             }
             
