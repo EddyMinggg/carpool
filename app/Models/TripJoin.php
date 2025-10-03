@@ -15,8 +15,7 @@ class TripJoin extends Model
 
     protected $fillable = [
         'trip_id',
-        'user_id',
-        'join_role',
+        'user_phone',
         'join_time',
         'user_fee',
         'pickup_location',
@@ -32,7 +31,6 @@ class TripJoin extends Model
         'user_fee' => 'decimal:2',
         'payment_confirmed' => 'boolean',
         'payment_confirmed_at' => 'datetime',
-        'vote_info' => 'array' // Automatically cast JSON to array
     ];
 
     // Relationship: TripJoin belongs to a Trip

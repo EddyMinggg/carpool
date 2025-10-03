@@ -79,8 +79,9 @@ class TripController extends Controller
             'planned_departure_time' => $validated['planned_departure_time'],
             'max_people' => $validated['max_people'],
             'base_price' => $validated['base_price'],
+            'trip_status' => $validated['trip_status'],
             'type' =>  $validated['type'],
-            'trip_status' => $validated['trip_status']
+            'invitation_code' => bin2hex(random_bytes(4)),
         ]);
 
         return redirect()->route('admin.trips.index')->with('success', 'Trip created successfully!');

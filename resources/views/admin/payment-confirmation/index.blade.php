@@ -332,8 +332,8 @@
                         <div class="mobile-payment-card">
                             <div class="mobile-payment-header">
                                 <div class="mobile-user-info">
-                                    <div class="mobile-username">{{ $payment->user->username }}</div>
-                                    <div class="mobile-email">{{ $payment->user->email }}</div>
+                                    <div class="mobile-username">{{ $payment->user_phone }}</div>
+                                    {{-- <div class="mobile-email">{{ $payment->user->email }}</div> --}}
                                 </div>
                                 <div class="mobile-payment-badge {{ $payment->type }}">
                                     {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
@@ -382,8 +382,8 @@
                         <div class="mobile-payment-card" style="border: 2px solid #dcfce7;">
                             <div class="mobile-payment-header">
                                 <div class="mobile-user-info">
-                                    <div class="mobile-username">{{ $payment->user->username }}</div>
-                                    <div class="mobile-email">{{ $payment->user->email }}</div>
+                                    <div class="mobile-username">{{ $payment->user_phone }}</div>
+                                    {{-- <div class="mobile-email">{{ $payment->user->email }}</div> --}}
                                 </div>
                                 <div class="mobile-payment-badge {{ $payment->type }}">
                                     {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
@@ -541,7 +541,7 @@
                                 <input type="checkbox" name="selected_payments[]" value="{{ $payment->id }}" 
                                        class="bulk-checkbox rounded border-gray-300 dark:border-gray-600">
                                 <div class="flex-1">
-                                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ $payment->user->username }}</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ $payment->user_phone }}</span>
                                     <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">HK$ {{ number_format($payment->amount, 2) }}</span>
                                 </div>
                                 <input type="hidden" name="confirmations[{{ $loop->index }}][trip_join_id]" value="{{ $payment->id }}">
@@ -584,16 +584,16 @@
                                     <div class="flex items-center">
                                         <div class="w-8 h-8 bg-amber-200 dark:bg-amber-700 border-2 border-amber-400 dark:border-amber-500 rounded-full flex items-center justify-center mr-3">
                                             <span class="text-amber-900 dark:text-amber-100 font-bold text-sm">
-                                                {{ substr($payment->user->username, 0, 1) }}
+                                                {{-- {{ substr($payment->user->username, 0, 1) }} --}}
                                             </span>
                                         </div>
                                         <div>
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $payment->user->username }}
+                                                {{ $payment->user_phone }}
                                             </div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{-- <div class="text-sm text-gray-500 dark:text-gray-400">
                                                 {{ $payment->user->email }}
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     </div>
                                 </td>
@@ -657,16 +657,16 @@
                                     <div class="flex items-center">
                                         <div class="w-8 h-8 bg-emerald-200 dark:bg-emerald-700 border-2 border-emerald-400 dark:border-emerald-500 rounded-full flex items-center justify-center mr-3">
                                             <span class="text-emerald-900 dark:text-emerald-100 font-bold text-sm">
-                                                {{ substr($payment->user->username, 0, 1) }}
+                                                {{-- {{ substr($payment->user->username, 0, 1) }} --}}
                                             </span>
                                         </div>
                                         <div>
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $payment->user->username }}
+                                                {{ $payment->user_phone }}
                                             </div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{-- <div class="text-sm text-gray-500 dark:text-gray-400">
                                                 {{ $payment->user->email }}
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     </div>
                                 </td>

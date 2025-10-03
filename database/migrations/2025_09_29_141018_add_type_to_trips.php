@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('trips', function (Blueprint $table) {
-            $table->enum('type', ['normal', 'fixed'])->default('normal');
+            $table->enum('type', ['normal', 'fixed'])->default('normal')->after('trip_status');
         });
     }
 

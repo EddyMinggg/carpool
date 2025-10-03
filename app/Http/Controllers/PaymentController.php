@@ -42,7 +42,7 @@ class PaymentController extends Controller
         $trip = Trip::find($request->input('trip_id'));
 
         // 檢查用戶是否已經加入
-        $existingJoin = $trip->joins()->where('user_id', $user->id)->first();
+        $existingJoin = $trip->joins()->where('user_phone', $user->phone ?? $request->user_phone)->first();
         if ($existingJoin) {
             return redirect()->back()->with('error', __('You have already joined this trip.'));
         }
@@ -61,7 +61,7 @@ class PaymentController extends Controller
         $payment = Payment::create([
             'reference_code' => strtoupper(bin2hex(random_bytes(5))),
             'trip_id' => $request->input('trip_id'),
-            'user_id' => $user->id,
+            'user_phone' => $user->phone ?? $request->user_phone,
             'amount' => $request->input('amount'),
             'pickup_location' => $request->input('pickup_location'),
         ]);
@@ -75,11 +75,8 @@ class PaymentController extends Controller
 
         // 創建加入記錄
         $trip->joins()->create([
-            'user_id' => $user->id,
-            'pickup_location' => $request->input('pickup_location'),
-            'join_role' => 'normal',
+            'user_phone' => $user->phone ?? $request->user_phone,
             'user_fee' => round($newUserFee, 2),
-            'vote_info' => json_encode([])
         ]);
 
         // 更新所有現有成員的費用（包括新加入的用戶）

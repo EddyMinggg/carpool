@@ -80,7 +80,9 @@
             {{ $slot }}
         </main>
 
+        @if (!session('guest_mode'))
         @include('layouts.bottom-navigation')
+        @endif
     </div>
 </body>
 

@@ -3,6 +3,8 @@
     $deposit = ($trip->base_price / $trip->max_people) * 0.2;
 @endphp
 <x-app-layout>
+
+    @if (!session('guest_mode'))
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <button onclick="history.back()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
@@ -14,6 +16,7 @@
             <div class="w-10"></div>
         </div>
     </x-slot>
+    @endif
 
     <div class="overlay">
         <div class="overlay__inner">
@@ -165,11 +168,11 @@
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                                <span
-                                    class="text-blue-600 dark:text-blue-300 font-semibold text-sm">{{ substr($join->user->username, 0, 1) }}</span>
+                                {{-- <span
+                                    class="text-blue-600 dark:text-blue-300 font-semibold text-sm">{{ substr($join->user->username, 0, 1) }}</span> --}}
                             </div>
                             <div>
-                                <div class="font-medium text-gray-900 dark:text-gray-100">{{ $join->user->username }}
+                                <div class="font-medium text-gray-900 dark:text-gray-100">{{ $join->user_phone }}
                                 </div>
                                 {{-- 不再顯示任何地址信息，在等待司機區域會顯示自己的地址 --}}
                             </div>
@@ -344,8 +347,7 @@
             </div>
         </div>
 
-
-        @if ($trip->trip_status == 'charging' && $hasJoined)
+        @if ($hasJoined)
             <div
                 class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <div class="flex flex-col items-center gap-3">
@@ -358,6 +360,9 @@
                         </div>
                         <div class="text-blue-700 dark:text-blue-300 text-sm mt-1">
                             {{ __('Time to make your remaining payment! You will be denied of the trip if you didn\'t finish the payment before departure!') }}
+                        </div>
+                        <div class="text-blue-700 dark:text-blue-300 text-sm mt-1 font-bold">
+                            {{ __('Required Amount:') . " $215" }}
                         </div>
                     </div>
                     <div class="w-full mt-6">
@@ -459,8 +464,9 @@
                             @csrf
                             <input type="hidden" name="trip_id" value="{{ $trip->id }}">
                             <input type="hidden" name="amount" value="{{ $deposit }}">
+                            <input type="hidden" name="user_phone" value="{{ $userPhone }}">
                             <input type="hidden" name="pickup_location" id="join-pickup-location"
-                                value="{{ session('location') }}">
+                            value="{{ session('location') }}">
                             <div class="p-8 items-start">
                                 <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
                                     {{ __('Are you sure you want to join the trip?') }}

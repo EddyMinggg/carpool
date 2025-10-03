@@ -31,8 +31,13 @@
                 {{ __('Login') }}
             </a>
             <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'active' : '' }} inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1"
+                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && ( old('invitation_code') || old('phone')) ? '' : 'active' }} inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
                 data-dui-tab-target="tab2-group4">
+                {{ __('Join Trip') }}
+            </a>
+            <a href="#"
+                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'active' : '' }} inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1"
+                data-dui-tab-target="tab3-group4">
                 {{ __('Register') }}
             </a>
         </div>
@@ -82,7 +87,46 @@
                     </div>
                 </form>
             </div>
-            <div id="tab2-group4" class="tab-content {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'block' : 'hidden' }} font-medium text-sm text-gray-700 dark:text-gray-300">
+            <div id="tab2-group4" class="tab-content {{ $errors->any() && ( old('invitation_code') || old('phone')) ? 'hidden' : 'block' }} font-medium text-sm text-gray-700 dark:text-gray-300">
+                <form method="POST" action="{{ route('guest') }}">
+                    @csrf
+                    <!-- Email Address -->
+                    <div>
+                        <x-input-label for="invitation_code" :value="__('Invitation Code')" />
+                        <x-text-input id="invitation_code" class="block mt-1 w-full" name="invitation_code"
+                            :value="old('invitation_code')" required autofocus />
+                        <x-input-error :messages="$errors->get('invitation_code')" class="mt-2" />
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mt-4">
+                        <x-input-label for="phone_invite" :value="__('Phone Number')" />
+                        <div class="flex mt-1">
+                            <select id="phone_country_code_invite" name="phone_country_code_invite" 
+                                class="rounded-l-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 shadow-sm">
+                                <option value="+852" {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)</option>
+                                <option value="+86" {{ old('phone_country_code') == '+86' ? 'selected' : '' }}>+86 (CN)</option>
+                            </select>
+                            <x-text-input id="phone_invite" class="block w-full rounded-l-none border-l-0" 
+                                type="tel" 
+                                name="phone_invite" 
+                                :value="old('phone_invite')" 
+                                required 
+                                autocomplete="tel"
+                                placeholder="12345678" />
+                        </div>
+                        <x-input-error :messages="$errors->get('phone_invite')" class="mt-2" />
+                        <x-input-error :messages="$errors->get('phone_country_code_invite')" class="mt-2" />
+                    </div>
+
+                    <div class="flex items-center justify-end mt-4">
+                        <x-primary-button class="ms-3">
+                            {{ __('Log in') }}
+                        </x-primary-button>
+                    </div>
+                </form>
+            </div>
+            <div id="tab3-group4" class="tab-content {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'block' : 'hidden' }} font-medium text-sm text-gray-700 dark:text-gray-300">
                 <form method="POST" action="{{ route('register') }}">
                     @csrf
 

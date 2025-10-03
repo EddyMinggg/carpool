@@ -37,17 +37,12 @@ return new class extends Migration
         Schema::table('trips', function (Blueprint $table) {
             $table->renameColumn('start_location', 'pickup_location');
             $table->timestamp('actual_departure_time')->nullable()->after('planned_departure_time');
-            $table->enum('trip_status', [
-                'awaiting',
-                'departed',
-                'completed',
-                'cancelled'
-            ])->default('awaiting')->change();
+            $table->enum('trip_status', ['awaiting', 'departed', 'completed', 'cancelled'])->default('awaiting')->change();
         });
 
         Schema::table('trip_joins', function (Blueprint $table) {
             $table->json('vote_info')->nullable();
-            $table->enum('join_role', ['creator', 'normal']);
+            $table->enum('join_role', ['creator', 'normal'])->default('normal');
         });
     }
 };

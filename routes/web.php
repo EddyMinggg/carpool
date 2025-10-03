@@ -16,24 +16,22 @@ Route::get('/verified', function () {
     return view('email-verified');
 })->name('email-verified');
 
+Route::prefix('trips')->group(function () {
+    Route::get('/', [TripController::class, 'index'])->name('trips');
+    Route::get('/{id}', [TripController::class, 'show'])->name('trips.show');
+    Route::delete('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
+});
+
+Route::prefix('payment')->group(function () {
+    Route::post('/', [PaymentController::class, 'store'])->name('payment.create');
+    Route::get('/{id}', [PaymentController::class, 'show'])->name('payment.code');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::prefix('trips')->group(function () {
-        Route::get('/', [TripController::class, 'index'])->name('trips');
-        Route::post('/create', [TripController::class, 'store'])->name('trips.store');
-        Route::get('/{id}', [TripController::class, 'show'])->name('trips.show');
-        Route::post('/{trip}/join', [TripController::class, 'join'])->name('trips.join');
-        Route::delete('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
-        Route::post('/{trip}/depart-now', [TripController::class, 'departNow'])->name('trips.depart-now');
-    });
-
-    Route::prefix('payment')->group(function () {
-        Route::post('/', [PaymentController::class, 'store'])->name('payment.create');
-        Route::get('/{id}', [PaymentController::class, 'show'])->name('payment.code');
-    });
 
     // Driver routes - will be accessible later via direct login
     Route::prefix('driver')->group(function () {
@@ -46,13 +44,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-Route::middleware('auth')->group(function () {
-    // These routes don't require email verification
-    Route::get('lang', [LanguageController::class, 'change'])->name("change.lang");
-    Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');
-    Route::get('/map', function () {
-        return view('map');
-    })->name('map');
-});
+Route::get('lang', [LanguageController::class, 'change'])->name("change.lang");
+Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');
+Route::get('/map', function () {
+    return view('map');
+})->name('map');
 
 require __DIR__ . '/auth.php';

@@ -52,8 +52,8 @@ class PaymentConfirmationController extends Controller
         $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $userAgent);
 
         return view('admin.payment-confirmation.index', compact(
-            'trip', 
-            'pendingPayments', 
+            'trip',
+            'pendingPayments',
             'confirmedPayments',
             'tripStats',
             'isMobile'
@@ -102,7 +102,7 @@ class PaymentConfirmationController extends Controller
             ]);
 
             // Send email notification
-            $this->sendPaymentConfirmationEmail($payment, $request->notes);
+            // $this->sendPaymentConfirmationEmail($payment, $request->notes);
 
             Log::info('Payment confirmed', [
                 'payment_id' => $payment->id,
@@ -117,7 +117,6 @@ class PaymentConfirmationController extends Controller
             return redirect()
                 ->route('admin.payment-confirmation.index', $payment->trip)
                 ->with('success', 'Payment confirmed successfully and email notification sent.');
-
         } catch (\Exception $e) {
             Log::error('Payment confirmation failed', [
                 'payment_id' => $payment->id,
@@ -148,7 +147,7 @@ class PaymentConfirmationController extends Controller
         foreach ($request->selected_payments as $paymentId) {
             try {
                 $payment = Payment::findOrFail($paymentId);
-                
+
                 // Skip if already confirmed
                 if ($payment->paid) {
                     continue;
@@ -189,7 +188,6 @@ class PaymentConfirmationController extends Controller
                 $this->sendPaymentConfirmationEmail($payment);
 
                 $confirmed++;
-
             } catch (\Exception $e) {
                 $errors[] = "Failed to confirm payment #{$paymentId}: " . $e->getMessage();
             }
@@ -212,7 +210,7 @@ class PaymentConfirmationController extends Controller
     {
         try {
             $payment->load(['user', 'trip']);
-            
+
             Mail::send('emails.payment-confirmed', [
                 'payment' => $payment,
                 'user' => $payment->user,
@@ -221,7 +219,7 @@ class PaymentConfirmationController extends Controller
                 'paymentType' => ucfirst($payment->type), // 'Deposit' or 'Remaining'
             ], function ($message) use ($payment) {
                 $message->to($payment->user->email, $payment->user->username)
-                       ->subject('Payment Confirmed - ' . ucfirst($payment->type) . ' for Trip #' . $payment->trip->id);
+                    ->subject('Payment Confirmed - ' . ucfirst($payment->type) . ' for Trip #' . $payment->trip->id);
             });
 
             Log::info('Payment confirmation email sent', [
@@ -229,7 +227,6 @@ class PaymentConfirmationController extends Controller
                 'user_email' => $payment->user->email,
                 'type' => $payment->type,
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to send payment confirmation email', [
                 'payment_id' => $payment->id,

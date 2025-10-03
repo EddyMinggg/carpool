@@ -1,6 +1,6 @@
 @extends('admin.layout')
 
-@section('title', 'Confirm Payment - ' . $payment->user->username)
+@section('title', 'Confirm Payment - ' . $payment->user_phone)
 @section('page-title', 'Confirm Payment')
 
 @section('content')
@@ -372,7 +372,7 @@
                     💰 Confirm Payment
                 </div>
                 <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
-                    User: {{ $payment->user->username }}
+                    User: {{ $payment->user_phone }}
                 </div>
                 <div class="mobile-payment-badge {{ $payment->type }}">
                     {{ $payment->type === 'deposit' ? '💰 DEPOSIT (20%)' : '💳 REMAINING (80%)' }}
@@ -401,9 +401,9 @@
                 <div class="mobile-info-grid">
                     <div class="mobile-info-item">
                         <div class="mobile-info-label">Username</div>
-                        <div class="mobile-info-value">{{ $payment->user->username }}</div>
+                        <div class="mobile-info-value">{{ $payment->user_phone }}</div>
                     </div>
-                    <div class="mobile-info-item">
+                    {{-- <div class="mobile-info-item">
                         <div class="mobile-info-label">Email</div>
                         <div class="mobile-info-value">{{ $payment->user->email }}</div>
                     </div>
@@ -412,7 +412,7 @@
                         <div class="mobile-info-label">Phone</div>
                         <div class="mobile-info-value">{{ $payment->user->phone_number }}</div>
                     </div>
-                    @endif
+                    @endif --}}
                     <div class="mobile-info-item">
                         <div class="mobile-info-label">Payment Created</div>
                         <div class="mobile-info-value">{{ $payment->created_at->format('Y-m-d H:i') }}</div>
@@ -494,7 +494,7 @@
                             📧 Email Notification Preview
                         </div>
                         <div class="mobile-info-text">
-                            After confirming, an email will be sent to <strong>{{ $payment->user->email }}</strong> with:
+                            After confirming, an email will be sent to <strong>{{ $payment->user_phone }}</strong> with:
                         </div>
                         <ul class="mobile-info-list">
                             <li>{{ ucfirst($payment->type) }} payment confirmation for trip #{{ $payment->trip->id }}</li>
@@ -537,9 +537,11 @@
                     <a href="{{ route('admin.trips.show', $payment->trip) }}" class="mobile-quick-btn blue">
                         🚗 View Trip Details
                     </a>
+                    @if (\App\Models\User::where('phone', $payment->user_phone)->first())
                     <a href="{{ route('admin.users.show', $payment->user) }}" class="mobile-quick-btn purple">
                         👤 View User Profile
                     </a>
+                    @endif
                     <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" class="mobile-quick-btn green">
                         💰 All Trip Payments
                     </a>
@@ -559,7 +561,7 @@
             <div class="mb-6 flex items-center justify-between">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Confirm Payment</h2>
-                    <p class="text-gray-600">User: {{ $payment->user->username }} ({{ ucfirst($payment->type) }})</p>
+                    <p class="text-gray-600">User: {{ $payment->user_phone }} ({{ ucfirst($payment->type) }})</p>
                 </div>
                 <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" 
                    class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
@@ -592,20 +594,18 @@
                         <!-- User Info -->
                         <div class="space-y-4">
                             <h4 class="font-medium text-gray-700 dark:text-gray-300">User Information</h4>
-                            <div>
+                            {{-- <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Username</label>
                                 <p class="text-gray-900 dark:text-gray-100 font-medium">{{ $payment->user->username }}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Email</label>
                                 <p class="text-gray-900 dark:text-gray-100">{{ $payment->user->email }}</p>
-                            </div>
-                            @if($payment->user->phone_number)
+                            </div> --}}
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Phone</label>
-                                <p class="text-gray-900 dark:text-gray-100">{{ $payment->user->phone_number }}</p>
+                                <p class="text-gray-900 dark:text-gray-100">{{ $payment->user_phone }}</p>
                             </div>
-                            @endif
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Payment Type</label>
                                 <p class="text-gray-900 dark:text-gray-100">
@@ -691,7 +691,7 @@
                         <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
                             <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">📧 Email Notification Preview</h4>
                             <p class="text-sm text-blue-700 dark:text-blue-300">
-                                After confirming, an email will be sent to <strong>{{ $payment->user->email }}</strong> with:
+                                After confirming, an email will be sent to <strong>{{ $payment->user_phone }}</strong> with:
                             </p>
                             <ul class="mt-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
                                 <li>• {{ ucfirst($payment->type) }} payment confirmation for trip #{{ $payment->trip->id }}</li>
@@ -737,10 +737,12 @@
                        class="inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-sm rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900 transition">
                         🚗 View Trip Details
                     </a>
-                    <a href="{{ route('admin.users.show', $payment->user) }}" 
+                    @if(\App\Models\User::where('phone', $payment->user_phone)->first())
+                    <a href="{{ route('admin.users.show', \App\Models\User::where('phone', $payment->user_phone)->first()) }}" 
                        class="inline-flex items-center px-3 py-1 bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 text-sm rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900 transition">
                         👤 View User Profile
                     </a>
+                    @endif
                     <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" 
                        class="inline-flex items-center px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-sm rounded-lg hover:bg-green-200 dark:hover:bg-green-900 transition">
                         💰 All Trip Payments
@@ -761,7 +763,7 @@
                     const now = new Date();
                     const timestamp = now.toISOString().slice(2, 10).replace(/-/g, '');
                     const tripId = "{{ $payment->trip->id }}";
-                    const userId = "{{ $payment->user->id }}";
+                    const userId = "{{ $payment->user_phone }}";
                     const paymentId = "{{ $payment->id }}";
                     referenceInput.value = `REF${tripId}${userId}P${paymentId}${timestamp}`;
                 }
@@ -811,7 +813,7 @@
                     const now = new Date();
                     const timestamp = now.toISOString().slice(2, 10).replace(/-/g, '');
                     const tripId = "{{ $payment->trip->id }}";
-                    const userId = "{{ $payment->user->id }}";
+                    const userId = "{{ $payment->user_phone }}";
                     const paymentId = "{{ $payment->id }}";
                     referenceInput.value = `REF${tripId}${userId}P${paymentId}${timestamp}`;
                 }

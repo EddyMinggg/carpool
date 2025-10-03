@@ -19,9 +19,10 @@ class Trip extends Model
         'planned_departure_time',
         'actual_departure_time',
         'max_people',
-        'type',
+        'base_price',
         'trip_status',
-        'base_price'
+        'type',
+        'invitation_code'
     ];
 
     protected $casts = [

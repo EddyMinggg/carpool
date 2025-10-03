@@ -45,13 +45,15 @@ class TripController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
         $currentUser = Auth::user();
 
-        $payment = Payment::where('trip_id', $id)->where('user_id', $currentUser->id)->first();
+        $userPhone = $currentUser->phone ?? $request->user_phone;
 
-        $hasLeft = !(TripJoin::where('trip_id', $id)->where('user_id', $currentUser->id)->exists()) && $payment != null;
+        $payment = Payment::where('trip_id', $id)->where('user_phone', $userPhone)->first();
+
+        $hasLeft = !(TripJoin::where('trip_id', $id)->where('user_phone', $userPhone)->exists()) && $payment != null;
 
         $madeDepositPayment = null;
         if ($payment) {
@@ -74,7 +76,7 @@ class TripController extends Controller
         $trip = Trip::with(['joins.user', 'creator'])->findOrFail($id);
 
         // 計算當前用戶是否已加入
-        $userJoin = $trip->joins->where('user_id', $currentUser->id)->first();
+        $userJoin = $trip->joins->where('phone', $userPhone)->first();
         $hasJoined = $userJoin !== null;
 
         // 計算價格（根據用戶是否已加入）
@@ -93,23 +95,6 @@ class TripController extends Controller
             $price = round($trip->base_price / $futureCurrentPeople);
         }
 
-        // 檢查是否有進行中的投票
-        $currentVote = null;
-        $userVoteStatus = 'awaiting';
-        if ($hasJoined && $userJoin && $trip->trip_status === 'voting') {
-            $currentVote = true;
-            $voteInfo = $userJoin->vote_info; // Already cast to array
-
-            // 檢查是否已經投票：必須是非空數組且有有效的vote_result
-            if (
-                is_array($voteInfo) &&
-                isset($voteInfo['vote_result']) &&
-                in_array($voteInfo['vote_result'], ['agree', 'disagree'])
-            ) {
-                $userVoteStatus = $voteInfo['vote_result'];
-            }
-        }
-
         // 格式化時間
         $departureTime = Carbon::parse($trip->planned_departure_time);
 
@@ -119,14 +104,13 @@ class TripController extends Controller
             $assignedDriver = $trip->assignedDriver;
         }
 
-        return view('trips.show_mobile', compact(
+        return view('trips.show', compact(
             'trip',
+            'userPhone',
             'hasJoined',
             'hasLeft',
             'currentPeople',
             'price',
-            'currentVote',
-            'userVoteStatus',
             'departureTime',
             'assignedDriver'
         ))->with('userHasJoined', $hasJoined);

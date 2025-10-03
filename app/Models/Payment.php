@@ -13,7 +13,7 @@ class Payment extends Model
     protected $fillable = [
         'reference_code',
         'trip_id',
-        'user_id',
+        'user_phone',
         'amount',
         'type',
         'pickup_location',
