@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('pickup_location', 100)->nullable();
             $table->string('dropoff_location', 100);
             $table->timestamp('planned_departure_time')->nullable();
-            $table->timestamp('actual_departure_time')->nullable();
             $table->integer('max_people');
             $table->integer('base_price');
             $table->enum('trip_status', [
