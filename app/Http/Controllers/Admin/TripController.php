@@ -64,27 +64,88 @@ class TripController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if this is a batch creation
+        if ($request->has('batch_trips') && !empty($request->batch_trips)) {
+            return $this->storeBatchTrips($request);
+        }
+
+        // Single trip creation
         $validated = $request->validate([
             'dropoff_location' => 'required|string|max:255',
             'planned_departure_time' => 'required|date|after:now',
             'max_people' => 'required|integer|min:1|max:8',
-            'base_price' => 'required|numeric|min:0',
-            'type' => 'required|in:normal,fixed',
-            'trip_status' => 'required|in:awaiting,awaiting,voting,departed,completed,cancelled'
+            'price_per_person' => 'required|numeric|min:0',
+            'type' => 'required|in:golden,normal,fixed',
+            'four_person_discount' => 'nullable|numeric|min:0',
+            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled'
         ]);
 
-        Trip::create([
+        $trip = $this->createSingleTrip($validated);
+        
+        return redirect()->route('admin.trips.index')->with('success', 'Trip created successfully!');
+    }
+
+    private function storeBatchTrips(Request $request)
+    {
+        $validated = $request->validate([
+            'dropoff_location' => 'required|string|max:255',
+            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled',
+            'batch_trips' => 'required|array|min:1',
+            'batch_trips.*.departure_time' => 'required|date|after:now',
+            'batch_trips.*.type' => 'required|in:golden,normal',
+            'batch_trips.*.price_per_person' => 'required|numeric|min:0',
+            'batch_trips.*.max_people' => 'required|integer|min:1|max:8',
+            'batch_trips.*.four_person_discount' => 'nullable|numeric|min:0',
+        ]);
+
+        $createdTrips = 0;
+
+        foreach ($validated['batch_trips'] as $batchTrip) {
+            $tripData = [
+                'dropoff_location' => $validated['dropoff_location'],
+                'planned_departure_time' => $batchTrip['departure_time'],
+                'max_people' => $batchTrip['max_people'],
+                'price_per_person' => $batchTrip['price_per_person'],
+                'type' => $batchTrip['type'], // 使用 type 而非 is_golden_hour
+                'trip_status' => $validated['trip_status'],
+                'four_person_discount' => $batchTrip['four_person_discount'] ?? null,
+            ];
+
+            $this->createSingleTrip($tripData);
+            $createdTrips++;
+        }
+
+        return redirect()->route('admin.trips.index')
+                        ->with('success', "Successfully created {$createdTrips} trips!");
+    }
+
+    private function createSingleTrip($data)
+    {
+        // 根據時段類型自動設置業務邏輯參數
+        $isGoldenHour = ($data['type'] === 'golden');
+        
+        if ($isGoldenHour) {
+            // 黃金時段：1人即可出發，無優惠
+            $minPassengers = 1;
+            $fourPersonDiscount = 0.00;
+        } else {
+            // 普通時段：2人起，可以有4人優惠
+            $minPassengers = 2;
+            $fourPersonDiscount = $data['four_person_discount'] ?? 50.00;
+        }
+
+        return Trip::create([
             'creator_id' => Auth::id(),
-            'dropoff_location' => $validated['dropoff_location'],
-            'planned_departure_time' => $validated['planned_departure_time'],
-            'max_people' => $validated['max_people'],
-            'base_price' => $validated['base_price'],
-            'trip_status' => $validated['trip_status'],
-            'type' =>  $validated['type'],
+            'dropoff_location' => $data['dropoff_location'],
+            'planned_departure_time' => $data['planned_departure_time'],
+            'max_people' => $data['max_people'],
+            'price_per_person' => $data['price_per_person'],
+            'type' => $data['type'], // 直接使用 type
+            'min_passengers' => $minPassengers,
+            'four_person_discount' => $fourPersonDiscount,
+            'trip_status' => $data['trip_status'],
             'invitation_code' => bin2hex(random_bytes(4)),
         ]);
-
-        return redirect()->route('admin.trips.index')->with('success', 'Trip created successfully!');
     }
 
     /**

@@ -197,33 +197,7 @@
                     </div>
                 </form>
                 
-                <!-- Simple OTP Test (logs OTP code) -->
-                @if (app()->environment('local'))
-                    <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                        <p class="text-xs text-blue-700 dark:text-blue-300 mb-2">
-                            <strong>Debug Mode:</strong> Test OTP without AWS (OTP will be logged)
-                        </p>
-                        <form method="POST" action="{{ route('simple.register') }}">
-                            @csrf
-                            <button type="submit" 
-                                    class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
-                                    onclick="this.form.elements.namedItem('username').value = document.getElementById('username').value; 
-                                             this.form.elements.namedItem('email').value = document.getElementById('email_register').value;
-                                             this.form.elements.namedItem('phone_country_code').value = document.getElementById('phone_country_code').value;
-                                             this.form.elements.namedItem('phone').value = document.getElementById('phone_register').value;
-                                             this.form.elements.namedItem('password').value = document.getElementById('password_register').value;
-                                             this.form.elements.namedItem('password_confirmation').value = document.getElementById('password_confirmation').value;">
-                                Test with Simple OTP
-                            </button>
-                            <input type="hidden" name="username">
-                            <input type="hidden" name="email">
-                            <input type="hidden" name="phone_country_code">
-                            <input type="hidden" name="phone">
-                            <input type="hidden" name="password">
-                            <input type="hidden" name="password_confirmation">
-                        </form>
-                    </div>
-                @endif
+
                 
 
             </div>

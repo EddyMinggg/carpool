@@ -52,33 +52,7 @@
                 </div>
             </div>
 
-            <!-- Development Mode Notice -->
-            @if (app()->environment('local'))
-                <div class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <div class="flex items-start gap-3">
-                        <div class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <div class="font-medium text-yellow-900 dark:text-yellow-100 text-sm">
-                                {{ __('🚧 Development Mode') }}
-                            </div>
-                            <div class="text-yellow-700 dark:text-yellow-300 text-sm mt-1 mb-3">
-                                {{ __('Emails are logged to storage/logs/laravel.log. You can also manually verify for testing.') }}
-                            </div>
-                            <form method="POST" action="{{ route('manual.verify.email') }}">
-                                @csrf
-                                <button type="submit" 
-                                        class="text-sm bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded transition duration-150 ease-in-out">
-                                    {{ __('✓ Manually Verify Email (Dev Only)') }}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            @endif
+
 
             <!-- Verification Status -->
             @if (auth()->user()->hasVerifiedPhone())
