@@ -1,29 +1,30 @@
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                    </a>
-                </div>
-
-                <!-- Navigation Links -->
-                {{-- <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('trips')" :active="request()->routeIs('trips')">
-                        {{ __('Trips') }}
-                    </x-nav-link>
-                </div> --}}
+        <div class="flex items-center h-16">
+            <!-- Logo -->
+            <div class="flex-shrink-0">
+                <a href="{{ route('dashboard') }}">
+                    <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
+                </a>
             </div>
-            
+
+            <!-- Location Picker - Centered -->
+            <div class="flex-1 flex justify-center px-3 sm:px-4">
+                <div class="w-full max-w-sm sm:max-w-md">
+                    <div id="header-location-picker"
+                        class="flex items-center text-sm bg-gray-50 dark:bg-gray-700 rounded-lg px-3 sm:px-4 py-2.5 border border-gray-200 dark:border-gray-600 cursor-pointer transition-all hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md active:scale-98 w-full"
+                        @click="window.location='{{ route('map') }}'">
+                        <i class="text-gray-400 dark:text-gray-500 material-icons text-lg mr-2 sm:mr-3 flex-shrink-0">&#xe1b7;</i>
+                        <span
+                            class="truncate {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300' }}"
+                            id="header_pickup_location">{{ session('location') ?? __('Pick location...') }}</span>
+                    </div>
+                </div>
+            </div>
 
             <!-- Settings Dropdown -->
-            <div class="flex items-center ms-6">
+            <div class="flex items-center flex-shrink-0">
                 <div class="flex flex-col justify-center mr-2">
                     <input type="checkbox" name="light-switch" class="light-switch sr-only" id="light-switch">
                     <label class="relative cursor-pointer p-2" for="light-switch">

@@ -145,25 +145,90 @@ class TripController extends Controller
      */
     public function dashboard(Request $request)
     {
-        $trips = Trip::with('joins')->orderBy('planned_departure_time')->where('planned_departure_time', '>', Carbon::now()->addHours(8))->get();
-        $groupedTrips = $trips->filter(function ($trip) {
-            return !empty($trip->planned_departure_time);
-        })->map(function ($trip) {
+        // 確保使用香港時間
+        $now = Carbon::now('Asia/Hong_Kong');
+        
+        // 只顯示未來2週內且未過 departure time 的行程
+        $trips = Trip::with('joins')
+            ->where('planned_departure_time', '>', $now)
+            ->where('planned_departure_time', '<=', $now->copy()->addWeeks(2))
+            ->get();
+            
+        $groupedTrips = $trips->filter(function ($trip) use ($now) {
+            if (empty($trip->planned_departure_time)) {
+                return false;
+            }
+            
+            $departureTime = $trip->planned_departure_time instanceof Carbon
+                ? $trip->planned_departure_time->setTimezone('Asia/Hong_Kong')
+                : Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
+            
+            // 只顯示未過 departure time 的 trip
+            return $departureTime->gt($now);
+        })->map(function ($trip) use ($now) {
             $dt = $trip->planned_departure_time instanceof Carbon
-                ? $trip->planned_departure_time
-                : Carbon::parse($trip->planned_departure_time);
+                ? $trip->planned_departure_time->setTimezone('Asia/Hong_Kong')
+                : Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
             $trip->date = $dt->format('Y-m-d');
             $trip->formatted_departure_time = $dt->format('H:i');
             $trip->current_people = isset($trip->joins) ? $trip->joins->count() : 0;
-            // 金額計算：顯示當前狀態下每人的費用
-            $totalCost = $trip->base_price;
-            if ($trip->current_people <= 1) {
-                $trip->price = $totalCost; // 1人或以下時顯示全額
+            
+            // 使用新的定價系統計算每人費用
+            if ($trip->type === 'fixed') {
+                // 固定價格類型：顯示每人價格
+                $trip->price = $trip->price_per_person;
             } else {
-                $trip->price = round($totalCost / $trip->current_people); // 多人時顯示當前分攤
+                // Golden 或 Normal 類型：根據人數計算價格
+                $currentPeople = max(1, $trip->current_people); // 至少1人
+                
+                if ($trip->type === 'golden') {
+                    // 黃金時段：固定每人250，最少1人
+                    $trip->price = $trip->price_per_person; // 250
+                } else {
+                    // 普通時段：每人275，4人有折扣
+                    if ($currentPeople >= 4 && $trip->four_person_discount > 0) {
+                        $trip->price = $trip->price_per_person - $trip->four_person_discount;
+                    } else {
+                        $trip->price = $trip->price_per_person; // 275
+                    }
+                }
             }
+            
+            // 添加類型顯示標籤
+            $trip->type_label = $trip->isGoldenHour() ? __('Golden Hour') : 
+                               ($trip->type === 'fixed' ? __('Fixed Price') : __('Regular'));
+            
+            // 檢查 booking 是否已截止（但 trip 本身還未過 departure time）
+            $departureTime = $dt->copy();
+            if ($trip->type === 'golden') {
+                // Golden hour: departure time 前 1小時截止預訂
+                $bookingDeadline = $departureTime->subHour();
+                $trip->is_expired = $now->gte($bookingDeadline);
+            } else {
+                // Normal trip: departure time 前 48小時截止預訂  
+                $bookingDeadline = $departureTime->subHours(48);
+                $trip->is_expired = $now->gte($bookingDeadline);
+            }
+            
+            // 添加調試信息（可在開發時使用）
+            $trip->debug_info = [
+                'now' => $now->format('Y-m-d H:i:s T'),
+                'departure' => $dt->format('Y-m-d H:i:s T'),
+                'booking_deadline' => isset($bookingDeadline) ? $bookingDeadline->format('Y-m-d H:i:s T') : null,
+                'is_expired' => $trip->is_expired
+            ];
+            
+            // 添加優先級排序用的欄位
+            $trip->sort_priority = $trip->type === 'golden' ? 0 : 1;
+            
             return $trip;
-        })->groupBy('date');
+        })->groupBy('date')->map(function ($dayTrips) {
+            // 在每日內重新排序：golden hour 在前，然後按時間排序
+            return $dayTrips->sortBy([
+                ['sort_priority', 'asc'],
+                ['planned_departure_time', 'asc']
+            ])->values();
+        });
         $dates = $groupedTrips->keys()->sort();
         $dateList = $dates->map(function ($date) {
             return [
@@ -173,12 +238,19 @@ class TripController extends Controller
         });
 
 
+        // 設定預設的 active date
+        $requestedDate = $request->get('date');
+        $activeDate = $requestedDate && $dates->contains($requestedDate) 
+            ? $requestedDate 
+            : ($dates->first() ?? $now->format('Y-m-d'));
+
         $trips = Trip::paginate(10);
 
         return view('dashboard', [
             'groupedTrips' => $groupedTrips,
             'dates' => $dates,
             'dateList' => $dateList,
+            'activeDate' => $activeDate,
             'trips' => $trips,
         ]);
     }

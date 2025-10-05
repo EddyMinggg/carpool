@@ -17,9 +17,10 @@ class Trip extends Model
         'pickup_location',
         'dropoff_location',
         'planned_departure_time',
-        'actual_departure_time',
         'max_people',
-        'base_price',
+        'min_passengers',
+        'price_per_person',
+        'four_person_discount',
         'trip_status',
         'type',
         'invitation_code'
@@ -28,7 +29,8 @@ class Trip extends Model
     protected $casts = [
         'planned_departure_time' => 'datetime',
         'actual_departure_time' => 'datetime',
-        'base_price' => 'decimal:2'
+        'price_per_person' => 'decimal:2',
+        'four_person_discount' => 'decimal:2',
     ];
 
     // Status constants
@@ -37,6 +39,11 @@ class Trip extends Model
     public const STATUS_CHARGING = 'charging';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
+
+    // Type constants
+    public const TYPE_GOLDEN = 'golden';
+    public const TYPE_NORMAL = 'normal';
+    public const TYPE_FIXED = 'fixed';
 
     public static function getStatusOptions(): array
     {
@@ -77,6 +84,61 @@ class Trip extends Model
         return $this->belongsToMany(User::class, 'trip_drivers', 'trip_id', 'driver_id')
             ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
             ->withTimestamps();
+    }
+
+    // 新的定價邏輯方法
+    public function isGoldenHour(): bool
+    {
+        return $this->type === self::TYPE_GOLDEN;
+    }
+    
+    public function getMinPassengers(): int
+    {
+        return $this->isGoldenHour() ? 1 : $this->min_passengers;
+    }
+    
+    public function calculateTotalPrice(int $passengerCount): float
+    {
+        if ($this->isGoldenHour()) {
+            // 黃金時段：固定價格，無優惠
+            return $this->price_per_person * $passengerCount;
+        } else {
+            // 非黃金時段：4人有優惠
+            if ($passengerCount >= 4 && $this->four_person_discount > 0) {
+                $totalBeforeDiscount = $this->price_per_person * $passengerCount;
+                return $totalBeforeDiscount - $this->four_person_discount;
+            }
+            return $this->price_per_person * $passengerCount;
+        }
+    }
+    
+    public function getEffectivePricePerPerson(int $passengerCount): float
+    {
+        if (!$this->isGoldenHour() && $passengerCount >= 4 && $this->four_person_discount > 0) {
+            $totalWithDiscount = $this->calculateTotalPrice($passengerCount);
+            return (float) ($totalWithDiscount / $passengerCount);
+        }
+        return (float) $this->price_per_person;
+    }
+    
+    public function canDepart(int $currentPassengers): bool
+    {
+        return $currentPassengers >= $this->getMinPassengers();
+    }
+    
+    public function getHourTypeName(): string
+    {
+        return $this->isGoldenHour() ? '黃金時段' : '普通時段';
+    }
+
+    public function getTypeDisplayName(): string
+    {
+        return match($this->type) {
+            self::TYPE_GOLDEN => '🌟 Golden Hour',
+            self::TYPE_NORMAL => '⏰ Regular Hour', 
+            self::TYPE_FIXED => '📋 Fixed',
+            default => $this->type
+        };
     }
 
     // Helper methods for driver

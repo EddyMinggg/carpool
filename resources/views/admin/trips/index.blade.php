@@ -501,6 +501,21 @@
                             <span class="mobile-location">{{ $trip->dropoff_location }}</span>
                         </div>
 
+                        <!-- Time Slot Badge -->
+                        <div style="margin-bottom: 12px;">
+                            <span style="
+                                background-color: {{ $trip->isGoldenHour() ? '#fef3c7' : '#e0e7ff' }};
+                                color: {{ $trip->isGoldenHour() ? '#92400e' : '#3730a3' }};
+                                padding: 6px 12px;
+                                border-radius: 20px;
+                                font-size: 12px;
+                                font-weight: 600;
+                                text-transform: uppercase;
+                            ">
+                                {{ $trip->isGoldenHour() ? '🌟 Golden Hour' : '⏰ Regular Hour' }}
+                            </span>
+                        </div>
+
                         <div class="mobile-trip-info">
                             <div class="mobile-info-item">
                                 <div class="mobile-info-label">Departure</div>
@@ -509,6 +524,14 @@
                             <div class="mobile-info-item">
                                 <div class="mobile-info-label">Capacity</div>
                                 <div class="mobile-info-value">{{ $trip->max_people }} people</div>
+                            </div>
+                            <div class="mobile-info-item">
+                                <div class="mobile-info-label">Price</div>
+                                <div class="mobile-info-value">HK${{ $trip->price_per_person }}/person</div>
+                            </div>
+                            <div class="mobile-info-item">
+                                <div class="mobile-info-label">Min Passengers</div>
+                                <div class="mobile-info-value">{{ $trip->min_passengers }} person{{ $trip->min_passengers > 1 ? 's' : '' }}</div>
                             </div>
                         </div>
                     </a>
@@ -548,6 +571,8 @@
                                 <th>Creator</th>
                                 <th>Destination</th>
                                 <th>Departure Time</th>
+                                <th>Time Slot</th>
+                                <th>Price/Min</th>
                                 <th>Max People</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -560,6 +585,18 @@
                                     <td>{{ $trip->creator->username ?? 'Unknown User' }}</td>
                                     <td>{{ $trip->dropoff_location }}</td>
                                     <td>{{ $trip->planned_departure_time->format('Y-m-d H:i') }}</td>
+                                    <td>
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                            {{ $trip->isGoldenHour() ? 'bg-yellow-100 text-yellow-800' : 'bg-indigo-100 text-indigo-800' }}">
+                                            {{ $trip->isGoldenHour() ? '🌟 Golden' : '⏰ Regular' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="text-sm">
+                                            <div class="font-medium">HK${{ $trip->price_per_person }}/person</div>
+                                            <div class="text-gray-500">Min: {{ $trip->min_passengers }}</div>
+                                        </div>
+                                    </td>
                                     <td>{{ $trip->max_people }}</td>
                                     <td>
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
@@ -758,10 +795,10 @@ if (isMobile) {
             responsive: true,
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[3, 'desc']], // 按出發時間排序（現在是第3欄）
+            order: [[3, 'desc']], // 按出發時間排序（仍然是第3欄）
             columnDefs: [
                 {
-                    targets: [6], // Actions column（現在是第6欄）
+                    targets: [8], // Actions column（現在是第8欄）
                     orderable: false,
                     searchable: false
                 }
