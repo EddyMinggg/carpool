@@ -1,7 +1,4 @@
 @section('Title', $trip->dropoff_location)
-@php
-    $deposit = ($trip->base_price / $trip->max_people) * 0.2;
-@endphp
 <x-app-layout>
 
     @if (!session('guest_mode'))
@@ -56,18 +53,6 @@
             </div>
         @endif
 
-        <!-- 位置選擇器 -->
-        <div class="mb-4">
-            <div id="location-picker"
-                class="flex items-center text-sm mt-4 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-md border border-gray-100 dark:border-gray-700 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] active:scale-98"
-                onclick="window.location.href='{{ route('map') }}'">
-                <i class="text-gray-400 dark:text-gray-500 material-icons" id="location_pin">&#xe1b7;</i>
-                <span
-                    class="ms-2 {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100' }}"
-                    id="pickup_location">{{ session('location') ?? __('Pick your location...') }}</span>
-            </div>
-        </div>
-
         <!-- 行程資訊卡片 -->
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
             <div class="flex mb-6 items-center">
@@ -81,47 +66,88 @@
                     {{ ucfirst($trip->trip_status) }}
                 </span>
             </div>
-            <!-- 路線顯示 - 垂直佈局，支持長地址名稱 -->
+            <!-- 路線顯示 - 響應式佈局：手機垂直，桌面水平 -->
             <div class="mb-4">
-                <div class="flex items-start text-sm space-x-3">
+                @php
+                    // 優先使用新的 session location，如果沒有則回退到 trip_join 中的記錄
+                    $sessionLocation = session('location');
+                    $userJoin = $trip->joins->where('user_id', auth()->id())->first();
+                    $fallbackLocation = $userJoin ? $userJoin->pickup_location : null;
+                    $displayLocation = $sessionLocation ?: $fallbackLocation;
+                @endphp
+
+                <!-- 移動端垂直佈局 -->
+                <div class="block md:hidden">
+                    <!-- Pickup -->
+                    <div class="flex items-start text-sm space-x-3">
+                        <div class="flex-1 min-w-0 location-container">
+                            <div class="flex items-center mb-2">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0"></div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pickup</div>
+                            </div>
+                            <div id="pickup_location_display"
+                                class="text-gray-900 dark:text-gray-100 font-medium leading-tight location-display">
+                                <span>{{ $displayLocation ?: __('Select pickup location') }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 箭頭 (向下) -->
+                    <div class="flex justify-center my-4">
+                        <span class="text-gray-400 dark:text-gray-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                            </svg>
+                        </span>
+                    </div>
+
+                    <!-- Destination -->
+                    <div class="flex items-start text-sm space-x-3">
+                        <div class="flex-1 min-w-0 location-container">
+                            <div class="flex items-center mb-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Destination</div>
+                            </div>
+                            <div class="text-gray-900 dark:text-gray-100 font-medium leading-tight location-display">
+                                <span>{{ $trip->dropoff_location }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 桌面端水平佈局 -->
+                <div class="hidden md:flex md:items-center md:justify-between md:space-x-4">
+                    <!-- Pickup -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
                             <div class="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0"></div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pickup</div>
                         </div>
-                        @php
-                            // 優先使用新的 session location，如果沒有則回退到 trip_join 中的記錄
-                            $sessionLocation = session('location');
-                            $userJoin = $trip->joins->where('user_id', auth()->id())->first();
-                            $fallbackLocation = $userJoin ? $userJoin->pickup_location : null;
-                            $displayLocation = $sessionLocation ?: $fallbackLocation;
-                        @endphp
-                        <div id="pickup_location_display"
-                            class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
-                            {{ $displayLocation ?: __('Select pickup location') }}
+                        <div id="pickup_location_display_desktop"
+                            class="text-gray-900 dark:text-gray-100 font-medium leading-tight location-display">
+                            <span>{{ $displayLocation ?: __('Select pickup location') }}</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- 箭頭 -->
-                <div class="flex justify-center my-4">
-                    <span class="text-gray-400 dark:text-gray-500">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                        </svg>
-                    </span>
-                </div>
+                    <!-- 箭頭 (向右) -->
+                    <div class="flex-shrink-0 mx-4">
+                        <span class="text-gray-400 dark:text-gray-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                            </svg>
+                        </span>
+                    </div>
 
-                <div class="flex items-start text-sm space-x-3">
+                    <!-- Destination -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
                             <div class="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Destination
-                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Destination</div>
                         </div>
-                        <div class="text-gray-900 dark:text-gray-100 font-medium leading-tight break-words">
-                            {{ $trip->dropoff_location }}
+                        <div class="text-gray-900 dark:text-gray-100 font-medium leading-tight location-display">
+                            <span>{{ $trip->dropoff_location }}</span>
                         </div>
                     </div>
                 </div>
@@ -279,8 +305,8 @@
                             $userJoin = $trip->joins->where('user_id', auth()->id())->first();
                             $confirmedLocation = $userJoin ? $userJoin->pickup_location : null;
                         @endphp
-                        <div class="font-medium text-gray-900 dark:text-gray-100 break-words">
-                            {{ $confirmedLocation ?: __('Location not set') }}
+                        <div class="font-medium text-gray-900 dark:text-gray-100 location-display">
+                            <span>{{ $confirmedLocation ?: __('Location not set') }}</span>
                         </div>
                     </div>
                 </div>
@@ -359,10 +385,10 @@
                             {{ __('Reminder') }}
                         </div>
                         <div class="text-blue-700 dark:text-blue-300 text-sm mt-1">
-                            {{ __('Time to make your remaining payment! You will be denied of the trip if you didn\'t finish the payment before departure!') }}
+                            {{ __('Complete your payment to secure your spot! Payment confirmation required before departure.') }}
                         </div>
                         <div class="text-blue-700 dark:text-blue-300 text-sm mt-1 font-bold">
-                            {{ __('Required Amount:') . " $215" }}
+                            {{ __('Full Amount:') . " HK$" . number_format($price, 0) }}
                         </div>
                     </div>
                     <div class="w-full mt-6">
@@ -406,6 +432,173 @@
         @endif
 
 
+        <!-- 多人預訂功能 -->
+        @if (!$hasLeft && !$hasJoined)
+            <!-- 多人預訂功能（適用於所有未加入的用戶） -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ __('Group Booking') }}
+                    </h3>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ __('Book for multiple people') }}
+                    </span>
+                </div>
+
+                <form id="group-booking-form" method="POST" action="{{ route('payment.create') }}">
+                    @csrf
+                    <input type="hidden" name="trip_id" value="{{ $trip->id }}">
+                    <input type="hidden" name="is_group_booking" value="1">
+                    
+                    <!-- 預訂人數選擇 -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ __('Number of People') }}
+                        </label>
+                        
+                        <!-- 可用槽位提示 -->
+                        <div class="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-blue-700 dark:text-blue-300">
+                                    {{ __('Current Status') }}: {{ $currentPeople }}/{{ $trip->max_people }}
+                                </span>
+                                <span class="font-medium text-blue-800 dark:text-blue-200">
+                                    @if($availableSlots > 0)
+                                        {{ __('Available slots') }}: {{ $availableSlots }}
+                                    @else
+                                        <span class="text-red-600 dark:text-red-400">{{ __('Trip is full') }}</span>
+                                    @endif
+                                </span>
+                            </div>
+                            @if($availableSlots > 0 && $availableSlots < $trip->max_people)
+                                <div class="mt-2 text-xs text-orange-600 dark:text-orange-400">
+                                    {{ __('Limited slots available! Book quickly.') }}
+                                </div>
+                            @endif
+                        </div>
+                        <select id="people-count" name="people_count" 
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                            @if($availableSlots > 0)
+                                @for ($i = 1; $i <= min($availableSlots, 5); $i++)
+                                    <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? __('person') : __('people') }}</option>
+                                @endfor
+                            @else
+                                <option disabled>{{ __('No available slots') }}</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    <!-- 動態乘客信息表單 -->
+                    <div id="passengers-container" class="space-y-4 mb-6">
+                        <!-- 第一個乘客 (主預訂人) -->
+                        <div class="passenger-form border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                                    {{ __('Main Booker') }} ({{ __('Passenger 1') }})
+                                </h4>
+                                <span class="text-xs text-blue-600 dark:text-blue-400 font-medium px-2 py-1 bg-blue-100 dark:bg-blue-800 rounded">
+                                    {{ __('Primary Contact') }}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {{ __('Name') }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" name="passengers[0][name]" required
+                                        class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {{ __('Phone Number') }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="flex">
+                                        <select name="passengers[0][phone_country_code]" 
+                                            class="rounded-l-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                                            <option value="+852">+852 (HK)</option>
+                                            <option value="+86">+86 (CN)</option>
+                                        </select>
+                                        <input type="tel" name="passengers[0][phone]" required
+                                            class="flex-1 rounded-r-md border-l-0 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
+                                            placeholder="12345678">
+                                    </div>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {{ __('Pickup Location') }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" name="passengers[0][pickup_location]" required
+                                        class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
+                                        placeholder="{{ __('Enter pickup address') }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 額外乘客模板 (將通過 JavaScript 動態生成) -->
+                    </div>
+
+                    <!-- 價格總覽 -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-400">{{ __('Price per person') }}:</span>
+                                <span class="font-medium" id="price-per-person-display">HK$ {{ number_format($price, 0) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-400">{{ __('Number of people') }}:</span>
+                                <span class="font-medium" id="people-display">1</span>
+                            </div>
+                            <div class="border-t border-gray-300 dark:border-gray-500 pt-2">
+                                <div class="flex justify-between font-semibold">
+                                    <span>{{ __('Total Amount') }}:</span>
+                                    <span class="text-blue-600 dark:text-blue-400" id="total-amount">HK$ {{ number_format($price, 0) }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- 定價規則說明 -->
+                            <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                <div class="text-xs text-blue-700 dark:text-blue-300">
+                                    @if ($trip->type === 'golden')
+                                        <strong>{{ __('Golden Hour') }}:</strong> {{ __('Fixed price HK$250 per person') }}
+                                    @else
+                                        <strong>{{ __('Normal Hour') }}:</strong>
+                                        <div class="mt-1">
+                                            • 1-3{{ __('people') }}: HK$275/{{ __('person') }}<br>
+                                            • 4+{{ __('people') }}: HK$225/{{ __('person') }} ({{ __('HK$50 discount') }})
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 條款確認 -->
+                    <div class="mb-6">
+                        <div class="flex items-start gap-3">
+                            <input type="checkbox" id="group-booking-terms" required
+                                class="mt-1 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                            <label for="group-booking-terms" class="text-sm text-gray-700 dark:text-gray-300">
+                                {{ __('I confirm that I have the consent of all passengers listed above to book this trip on their behalf. I understand the pricing rules and refund policies are managed by administrators.') }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 提交按鈕 -->
+                    @if($availableSlots > 0)
+                        <button type="button" id="submit-group-booking"
+                            class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                            {{ __('Book for Group') }} - <span id="total-amount-btn">HK$ {{ number_format($price, 0) }}</span>
+                        </button>
+                    @else
+                        <div class="w-full bg-gray-400 text-white py-4 rounded-xl font-semibold text-lg text-center">
+                            {{ __('Trip is Full - No Available Slots') }}
+                        </div>
+                    @endif
+                </form>
+            </div>
+        @endif
+
         <!-- 操作按鈕 -->
         <div class="operations space-y-6 hidden">
             @if ($hasLeft)
@@ -415,10 +608,11 @@
                     </h2>
                 </div>
             @else
-                @if (!$hasJoined)
-                    <!-- 加入拼車表單 -->
-                    <button type="submit" id="join-trip-btn"
-                        class="w-full mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md"
+                @if (!$hasJoined && auth()->check())
+                    <!-- 註冊用戶的單人加入拼車表單 -->
+                    @if($availableSlots > 0)
+                        <button type="submit" id="join-trip-btn"
+                            class="w-full mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md"
                         x-data=""
                         x-on:click.prevent="
                             const pickupLocation = document.getElementById('join-pickup-location').value;
@@ -430,6 +624,11 @@
                         ">
                         {{ __('Join') }} - HK$ {{ number_format($price, 0) }}
                     </button>
+                    @else
+                        <div class="w-full mt-4 bg-gray-400 text-white py-4 rounded-xl font-semibold text-lg text-center">
+                            {{ __('Trip is Full') }}
+                        </div>
+                    @endif
 
                     <!-- 位置選擇提醒 Modal -->
                     <x-modal name="location-required" focusable>
@@ -463,7 +662,7 @@
                         <form action="{{ route('payment.create') }}" method="POST" id="join-trip-form">
                             @csrf
                             <input type="hidden" name="trip_id" value="{{ $trip->id }}">
-                            <input type="hidden" name="amount" value="{{ $deposit }}">
+                            <input type="hidden" name="amount" value="{{ $price }}">
                             <input type="hidden" name="user_phone" value="{{ $userPhone }}">
                             <input type="hidden" name="pickup_location" id="join-pickup-location"
                             value="{{ session('location') }}">
@@ -475,10 +674,10 @@
                                 <div
                                     class="mt-8 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
                                     <span class="font-normal">
-                                        {{ __('deposit_warning') }}
+                                        {{ __('Full payment is required upon booking confirmation,') }}
                                     </span>
                                     <span class="text-red-500 dark:text-red-400 font-black">
-                                        {{ __('which WILL NOT be refunded if you decided leave the carpool.') }}
+                                        {{ __('which WILL NOT be refunded if you decided to leave the carpool.') }}
                                     </span>
                                 </div>
 
@@ -495,7 +694,7 @@
                                         {{ __('Required Amount: ') }}
                                     </span>
                                     <span class="font-black underline">
-                                        {{ '$' . $deposit }}
+                                        {{ 'HK$' . number_format($price, 0) }}
                                     </span>
                                 </div>
                                 <div class="flex mt-6">
@@ -547,7 +746,7 @@
                                     <div
                                         class="mt-8 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
                                         <span class="text-red-500 dark:text-red-400 font-black">
-                                            {{ __('The deposit WILL NOT be refunded if you decided leave the carpool.') }}
+                                            {{ __('The payment WILL NOT be refunded if you decided to leave the carpool.') }}
                                         </span>
                                     </div>
 
@@ -561,10 +760,10 @@
                                     <div
                                         class="mt-3 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
                                         <span class="font-normal">
-                                            {{ __('Deposit Amount: ') }}
+                                            {{ __('Payment Amount: ') }}
                                         </span>
                                         <span class="font-black underline">
-                                            {{ '$' . $deposit }}
+                                            {{ 'HK$' . number_format($price, 0) }}
                                         </span>
                                     </div>
                                     <div class="flex mt-6">
@@ -601,26 +800,33 @@
         </div>
 
         @if (!$hasLeft)
-            <!-- 分享按鈕 -->
+            <!-- Web Share API 分享按鈕 -->
             <div class="hidden operations">
-                <div class="flex gap-3 mt-4">
-                    <button id="whatsapp-share-btn"
-                        class="flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white"
-                        style="background-color: #25D366;" onmouseover="this.style.backgroundColor='#1DA851'"
-                        onmouseout="this.style.backgroundColor='#25D366'">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787" />
-                        </svg>
-                        {{ __('Whatsapp Share') }}
+                <div class="mt-4 space-y-3">
+                    <!-- 主要分享按鈕 -->
+                    <button id="share-btn"
+                        class="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
+                        <span class="material-icons text-lg">share</span>
+                        <span>{{ __('Share Trip') }}</span>
                     </button>
-                    <button id="copy-link-btn"
-                        class="flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white"
-                        style="background-color: #6b7280;" onmouseover="this.style.backgroundColor='#4b5563'"
-                        onmouseout="this.style.backgroundColor='#6b7280'">
-                        <span class="material-icons text-sm">link</span>
-                        {{ __('Copy Link') }}
-                    </button>
+                    
+                    <!-- 降級方案按鈕組 (僅在不支援 Web Share API 時顯示) -->
+                    <div id="fallback-share-buttons" class="hidden space-y-2">
+                        <button id="whatsapp-share-btn"
+                            class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-white"
+                            style="background-color: #25D366;">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787"/>
+                            </svg>
+                            {{ __('Share via WhatsApp') }}
+                        </button>
+                        
+                        <button id="copy-link-btn"
+                            class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+                            <span class="material-icons text-lg">content_copy</span>
+                            <span id="copy-text">{{ __('Copy Link') }}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         @endif
@@ -671,6 +877,96 @@
             transform: rotate(360deg);
         }
     }
+
+    /* Web Share API 按鈕樣式 */
+    #share-btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    #share-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    #share-btn:active::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    /* 降級按鈕動畫 */
+    #fallback-share-buttons {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+        opacity: 0;
+    }
+
+    #fallback-share-buttons:not(.hidden) {
+        max-height: 200px;
+        opacity: 1;
+    }
+
+    /* 觸摸設備優化 */
+    @media (hover: none) {
+        #share-btn, #whatsapp-share-btn, #copy-link-btn {
+            transform: scale(1);
+            transition: transform 0.1s ease, background-color 0.2s ease;
+        }
+        
+        #share-btn:active, #whatsapp-share-btn:active, #copy-link-btn:active {
+            transform: scale(0.96);
+        }
+    }
+
+    /* 分享反饋動畫 */
+    @keyframes shareSuccess {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .share-success {
+        animation: shareSuccess 0.3s ease;
+    }
+
+    /* 多人預訂表單樣式 */
+    .passenger-form {
+        transition: all 0.3s ease;
+    }
+    
+    .passenger-form:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px #3b82f6;
+    }
+    
+    .remove-passenger {
+        opacity: 0.6;
+        transition: opacity 0.2s ease;
+    }
+    
+    .remove-passenger:hover {
+        opacity: 1;
+    }
+    
+    /* 價格總覽動畫 */
+    @keyframes priceUpdate {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .price-updated {
+        animation: priceUpdate 0.3s ease;
+    }
 </style>
 
 <script type="module">
@@ -680,12 +976,20 @@
         window.addEventListener('location-selected', function(event) {
             const location = event.detail.location;
             if (location && location.formatted_address) {
-                // Update displayed location
+                // Update displayed location (mobile version)
                 const displayElement = document.querySelector('#pickup_location_display span');
                 if (displayElement) {
                     displayElement.textContent = location.formatted_address;
                     displayElement.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic');
                     displayElement.classList.add('text-gray-900', 'dark:text-gray-100');
+                }
+
+                // Update displayed location (desktop version)
+                const displayElementDesktop = document.querySelector('#pickup_location_display_desktop span');
+                if (displayElementDesktop) {
+                    displayElementDesktop.textContent = location.formatted_address;
+                    displayElementDesktop.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic');
+                    displayElementDesktop.classList.add('text-gray-900', 'dark:text-gray-100');
                 }
 
                 // Update hidden field in form
@@ -797,38 +1101,181 @@
         const plannedDepartureTime = new Date('{{ $trip->planned_departure_time }}');
         timer(plannedDepartureTime);
 
-        // Copy link functionality
+        // 檢測是否為手機設備
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   window.innerWidth <= 768;
+        }
+
+        // 準備分享數據
+        function getShareData() {
+            const tripTitle = '{{ $trip->dropoff_location }}';
+            const departureTime = '{{ $departureTime->format('Y-m-d H:i') }}';
+            const price = 'HK$ {{ number_format($price, 0) }}';
+            const currentPeople = '{{ $currentPeople }}';
+            const maxPeople = '{{ $trip->max_people }}';
+
+            // Get current URL, replace localhost with online domain if needed
+            let shareUrl = window.location.href;
+            if (shareUrl.includes('localhost') || shareUrl.includes('127.0.0.1')) {
+                const appUrl = '{{ config('app.url') }}';
+                if (appUrl && !appUrl.includes('localhost')) {
+                    shareUrl = shareUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, appUrl);
+                } else {
+                    shareUrl = shareUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/,
+                        'https://your-actual-domain.com');
+                }
+            }
+
+            const shareText = `🚗 ${tripTitle} 拼車邀請！
+
+📍 目的地: ${tripTitle}
+🕐 出發時間: ${departureTime}
+💰 價格: ${price}/人
+👥 目前人數: ${currentPeople}/${maxPeople}
+
+點擊連結查看詳情並加入:
+#拼車 #香港 #出行`;
+
+            return {
+                title: `${tripTitle} 拼車邀請`,
+                text: shareText,
+                url: shareUrl
+            };
+        }
+
+        // 檢查 Web Share API 支援並初始化
+        function initializeShare() {
+            if (navigator.share) {
+                // 支援 Web Share API，隱藏降級按鈕
+                $('#fallback-share-buttons').addClass('hidden');
+                console.log('✅ Web Share API 支援');
+            } else {
+                // 不支援 Web Share API，顯示降級按鈕
+                $('#fallback-share-buttons').removeClass('hidden');
+                console.log('❌ Web Share API 不支援，使用降級方案');
+            }
+        }
+
+        // Web Share API 分享功能
+        async function shareViaWebAPI() {
+            const shareData = getShareData();
+            
+            try {
+                // 檢查是否可以分享
+                if (navigator.canShare && !navigator.canShare(shareData)) {
+                    throw new Error('無法分享此內容');
+                }
+                
+                await navigator.share(shareData);
+                console.log('✅ 分享成功');
+                
+                // 顯示成功反饋
+                showShareFeedback('success', '{{ __('Shared successfully!') }}');
+                
+            } catch (error) {
+                console.log('❌ 分享失敗或取消:', error);
+                
+                if (error.name !== 'AbortError') {
+                    // 不是用戶取消，顯示降級選項
+                    showFallbackOptions();
+                }
+            }
+        }
+
+        // 顯示分享反饋
+        function showShareFeedback(type, message) {
+            const button = $('#share-btn');
+            const originalContent = button.html();
+            
+            if (type === 'success') {
+                button.html(`
+                    <span class="material-icons text-lg">check_circle</span>
+                    <span>${message}</span>
+                `).removeClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800')
+                  .addClass('bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800');
+            } else {
+                button.html(`
+                    <span class="material-icons text-lg">error</span>
+                    <span>${message}</span>
+                `).removeClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800')
+                  .addClass('bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800');
+            }
+            
+            // 2秒後恢復
+            setTimeout(() => {
+                button.html(originalContent)
+                      .removeClass('bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800')
+                      .addClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800');
+            }, 2000);
+        }
+
+        // 顯示降級選項
+        function showFallbackOptions() {
+            $('#fallback-share-buttons').removeClass('hidden');
+            showShareFeedback('error', '{{ __('Choose sharing method') }}');
+            
+            // 3秒後隱藏降級選項
+            setTimeout(() => {
+                if (navigator.share) {
+                    $('#fallback-share-buttons').addClass('hidden');
+                }
+            }, 5000);
+        }
+
+        // 主要分享按鈕功能
+        $('#share-btn').on('click', function() {
+            if (navigator.share) {
+                shareViaWebAPI();
+            } else {
+                // 直接顯示降級選項
+                $('#fallback-share-buttons').toggleClass('hidden');
+            }
+        });
+
+        // Copy link functionality (降級方案)
         $('#copy-link-btn').on('click', function() {
-            const currentUrl = window.location.href;
-            const button = $(this);
-            const originalText = button.html();
+            const shareData = getShareData();
+            const currentUrl = shareData.url;
+            const copyText = $('#copy-text');
+            const originalText = copyText.text();
 
             // Use modern Clipboard API
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(currentUrl).then(function() {
                     // Successfully copied
-                    button.html(
-                        '<span class="material-icons text-sm">check</span>{{ __('Copied!') }}'
-                    );
-                    button.css('background-color', '#22c55e');
+                    copyText.text('{{ __('Copied!') }}');
+                    
+                    // 顯示成功反饋
+                    const button = $('#copy-link-btn');
+                    button.removeClass('bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600')
+                          .addClass('bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200');
+
+                    // 隱藏降級按鈕
+                    setTimeout(() => {
+                        if (navigator.share) {
+                            $('#fallback-share-buttons').addClass('hidden');
+                        }
+                    }, 1000);
 
                     // Restore after 2 seconds
                     setTimeout(function() {
-                        button.html(originalText);
-                        button.css('background-color', '#6b7280');
+                        copyText.text(originalText);
+                        button.removeClass('bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200')
+                              .addClass('bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600');
                     }, 2000);
                 }).catch(function(err) {
                     // Copy failed, use fallback method
-                    fallbackCopyTextToClipboard(currentUrl, button, originalText);
+                    fallbackCopyTextToClipboard(currentUrl, copyText, originalText);
                 });
             } else {
                 // Clipboard API not supported, use fallback method
-                fallbackCopyTextToClipboard(currentUrl, button, originalText);
+                fallbackCopyTextToClipboard(currentUrl, copyText, originalText);
             }
         });
 
         // Fallback copy method (for older browsers)
-        function fallbackCopyTextToClipboard(text, button, originalText) {
+        function fallbackCopyTextToClipboard(text, copyText, originalText) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
 
@@ -850,81 +1297,278 @@
 
             try {
                 const successful = document.execCommand('copy');
+                const button = $('#copy-link-btn');
+                
                 if (successful) {
                     // Successfully copied
-                    button.html('<span class="material-icons text-sm">check</span>{{ __('Copied!') }}');
-                    button.css('background-color', '#22c55e');
+                    copyText.text('{{ __('Copied!') }}');
+                    button.removeClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30')
+                          .addClass('bg-green-50 dark:bg-green-900/20');
+                    button.find('div').removeClass('bg-blue-500').addClass('bg-green-500');
+
+                    // 自動關閉分享面板
+                    setTimeout(() => {
+                        hideShareModal();
+                    }, 1000);
 
                     // Restore after 2 seconds
                     setTimeout(function() {
-                        button.html(originalText);
-                        button.css('background-color', '#6b7280');
+                        copyText.text(originalText);
+                        button.removeClass('bg-green-50 dark:bg-green-900/20')
+                              .addClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30');
+                        button.find('div').removeClass('bg-green-500').addClass('bg-blue-500');
                     }, 2000);
                 } else {
                     // Copy failed
-                    button.html('<span class="material-icons text-sm">error</span>{{ __('Copy Failed') }}');
-                    button.css('background-color', '#ef4444');
+                    copyText.text('{{ __('Copy Failed') }}');
+                    button.removeClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30')
+                          .addClass('bg-red-50 dark:bg-red-900/20');
+                    button.find('div').removeClass('bg-blue-500').addClass('bg-red-500');
 
                     setTimeout(function() {
-                        button.html(originalText);
-                        button.css('background-color', '#6b7280');
+                        copyText.text(originalText);
+                        button.removeClass('bg-red-50 dark:bg-red-900/20')
+                              .addClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30');
+                        button.find('div').removeClass('bg-red-500').addClass('bg-blue-500');
                     }, 2000);
                 }
             } catch (err) {
                 // Copy failed
-                button.html('<span class="material-icons text-sm">error</span>{{ __('Copy Failed') }}');
-                button.css('background-color', '#ef4444');
+                copyText.text('{{ __('Copy Failed') }}');
+                const button = $('#copy-link-btn');
+                button.removeClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30')
+                      .addClass('bg-red-50 dark:bg-red-900/20');
+                button.find('div').removeClass('bg-blue-500').addClass('bg-red-500');
 
                 setTimeout(function() {
-                    button.html(originalText);
-                    button.css('background-color', '#6b7280');
+                    copyText.text(originalText);
+                    button.removeClass('bg-red-50 dark:bg-red-900/20')
+                          .addClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30');
+                    button.find('div').removeClass('bg-red-500').addClass('bg-blue-500');
                 }, 2000);
             }
 
             document.body.removeChild(textArea);
         }
 
-        // WhatsApp share functionality
+        // WhatsApp share functionality (降級方案)
         $('#whatsapp-share-btn').on('click', function() {
-            // Generate share message
-            const tripTitle = '{{ $trip->dropoff_location }}';
-            const departureTime = '{{ $departureTime->format('Y-m-d H:i') }}';
-            const price = 'HK$ {{ number_format($price, 0) }}';
-            const currentPeople = '{{ $currentPeople }}';
-            const maxPeople = '{{ $trip->max_people }}';
-
-            // Get current URL, replace localhost with online domain if needed
-            let shareUrl = window.location.href;
-            if (shareUrl.includes('localhost') || shareUrl.includes('127.0.0.1')) {
-                // Replace with online domain (read from Laravel config)
-                const appUrl = '{{ config('app.url') }}';
-                if (appUrl && !appUrl.includes('localhost')) {
-                    shareUrl = shareUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, appUrl);
-                } else {
-                    // Backup domain, replace with your actual domain here
-                    // e.g.: 'https://carpool.yourdomain.com' or 'https://yourdomain.com'
-                    shareUrl = shareUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/,
-                        'https://your-actual-domain.com');
-                }
-            }
-
-            // Build share message
-            const message = `🚗 Carpool Invitation!\n\n` +
-                `📍 Destination: ${tripTitle}\n` +
-                `🕐 Departure Time: ${departureTime}\n` +
-                `💰 Price: ${price} per person\n` +
-                `👥 Current Occupancy: ${currentPeople}/${maxPeople}\n\n` +
-                `Click the link to view details and join:\n${shareUrl}\n\n` +
-                `#Carpool #HongKong #Travel`;
-
-            // Encode message
+            const shareData = getShareData();
+            
+            // 構建 WhatsApp 分享訊息
+            const message = `${shareData.text}\n\n${shareData.url}`;
             const encodedMessage = encodeURIComponent(message);
 
-            // Generate WhatsApp share link
-            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            // 隱藏降級按鈕
+            if (navigator.share) {
+                $('#fallback-share-buttons').addClass('hidden');
+            }
 
-            // Open WhatsApp in new window
+            // 手機版直接使用 WhatsApp URL scheme，桌面版使用 web.whatsapp.com
+            let whatsappUrl;
+            if (isMobile()) {
+                whatsappUrl = `whatsapp://send?text=${encodedMessage}`;
+            } else {
+                whatsappUrl = `https://web.whatsapp.com/send?text=${encodedMessage}`;
+            }
+
+            // 打開 WhatsApp
             window.open(whatsappUrl, '_blank');
         });
+
+        // 頁面加載時初始化
+        $(document).ready(function() {
+            initializeShare();
+        });
+
+        // === 多人預訂功能 ===
+        let passengerCount = 1;
+        const tripType = '{{ $trip->type }}';
+        const basePricePerPerson = {{ $trip->price_per_person }};
+        const fourPersonDiscount = {{ $trip->four_person_discount }};
+        const availableSlots = {{ $availableSlots }};
+
+        // 計算根據人數的價格（新定價邏輯）
+        function calculatePricePerPerson(peopleCount) {
+            if (tripType === 'golden') {
+                return 250; // 黃金時段固定 250
+            } else if (tripType === 'fixed') {
+                return basePricePerPerson; // 固定價格
+            } else {
+                // 普通時段
+                if (peopleCount >= 4) {
+                    return 225; // 4人以上每人 225（275 - 50 折扣）
+                } else {
+                    return 275; // 1-3人每人 275
+                }
+            }
+        }
+
+        // 更新價格顯示
+        function updatePriceDisplay() {
+            const peopleCount = parseInt($('#people-count').val()) || 1;
+            const pricePerPerson = calculatePricePerPerson(peopleCount);
+            const totalAmount = peopleCount * pricePerPerson;
+            
+            $('#people-display').text(peopleCount);
+            $('#price-per-person-display').text(`HK$ ${pricePerPerson.toLocaleString()}`);
+            $('#total-amount').text(`HK$ ${totalAmount.toLocaleString()}`);
+            $('#total-amount-btn').text(`HK$ ${totalAmount.toLocaleString()}`);
+            
+            // 為價格顯示添加動畫效果
+            $('#total-amount, #price-per-person-display').addClass('price-updated');
+            setTimeout(() => {
+                $('#total-amount, #price-per-person-display').removeClass('price-updated');
+            }, 300);
+        }
+
+        // 創建額外乘客表單
+        function createPassengerForm(index) {
+            return `
+                <div class="passenger-form border border-gray-200 dark:border-gray-600 rounded-lg p-4" data-passenger="${index}">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                            {{ __('Passenger') }} ${index + 1}
+                        </h4>
+                        <button type="button" class="remove-passenger text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" 
+                            data-passenger="${index}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                {{ __('Name') }} <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="passengers[${index}][name]" required
+                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                {{ __('Phone Number') }} <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex">
+                                <select name="passengers[${index}][phone_country_code]" 
+                                    class="rounded-l-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                                    <option value="+852">+852 (HK)</option>
+                                    <option value="+86">+86 (CN)</option>
+                                </select>
+                                <input type="tel" name="passengers[${index}][phone]" required
+                                    class="flex-1 rounded-r-md border-l-0 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
+                                    placeholder="12345678">
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                {{ __('Pickup Location') }} <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="passengers[${index}][pickup_location]" required
+                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
+                                placeholder="{{ __('Enter pickup address') }}">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 人數選擇變更事件
+        $('#people-count').on('change', function() {
+            const selectedCount = parseInt($(this).val()) || 1;
+            const currentForms = $('.passenger-form').length;
+            
+            // 檢查是否超過可用槽位
+            if (selectedCount > availableSlots) {
+                alert(`{{ __('Cannot book for') }} ${selectedCount} {{ __('people. Only') }} ${availableSlots} {{ __('slots available.') }}`);
+                $(this).val(Math.min(currentForms, availableSlots));
+                return;
+            }
+            
+            // 添加表單
+            if (selectedCount > currentForms) {
+                for (let i = currentForms; i < selectedCount; i++) {
+                    $('#passengers-container').append(createPassengerForm(i));
+                }
+            } 
+            // 移除多餘表單 (保留第一個)
+            else if (selectedCount < currentForms) {
+                $('.passenger-form').slice(selectedCount).remove();
+            }
+            
+            updatePriceDisplay();
+        });
+
+        // 移除乘客事件委託
+        $(document).on('click', '.remove-passenger', function() {
+            const passengerIndex = $(this).data('passenger');
+            if (passengerIndex === 0) return; // 不允許移除主預訂人
+            
+            $(this).closest('.passenger-form').remove();
+            
+            // 重新編號
+            $('.passenger-form').each(function(index) {
+                $(this).attr('data-passenger', index);
+                $(this).find('h4').text(index === 0 ? 
+                    '{{ __('Main Booker') }} ({{ __('Passenger 1') }})' : 
+                    `{{ __('Passenger') }} ${index + 1}`);
+                
+                // 更新 name 屬性
+                $(this).find('input, select').each(function() {
+                    const name = $(this).attr('name');
+                    if (name && name.includes('passengers[')) {
+                        $(this).attr('name', name.replace(/passengers\[\d+\]/, `passengers[${index}]`));
+                    }
+                });
+                
+                // 更新移除按鈕的 data-passenger
+                $(this).find('.remove-passenger').attr('data-passenger', index);
+            });
+            
+            // 更新人數選擇器
+            const newCount = $('.passenger-form').length;
+            $('#people-count').val(newCount);
+            updatePriceDisplay();
+        });
+
+        // 表單提交處理
+        $('#submit-group-booking').on('click', function() {
+            const form = $('#group-booking-form');
+            const termsChecked = $('#group-booking-terms').is(':checked');
+            
+            if (!termsChecked) {
+                alert('{{ __('Please agree to the terms and conditions.') }}');
+                return;
+            }
+            
+            // 驗證所有必填欄位
+            let isValid = true;
+            form.find('input[required], select[required]').each(function() {
+                if (!$(this).val().trim()) {
+                    $(this).focus();
+                    alert('{{ __('Please fill in all required fields.') }}');
+                    isValid = false;
+                    return false;
+                }
+            });
+            
+            if (!isValid) return;
+            
+            // 計算總金額並添加到表單（全額付款）
+            const peopleCount = parseInt($('#people-count').val()) || 1;
+            const pricePerPerson = calculatePricePerPerson(peopleCount);
+            const totalAmount = peopleCount * pricePerPerson;
+            
+            // 添加總金額到表單
+            form.append(`<input type="hidden" name="total_amount" value="${totalAmount}">`);
+            form.append(`<input type="hidden" name="price_per_person" value="${pricePerPerson}">`);
+            
+            // 提交表單
+            form.submit();
+        });
+
+        // 初始化價格顯示
+        updatePriceDisplay();
     });
 </script>

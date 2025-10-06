@@ -53,6 +53,87 @@
             left: 0;
             right: 0;
         }
+        
+        /* 移動端地址顯示優化 */
+        @media (max-width: 640px) {
+            .location-display {
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .location-display span {
+                display: block;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            /* 確保容器不被子元素撐開 */
+            .location-container {
+                min-width: 0;
+                flex: 1;
+            }
+        }
+        
+        /* Navigation 響應式優化 */
+        @media (max-width: 375px) {
+            /* 超小屏幕優化 (iPhone SE 等) */
+            #header-location-picker {
+                font-size: 0.7rem;
+                padding: 0.375rem 0.5rem;
+            }
+            
+            #header-location-picker i {
+                font-size: 0.875rem;
+                margin-right: 0.25rem;
+            }
+            
+            /* 語言下拉菜單優化 */
+            .dropdown-content {
+                min-width: 10rem !important;
+                width: max-content !important;
+            }
+        }
+        
+        @media (min-width: 376px) and (max-width: 414px) {
+            /* 中型手機優化 (iPhone 12/13 等) */
+            #header-location-picker {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .dropdown-content {
+                min-width: 11rem !important;
+                width: max-content !important;
+            }
+        }
+        
+        @media (min-width: 415px) and (max-width: 640px) {
+            /* 大型手機優化 (iPhone Pro Max 等) */
+            #header-location-picker {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.875rem;
+            }
+            
+            .dropdown-content {
+                min-width: 12rem !important;
+                width: max-content !important;
+            }
+        }
+        
+        /* 語言下拉菜單通用優化 */
+        .language-dropdown {
+            min-width: fit-content;
+        }
+        
+        .language-dropdown a {
+            white-space: nowrap;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
     </style>
 
     <!-- Scripts - Dark Mode -->

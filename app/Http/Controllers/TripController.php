@@ -79,24 +79,35 @@ class TripController extends Controller
         $userJoin = $trip->joins->where('phone', $userPhone)->first();
         $hasJoined = $userJoin !== null;
 
-        // 計算價格（根據用戶是否已加入）
+        // 計算價格（使用雙層定價系統）
         $currentPeople = $trip->joins->count();
 
-        if ($hasJoined) {
-            // 已加入用戶：顯示當前分攤價格
-            if ($currentPeople <= 1) {
-                $price = $trip->base_price; // 只有自己時顯示全額
-            } else {
-                $price = round($trip->base_price / $currentPeople); // 顯示當前分攤
-            }
+        // 使用新的定價系統計算每人費用
+        if ($trip->type === 'fixed') {
+            // 固定價格類型：顯示每人價格
+            $price = $trip->price_per_person;
         } else {
-            // 未加入用戶：顯示加入後的價格
-            $futureCurrentPeople = $currentPeople + 1; // 假設用戶加入後的人數
-            $price = round($trip->base_price / $futureCurrentPeople);
+            // Golden 或 Normal 類型：根據人數和類型計算價格
+            $peopleCount = max(1, $currentPeople); // 至少1人
+            
+            if ($trip->type === 'golden') {
+                // 黃金時段：固定每人250，最少1人
+                $price = $trip->price_per_person; // 250
+            } else {
+                // 普通時段：每人275，4人有折扣
+                if ($peopleCount >= 4 && $trip->four_person_discount > 0) {
+                    $price = $trip->price_per_person - $trip->four_person_discount;
+                } else {
+                    $price = $trip->price_per_person; // 275
+                }
+            }
         }
 
         // 格式化時間
         $departureTime = Carbon::parse($trip->planned_departure_time);
+
+        // 計算可用槽位數
+        $availableSlots = max(0, $trip->max_people - $currentPeople);
 
         // 獲取分配的司機信息
         $assignedDriver = null;
@@ -110,6 +121,7 @@ class TripController extends Controller
             'hasJoined',
             'hasLeft',
             'currentPeople',
+            'availableSlots',
             'price',
             'departureTime',
             'assignedDriver'

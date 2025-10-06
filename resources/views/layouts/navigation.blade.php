@@ -24,9 +24,10 @@
                 </div>
             </div>
 
-            <!-- Settings Dropdown -->
-            <div class="flex items-center flex-shrink-0">
-                <div class="flex flex-col justify-center mr-2">
+            <!-- Controls - Fixed width -->
+            <div class="flex items-center flex-shrink-0 gap-1">
+                <!-- Dark/Light Mode Toggle -->
+                <div class="flex flex-col justify-center">
                     <input type="checkbox" name="light-switch" class="light-switch sr-only" id="light-switch">
                     <label class="relative cursor-pointer p-2" for="light-switch">
                         <svg class="dark:hidden" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
@@ -40,13 +41,14 @@
                     </label>
                 </div>
                 
-                <x-dropdown align="right" width="48">
+                <!-- Language Dropdown -->
+                <x-dropdown align="right" width="auto">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-200 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                             @php
                             $lang = Session::get('locale', 'en');
                             @endphp
-                            <i class="material-icons text-xl">&#xe894;</i>
+                            <i class="material-icons text-lg sm:text-xl">&#xe894;</i>
                         </button>
                     </x-slot>
                     <x-slot name="content">
