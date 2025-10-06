@@ -1,23 +1,24 @@
-<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+<nav x-data="{ open: false }" class="bg-primary dark:bg-primary-dark">
+{{-- <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700"> --}}
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
         <div class="flex items-center h-16">
             <!-- Logo -->
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0 px-2">
                 <a href="{{ route('dashboard') }}">
-                    <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
+                    <x-application-logo class="block h-9 w-auto fill-current text-gray-200 dark:text-gray-300" />
                 </a>
             </div>
 
             <!-- Location Picker - Centered -->
-            <div class="flex-1 flex justify-center px-3 sm:px-4">
-                <div class="w-full max-w-sm sm:max-w-md">
+            <div class="flex-1 flex justify-center px-2 md:px-8 overflow-hidden">
+                <div class="w-52 md:w-full">
                     <div id="header-location-picker"
-                        class="flex items-center text-sm bg-gray-50 dark:bg-gray-700 rounded-lg px-3 sm:px-4 py-2.5 border border-gray-200 dark:border-gray-600 cursor-pointer transition-all hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md active:scale-98 w-full"
+                        class="h-10 w-full flex items-center overflow-hidden text-sm bg-white dark:bg-secondary-accent rounded-lg px-3 sm:px-4 py-2.5 border border-gray-200 dark:border-gray-600 cursor-pointer transition-all hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md active:scale-98 w-full"
                         @click="window.location='{{ route('map') }}'">
-                        <i class="text-gray-400 dark:text-gray-500 material-icons text-lg mr-2 sm:mr-3 flex-shrink-0">&#xe1b7;</i>
+                        <i class="text-gray-400 material-icons text-lg mr-2 sm:mr-3 flex-shrink-0">&#xe1b7;</i>
                         <span
-                            class="truncate {{ session('location') == null ? 'italic text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300' }}"
+                            class="truncate {{ session('location') == null ? 'italic text-gray-400' : 'text-gray-400' }}"
                             id="header_pickup_location">{{ session('location') ?? __('Pick location...') }}</span>
                     </div>
                 </div>
@@ -29,19 +30,19 @@
                     <input type="checkbox" name="light-switch" class="light-switch sr-only" id="light-switch">
                     <label class="relative cursor-pointer p-2" for="light-switch">
                         <svg class="dark:hidden" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
-                            <path class="fill-slate-300" d="M7 0h2v2H7zM12.88 1.637l1.414 1.415-1.415 1.413-1.413-1.414zM14 7h2v2h-2zM12.95 14.433l-1.414-1.413 1.413-1.415 1.415 1.414zM7 14h2v2H7zM2.98 14.364l-1.413-1.415 1.414-1.414 1.414 1.415zM0 7h2v2H0zM3.05 1.706 4.463 3.12 3.05 4.535 1.636 3.12z" />
-                            <path class="fill-slate-400" d="M8 4C5.8 4 4 5.8 4 8s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4Z" />
+                            <path class="fill-gray-200" d="M7 0h2v2H7zM12.88 1.637l1.414 1.415-1.415 1.413-1.413-1.414zM14 7h2v2h-2zM12.95 14.433l-1.414-1.413 1.413-1.415 1.415 1.414zM7 14h2v2H7zM2.98 14.364l-1.413-1.415 1.414-1.414 1.414 1.415zM0 7h2v2H0zM3.05 1.706 4.463 3.12 3.05 4.535 1.636 3.12z" />
+                            <path class="fill-gray-200" d="M8 4C5.8 4 4 5.8 4 8s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4Z" />
                         </svg>
                         <svg class="hidden dark:block" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
-                            <path class="fill-slate-400" d="M6.2 1C3.2 1.8 1 4.6 1 7.9 1 11.8 4.2 15 8.1 15c3.3 0 6-2.2 6.9-5.2C9.7 11.2 4.8 6.3 6.2 1Z" />
-                            <path class="fill-slate-500" d="M12.5 5a.625.625 0 0 1-.625-.625 1.252 1.252 0 0 0-1.25-1.25.625.625 0 1 1 0-1.25 1.252 1.252 0 0 0 1.25-1.25.625.625 0 1 1 1.25 0c.001.69.56 1.249 1.25 1.25a.625.625 0 1 1 0 1.25c-.69.001-1.249.56-1.25 1.25A.625.625 0 0 1 12.5 5Z" />
+                            <path class="fill-gray-300" d="M6.2 1C3.2 1.8 1 4.6 1 7.9 1 11.8 4.2 15 8.1 15c3.3 0 6-2.2 6.9-5.2C9.7 11.2 4.8 6.3 6.2 1Z" />
+                            <path class="fill-gray-300" d="M12.5 5a.625.625 0 0 1-.625-.625 1.252 1.252 0 0 0-1.25-1.25.625.625 0 1 1 0-1.25 1.252 1.252 0 0 0 1.25-1.25.625.625 0 1 1 1.25 0c.001.69.56 1.249 1.25 1.25a.625.625 0 1 1 0 1.25c-.69.001-1.249.56-1.25 1.25A.625.625 0 0 1 12.5 5Z" />
                         </svg>
                     </label>
                 </div>
                 
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-200 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                             @php
                             $lang = Session::get('locale', 'en');
                             @endphp
@@ -49,13 +50,13 @@
                         </button>
                     </x-slot>
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'en'])" class="{{ $lang === 'en' ? 'bg-blue-600 dark:bg-blue-800 text-white' : 'text-gray-800 dark:text-white' }}">
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'en'])" class="{{ $lang === 'en' ? 'bg-primary dark:bg-primary-dark text-white rounded-t-md' : 'text-gray-800 dark:text-white' }}">
                             English
                         </x-dropdown-link>
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'ch'])" class="{{ $lang === 'ch' ? 'bg-blue-600 dark:bg-blue-800 text-white' : 'text-gray-800 dark:text-white' }}">
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'ch'])" class="{{ $lang === 'ch' ? 'bg-primary dark:bg-primary-dark text-white' : 'text-gray-800 dark:text-white' }}">
                             中文（简体）
                         </x-dropdown-link>
-                        <x-dropdown-link :href="route('change.lang', ['lang' => 'hk'])" class="{{ $lang === 'hk' ? 'bg-blue-600 dark:bg-blue-800 text-white' : 'text-gray-800 dark:text-white' }}">
+                        <x-dropdown-link :href="route('change.lang', ['lang' => 'hk'])" class="{{ $lang === 'hk' ? 'bg-primary dark:bg-primary-dark text-white rounded-b-md' : 'text-gray-800 dark:text-white' }}">
                             中文（繁體）
                         </x-dropdown-link>
                     </x-slot>

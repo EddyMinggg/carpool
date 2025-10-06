@@ -14,7 +14,7 @@ class CouponController extends Controller
         // 檢測是否為移動設備
         $userAgent = request()->header('User-Agent') ?? '';
         $isMobile = preg_match('/Mobile|Android|iPhone|iPad|BlackBerry|Windows Phone/i', $userAgent);
-        
+
         if ($isMobile) {
             // 移動版需要分頁
             $coupons = Coupon::orderBy('created_at', 'desc')->paginate(10);
@@ -22,7 +22,7 @@ class CouponController extends Controller
             // 桌面版獲取所有數據給 DataTables
             $coupons = Coupon::orderBy('created_at', 'desc')->get();
         }
-        
+
         return view('admin.coupons.index', compact('coupons', 'isMobile'));
     }
 
@@ -32,7 +32,7 @@ class CouponController extends Controller
         // 檢測是否為移動設備
         $userAgent = request()->header('User-Agent') ?? '';
         $isMobile = preg_match('/Mobile|Android|iPhone|iPad|BlackBerry|Windows Phone/i', $userAgent);
-        
+
         return view('admin.coupons.show', compact('coupon', 'isMobile'));
     }
 
@@ -42,7 +42,7 @@ class CouponController extends Controller
         // 檢測是否為移動設備
         $userAgent = request()->header('User-Agent') ?? '';
         $isMobile = preg_match('/Mobile|Android|iPhone|iPad|BlackBerry|Windows Phone/i', $userAgent);
-        
+
         return view('admin.coupons.create', compact('isMobile'));
     }
 
@@ -54,11 +54,11 @@ class CouponController extends Controller
             'discount_amount' => 'required|numeric|min:0',
             'valid_from' => 'nullable|date',
             'valid_to' => 'nullable|date|after_or_equal:valid_from',
-                'enabled' => 'boolean',
+            'enabled' => 'boolean',
             'usage_limit' => 'nullable|integer|min:1',
         ]);
-            $validated['enabled'] = $request->has('enabled');
-            Coupon::create($validated);
+        $validated['enabled'] = $request->has('enabled');
+        Coupon::create($validated);
         return redirect()->route('admin.coupons.index')
             ->with('success', 'Coupon created successfully.');
     }
@@ -69,7 +69,7 @@ class CouponController extends Controller
         // 檢測是否為移動設備
         $userAgent = request()->header('User-Agent') ?? '';
         $isMobile = preg_match('/Mobile|Android|iPhone|iPad|BlackBerry|Windows Phone/i', $userAgent);
-        
+
         return view('admin.coupons.edit', compact('coupon', 'isMobile'));
     }
 
@@ -81,11 +81,11 @@ class CouponController extends Controller
             'discount_amount' => 'required|numeric|min:0',
             'valid_from' => 'nullable|date',
             'valid_to' => 'nullable|date|after_or_equal:valid_from',
-                'enabled' => 'boolean',
+            'enabled' => 'boolean',
             'usage_limit' => 'nullable|integer|min:1',
         ]);
-            $validated['enabled'] = $request->has('enabled');
-            $coupon->update($validated);
+        $validated['enabled'] = $request->has('enabled');
+        $coupon->update($validated);
         return redirect()->route('admin.coupons.show', $coupon->id)
             ->with('success', 'Coupon updated successfully.');
     }

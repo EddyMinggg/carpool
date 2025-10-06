@@ -29,7 +29,7 @@ return new class extends Migration
             $table->dropColumn('user_phone');
 
             // Restore user_id column and recreate original constraints
-            $table->unsignedBigInteger('user_id')->after('trip_id');
+            $table->unsignedBigInteger('user_id')->after('trip_id')->default(1);
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }

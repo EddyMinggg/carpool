@@ -339,11 +339,11 @@
         </div>
     @else
         <!-- Desktop Layout -->
-        <div class="desktop-only">
+        <div class="desktop-only mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Create New Trip</h2>
 
             <!-- Create Form Card -->
-            <div class="bg-white rounded-lg shadow-md p-6 max-w-3xl">
+            <div class="bg-white rounded-lg shadow-md w-full p-6">
                 <form action="{{ route('admin.trips.store') }}" method="POST">
                     @if ($errors->any())
                         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
@@ -470,7 +470,6 @@
 
                     <!-- Creation Mode Toggle -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Creation Mode:</label>
                         <div class="flex space-x-4">
                             <label class="flex-1 p-3 border-2 border-gray-300 rounded-md cursor-pointer transition-all hover:border-blue-300 creation-mode-btn-desktop" data-mode="single">
                                 <input type="radio" name="creation_mode" value="single" checked class="hidden">
