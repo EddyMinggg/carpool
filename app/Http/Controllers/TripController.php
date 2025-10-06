@@ -19,7 +19,7 @@ class TripController extends Controller
     public function index()
     {
         $payments = Payment::with('trip')
-            ->where('user_id', Auth::user()->id)
+            ->where('user_phone', Auth::user()->phone)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -89,7 +89,7 @@ class TripController extends Controller
         } else {
             // Golden 或 Normal 類型：根據人數和類型計算價格
             $peopleCount = max(1, $currentPeople); // 至少1人
-            
+
             if ($trip->type === 'golden') {
                 // 黃金時段：固定每人250，最少1人
                 $price = $trip->price_per_person; // 250
@@ -159,22 +159,22 @@ class TripController extends Controller
     {
         // 確保使用香港時間
         $now = Carbon::now('Asia/Hong_Kong');
-        
+
         // 只顯示未來2週內且未過 departure time 的行程
         $trips = Trip::with('joins')
             ->where('planned_departure_time', '>', $now)
             ->where('planned_departure_time', '<=', $now->copy()->addWeeks(2))
             ->get();
-            
+
         $groupedTrips = $trips->filter(function ($trip) use ($now) {
             if (empty($trip->planned_departure_time)) {
                 return false;
             }
-            
+
             $departureTime = $trip->planned_departure_time instanceof Carbon
                 ? $trip->planned_departure_time->setTimezone('Asia/Hong_Kong')
                 : Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
-            
+
             // 只顯示未過 departure time 的 trip
             return $departureTime->gt($now);
         })->map(function ($trip) use ($now) {
@@ -184,7 +184,7 @@ class TripController extends Controller
             $trip->date = $dt->format('Y-m-d');
             $trip->formatted_departure_time = $dt->format('H:i');
             $trip->current_people = isset($trip->joins) ? $trip->joins->count() : 0;
-            
+
             // 使用新的定價系統計算每人費用
             if ($trip->type === 'fixed') {
                 // 固定價格類型：顯示每人價格
@@ -192,7 +192,7 @@ class TripController extends Controller
             } else {
                 // Golden 或 Normal 類型：根據人數計算價格
                 $currentPeople = max(1, $trip->current_people); // 至少1人
-                
+
                 if ($trip->type === 'golden') {
                     // 黃金時段：固定每人250，最少1人
                     $trip->price = $trip->price_per_person; // 250
@@ -205,11 +205,10 @@ class TripController extends Controller
                     }
                 }
             }
-            
+
             // 添加類型顯示標籤
-            $trip->type_label = $trip->isGoldenHour() ? __('Golden Hour') : 
-                               ($trip->type === 'fixed' ? __('Fixed Price') : __('Regular'));
-            
+            $trip->type_label = $trip->isGoldenHour() ? __('Golden Hour') : ($trip->type === 'fixed' ? __('Fixed Price') : __('Regular'));
+
             // 檢查 booking 是否已截止（但 trip 本身還未過 departure time）
             $departureTime = $dt->copy();
             if ($trip->type === 'golden') {
@@ -221,7 +220,7 @@ class TripController extends Controller
                 $bookingDeadline = $departureTime->subHours(48);
                 $trip->is_expired = $now->gte($bookingDeadline);
             }
-            
+
             // 添加調試信息（可在開發時使用）
             $trip->debug_info = [
                 'now' => $now->format('Y-m-d H:i:s T'),
@@ -229,10 +228,10 @@ class TripController extends Controller
                 'booking_deadline' => isset($bookingDeadline) ? $bookingDeadline->format('Y-m-d H:i:s T') : null,
                 'is_expired' => $trip->is_expired
             ];
-            
+
             // 添加優先級排序用的欄位
             $trip->sort_priority = $trip->type === 'golden' ? 0 : 1;
-            
+
             return $trip;
         })->groupBy('date')->map(function ($dayTrips) {
             // 在每日內重新排序：golden hour 在前，然後按時間排序
@@ -252,8 +251,8 @@ class TripController extends Controller
 
         // 設定預設的 active date
         $requestedDate = $request->get('date');
-        $activeDate = $requestedDate && $dates->contains($requestedDate) 
-            ? $requestedDate 
+        $activeDate = $requestedDate && $dates->contains($requestedDate)
+            ? $requestedDate
             : ($dates->first() ?? $now->format('Y-m-d'));
 
         $trips = Trip::paginate(10);
