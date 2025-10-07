@@ -20,9 +20,9 @@
     </div>
 
     <div class="relative tab-group">
-        <div class="flex border-b border-stone-200 dark:border-stone-700 relative" role="tablist">
+        <div class="flex border-b border-gray-300 dark:border-gray-600 relative" role="tablist">
             <div
-                class="absolute bottom-0 h-0.5 bg-gray-600 dark:bg-gray-200 transition-transform duration-300 transform scale-x-0 translate-x-0 tab-indicator">
+                class="absolute bottom-0 h-0.5 bg-primary dark:bg-primary-dark transition-transform duration-300 transform scale-x-0 translate-x-0 tab-indicator">
             </div>
 
             <a href="#"
@@ -67,7 +67,7 @@
                     <div class="block mt-4">
                         <label for="remember_me" class="inline-flex items-center">
                             <input id="remember_me" type="checkbox"
-                                class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
+                                class="rounded bg-secondary dark:bg-secondary-dark border-gray-300 dark:border-gray-700 text-primary shadow-sm focus:ring-primary dark:focus:ring-primary-dark dark:focus:ring-offset-secondary-dark"
                                 name="remember">
                             <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
                         </label>
@@ -75,7 +75,7 @@
 
                     <div class="flex items-center justify-end mt-4">
                         @if (Route::has('password.request'))
-                            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+                            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-secondary-dark"
                                 href="{{ route('password.request') }}">
                                 {{ __('Forgot your password?') }}
                             </a>
@@ -151,7 +151,7 @@
                         <x-input-label for="phone_register" :value="__('Phone Number')" />
                         <div class="flex mt-1">
                             <select id="phone_country_code" name="phone_country_code" 
-                                class="rounded-l-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 shadow-sm">
+                                class="rounded-l-md border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm">
                                 <option value="+852" {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)</option>
                                 <option value="+86" {{ old('phone_country_code') == '+86' ? 'selected' : '' }}>+86 (CN)</option>
                             </select>

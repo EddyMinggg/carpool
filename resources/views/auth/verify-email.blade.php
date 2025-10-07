@@ -1,21 +1,21 @@
 <x-guest-layout>
     <div class="flex flex-col sm:justify-center items-center bg-gray-100 dark:bg-gray-900 mt-8">
-        <div class="w-full p-8 bg-white dark:bg-gray-800 overflow-hidden">
+        <div class="w-full p-8 bg-secondary dark:bg-secondary-accent overflow-hidden">
             
             <!-- Header -->
             <div class="mb-6 text-center">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/50">
-                    <svg class="h-8 w-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-primary dark:bg-primary-dark">
+                    <svg class="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-4">
+                <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mt-4">
                     {{ __('Verify Your Email') }}
                 </h2>
-                <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                <p class="mt-4 text-sm text-gray-400">
                     {{ __('We have sent a verification link to') }}
                 </p>
-                <p class="font-semibold text-gray-900 dark:text-gray-100 mt-2">
+                <p class="font-semibold text-gray-700 dark:text-gray-300 mt-2">
                     {{ auth()->user()->email }}
                 </p>
             </div>
@@ -34,18 +34,18 @@
             @endif
 
             <!-- Instructions -->
-            <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div class="mb-6 p-4 bg-gray-200 dark:bg-neutral-600 rounded-lg border border-gray-300 dark:border-gray-700">
                 <div class="flex items-start gap-3">
-                    <div class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5">
+                    <div class="w-5 h-5 text-gray-700 dark:text-gray-400 mt-0.5">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <div class="font-medium text-blue-900 dark:text-blue-100 text-sm">
+                        <div class="font-bold text-gray-700 dark:text-gray-300 text-md">
                             {{ __('Check Your Email') }}
                         </div>
-                        <div class="text-blue-700 dark:text-blue-300 text-sm mt-1">
+                        <div class="text-gray-400 dark:text-gray-400 text-sm mt-1">
                             {{ __('Click the verification link in the email we sent to complete your registration. Check your spam folder if you don\'t see it.') }}
                         </div>
                     </div>
@@ -56,7 +56,7 @@
 
             <!-- Verification Status -->
             @if (auth()->user()->hasVerifiedPhone())
-                <div class="mb-4 flex items-center gap-2 text-green-600 dark:text-green-400">
+                <div class="mb-4 flex items-center gap-2 text-green-400 dark:text-green-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
@@ -74,24 +74,27 @@
             <!-- Action Buttons -->
             <div class="space-y-4">
                 <!-- Resend Email Button -->
-                <form method="POST" action="{{ route('verification.send') }}">
+                <x-primary-button class="w-full justify-center mb-4 text-sm">
+                    {{ __('Resend Verification Email') }}
+                </x-primary-button>
+                {{-- <form method="POST" action="{{ route('verification.send') }}">
                     @csrf
                     <x-primary-button class="w-full justify-center mb-4 text-sm">
                         {{ __('Resend Verification Email') }}
                     </x-primary-button>
-                </form>
+                </form> --}}
 
                 <!-- Secondary Actions -->
-                <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-600">
                     <a href="{{ route('dashboard') }}" 
-                       class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium">
+                       class="text-sm text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium">
                         {{ __('Skip for Now') }}
                     </a>
                     
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
                         <button type="submit" 
-                                class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium">
+                                class="text-sm text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium">
                             {{ __('Log Out') }}
                         </button>
                     </form>

@@ -202,13 +202,12 @@
                 </h2>
                 <!-- Date Picker Button -->
                 <button @click="showDatePicker = !showDatePicker"
-                    class="flex items-center gap-2 bg-primary dark:bg-primary-dark hover:bg-gray-100 dark:hover:bg-gray-600 px-3 py-2 rounded-lg transition-colors">
+                    class="flex items-center gap-2 bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary px-3 py-2 rounded-lg transition-colors">
                     <span class="material-icons text-base text-gray-200 dark:text-gray-300">calendar_today</span>
                     {{-- <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">{{ __('Date') }}</span> --}}
                 </button>
             </div>
 
-            <!-- Date Picker Modal -->
             <!-- Date Picker Modal -->
             <div x-show="showDatePicker" x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
@@ -290,7 +289,7 @@
                     <button
                         @click="selectDate(date, index); $el.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'})"
                         :class="activeDate === date ? 'bg-primary dark:bg-primary-dark text-white shadow-lg scale-105' :
-                            'bg-gray-200 dark:bg-secondary-accent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600'"
+                            'bg-gray-300 dark:bg-secondary-accent text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-600 border-gray-200 dark:border-gray-600'"
                         class="min-w-[80px] px-3 py-3 rounded-xl font-semibold text-sm transition-all duration-300 snap-center focus:outline-none whitespace-nowrap shadow-sm">
                         <div class="w-full text-xs opacity-75"
                             x-text="new Date(date).toLocaleDateString('en', {weekday: 'short'})"></div>

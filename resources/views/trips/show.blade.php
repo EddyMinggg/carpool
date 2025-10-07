@@ -1,19 +1,12 @@
 @section('Title', $trip->dropoff_location)
 <x-app-layout>
-
-    @if (!session('guest_mode'))
+    
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <button onclick="history.back()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <span class="material-icons text-gray-700 dark:text-gray-300">arrow_back</span>
-            </button>
-            <h2 class="font-semibold text-lg text-gray-800 dark:text-gray-200">
-                {{ __('Trip Details') }}
-            </h2>
-            <div class="w-10"></div>
-        </div>
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
+            {{ __('Trip Details') }}
+        </h2>
     </x-slot>
-    @endif
+
 
     <div class="overlay">
         <div class="overlay__inner">
@@ -651,7 +644,7 @@
                                     {{ __('Cancel') }}
                                 </x-secondary-button>
                                 <x-primary-button
-                                    x-on:click="$dispatch('close'); setTimeout(() => { document.getElementById('location-picker').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => document.getElementById('location-picker').click(), 500); }, 100);">
+                                    x-on:click="$dispatch('close'); setTimeout(() => { document.getElementById('header-location-picker').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => document.getElementById('header-location-picker').click(), 500); }, 100);">
                                     Select Location
                                 </x-primary-button>
                             </div>
@@ -700,10 +693,10 @@
                                 <div class="flex mt-6">
                                     <div class="flex items-center h-5">
                                         <input id="confirm-join" type="checkbox" value=""
-                                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                            class="w-4 h-4 rounded bg-secondary dark:bg-secondary-dark border-gray-300 dark:border-gray-700 text-primary shadow-sm focus:ring-primary dark:focus:ring-primary-dark dark:focus:ring-offset-secondary-dark">
                                     </div>
                                     <div class="text-sm ms-2">
-                                        <label for="confirm" class="font-normal text-gray-900 dark:text-gray-300">
+                                        <label for="confirm-join" class="font-normal text-gray-900 dark:text-gray-300">
                                             {{ __('Confirm') }} </label>
                                         <p id="private-checkbox-text"
                                             class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
@@ -716,7 +709,7 @@
                                     </x-secondary-button>
 
                                     <x-primary-button id="proceed-button"
-                                        class="ms-3 disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:text-gray-300 dark:disabled:text-gray-700"
+                                        class="ms-3 disabled:bg-primary-dark dark:disabled:bg-primary-darker disabled:text-gray-300 dark:disabled:text-gray-500"
                                         disabled>
                                         {{ __('Proceed') }}
                                     </x-primary-button>
