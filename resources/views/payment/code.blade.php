@@ -40,7 +40,11 @@
             </div>
             
             <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
-                {{ __('Make your deposit payment.') }}
+                @if($isGroupBooking)
+                    {{ __('Complete payment for group booking.') }}
+                @else
+                    {{ __('Make your deposit payment.') }}
+                @endif
             </h2>
             
             <!-- Trip Information -->
@@ -51,16 +55,65 @@
                         <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Destination') }}:</span>
                         <span class="text-gray-900 dark:text-gray-100 font-semibold text-right">{{ $payment->trip->dropoff_location }}</span>
                     </div>
-                    <div class="flex justify-between items-start">
-                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Pickup Location') }}:</span>
-                        <span class="text-gray-900 dark:text-gray-100 font-semibold text-right max-w-xs break-words">{{ $payment->pickup_location }}</span>
-                    </div>
+                    
+                    @if($isGroupBooking)
+                        <!-- Group Booking - Multiple Pickup Locations -->
+                        <div class="pt-2 border-t border-gray-200 dark:border-gray-600">
+                            <span class="text-gray-600 dark:text-gray-400 font-medium mb-2 block">{{ __('Passengers & Pickup Locations') }}:</span>
+                            <div class="space-y-2">
+                                @foreach($groupTripJoins as $index => $tripJoin)
+                                    <div class="flex items-start justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-medium text-blue-900 dark:text-blue-100">
+                                                    {{ __('Passenger') }} {{ $index + 1 }}
+                                                </span>
+                                                @if($index === 0)
+                                                    <span class="text-xs px-2 py-0.5 bg-blue-600 text-white rounded-full">
+                                                        {{ __('Main Booker') }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div class="text-gray-700 dark:text-gray-300 text-sm">
+                                                <div class="font-medium">{{ $tripJoin->user_phone }}</div>
+                                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                    {{ $tripJoin->pickup_location }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right text-sm">
+                                            <div class="font-semibold text-blue-600 dark:text-blue-400">
+                                                HK$ {{ number_format($groupPayment->amount, 0) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <!-- Single Booking - One Pickup Location -->
+                        <div class="flex justify-between items-start">
+                            <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Pickup Location') }}:</span>
+                            <span class="text-gray-900 dark:text-gray-100 font-semibold text-right max-w-xs break-words">{{ $payment->pickup_location }}</span>
+                        </div>
+                    @endif
+                    
                     <div class="flex justify-between items-start">
                         <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Departure Time') }}:</span>
                         <span class="text-gray-900 dark:text-gray-100 font-semibold">{{ $payment->trip->planned_departure_time->format('Y-m-d H:i') }}</span>
                     </div>
                     <div class="flex justify-between items-start pt-2 border-t border-gray-200 dark:border-gray-600">
-                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Deposit Amount') }}:</span>
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">
+                            @if($isGroupBooking)
+                                @php
+                                    // 获取实际的乘客数量
+                                    $passengerCount = $payment->passengers;
+                                @endphp
+                                {{ __('Total Amount') }} ({{ $passengerCount }} {{ __('passengers') }}):
+                            @else
+                                {{ __('Deposit Amount') }}:
+                            @endif
+                        </span>
                         <span class="text-gray-900 dark:text-gray-100 font-bold text-lg text-blue-600 dark:text-blue-400">HK$ {{ number_format($payment->amount, 2) }}</span>
                     </div>
                 </div>
@@ -73,10 +126,14 @@
                     </li>
                     <li>
                         <span class="font-normal">
-                            {{ __('Pay the required amount: ') }}
+                            @if($isGroupBooking)
+                                {{ __('Pay the total amount for all passengers: ') }}
+                            @else
+                                {{ __('Pay the required amount: ') }}
+                            @endif
                         </span>
                         <span class="font-black underline">
-                            {{ '$' . $payment->amount }}
+                            {{ 'HK$ ' . number_format($payment->amount, 2) }}
                         </span>
                     </li>
                     <li>
@@ -84,6 +141,11 @@
                             {{ __('Enter the reference code as the note of the transaction.') }}
                         </span>
                     </li>
+                    @if($isGroupBooking)
+                    <li class="text-blue-600 dark:text-blue-400 font-medium">
+                        {{ __('This payment covers all passengers listed above.') }}
+                    </li>
+                    @endif
                 </ul>
             </div>
             <div class="w-full mt-6">

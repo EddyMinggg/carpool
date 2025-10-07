@@ -332,17 +332,34 @@
                         <div class="mobile-payment-card">
                             <div class="mobile-payment-header">
                                 <div class="mobile-user-info">
-                                    <div class="mobile-username">{{ $payment->user_phone }}</div>
+                                    <div class="mobile-username">
+                                        {{ $payment->user_phone }}
+                                        @if($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                                            <span style="font-size: 10px; background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">
+                                                GROUP ({{ $payment->group_size }} people)
+                                            </span>
+                                        @endif
+                                    </div>
                                     {{-- <div class="mobile-email">{{ $payment->user->email }}</div> --}}
                                 </div>
-                                <div class="mobile-payment-badge {{ $payment->type }}">
-                                    {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
+                                <div class="mobile-payment-badge {{ $payment->type === 'group_full_payment' ? 'deposit' : $payment->type }}">
+                                    @if($payment->type === 'group_full_payment')
+                                        👥 GROUP
+                                    @else
+                                        {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
+                                    @endif
                                 </div>
                             </div>
                             
                             <div class="mobile-payment-details">
                                 <div class="mobile-detail-item">
-                                    <div class="mobile-detail-label">Amount</div>
+                                    <div class="mobile-detail-label">
+                                        @if($payment->type === 'group_full_payment')
+                                            Total Amount
+                                        @else
+                                            Amount
+                                        @endif
+                                    </div>
                                     <div class="mobile-detail-value">HK$ {{ number_format($payment->amount, 2) }}</div>
                                 </div>
                                 <div class="mobile-detail-item">
@@ -351,7 +368,29 @@
                                 </div>
                             </div>
                             
-                            @if($payment->pickup_location)
+                            @if($payment->type === 'group_full_payment' && $payment->childPayments()->exists())
+                                <!-- Group Booking Details -->
+                                <div style="background: #eff6ff; padding: 8px; border-radius: 6px; margin: 8px 0; border: 1px solid #bfdbfe;">
+                                    <div style="font-size: 10px; color: #1e40af; margin-bottom: 6px; font-weight: 600;">👥 GROUP PASSENGERS</div>
+                                    @php $allGroupPayments = collect([$payment])->merge($payment->childPayments); @endphp
+                                    @foreach($allGroupPayments as $index => $groupPayment)
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; {{ !$loop->last ? 'border-bottom: 1px solid #dbeafe;' : '' }}">
+                                            <div style="font-size: 11px; color: #1f2937;">
+                                                <strong>{{ $index + 1 }}.</strong> {{ $groupPayment->user_phone }}
+                                                @if($index === 0)<span style="color: #059669; font-weight: 600;"> (Main)</span>@endif
+                                            </div>
+                                            <div style="font-size: 10px; color: #6b7280;">
+                                                HK$ {{ number_format($groupPayment->amount, 0) }}
+                                            </div>
+                                        </div>
+                                        @if($groupPayment->pickup_location)
+                                            <div style="font-size: 9px; color: #6b7280; margin-left: 12px; margin-top: 2px;">
+                                                📍 {{ Str::limit($groupPayment->pickup_location, 25) }}
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @elseif($payment->pickup_location)
                                 <div style="background: #f8fafc; padding: 8px; border-radius: 6px; margin: 8px 0;">
                                     <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">PICKUP LOCATION</div>
                                     <div style="font-size: 12px; color: #374151;">{{ $payment->pickup_location }}</div>
@@ -582,35 +621,76 @@
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-amber-200 dark:bg-amber-700 border-2 border-amber-400 dark:border-amber-500 rounded-full flex items-center justify-center mr-3">
-                                            <span class="text-amber-900 dark:text-amber-100 font-bold text-sm">
-                                                {{-- {{ substr($payment->user->username, 0, 1) }} --}}
+                                        <div class="w-8 h-8 {{ $payment->type === 'group_full_payment' ? 'bg-blue-200 dark:bg-blue-700 border-2 border-blue-400 dark:border-blue-500' : 'bg-amber-200 dark:bg-amber-700 border-2 border-amber-400 dark:border-amber-500' }} rounded-full flex items-center justify-center mr-3">
+                                            <span class="{{ $payment->type === 'group_full_payment' ? 'text-blue-900 dark:text-blue-100' : 'text-amber-900 dark:text-amber-100' }} font-bold text-sm">
+                                                {{ $payment->type === 'group_full_payment' ? '👥' : '👤' }}
                                             </span>
                                         </div>
                                         <div>
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 {{ $payment->user_phone }}
+                                                @if($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                                                    <span class="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 rounded-full">
+                                                        Group ({{ $payment->group_size }} people)
+                                                    </span>
+                                                @endif
                                             </div>
-                                            {{-- <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                {{ $payment->user->email }}
-                                            </div> --}}
+                                            @if($payment->type === 'group_full_payment' && $payment->childPayments()->exists())
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    Main booker • Paid for {{ $payment->group_size }} passengers
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-3 py-1 text-xs font-bold rounded-full border-2 {{ $payment->type === 'deposit' ? 'bg-orange-200 text-orange-900 border-orange-400 dark:bg-orange-800 dark:text-orange-100 dark:border-orange-500' : 'bg-indigo-200 text-indigo-900 border-indigo-400 dark:bg-indigo-800 dark:text-indigo-100 dark:border-indigo-500' }}">
-                                        {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
+                                    <span class="px-3 py-1 text-xs font-bold rounded-full border-2 
+                                        @if($payment->type === 'group_full_payment')
+                                            bg-blue-200 text-blue-900 border-blue-400 dark:bg-blue-800 dark:text-blue-100 dark:border-blue-500
+                                        @elseif($payment->type === 'deposit')
+                                            bg-orange-200 text-orange-900 border-orange-400 dark:bg-orange-800 dark:text-orange-100 dark:border-orange-500
+                                        @else
+                                            bg-indigo-200 text-indigo-900 border-indigo-400 dark:bg-indigo-800 dark:text-indigo-100 dark:border-indigo-500
+                                        @endif">
+                                        @if($payment->type === 'group_full_payment')
+                                            👥 GROUP
+                                        @else
+                                            {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
+                                        @endif
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        HK$ {{ number_format($payment->amount, 2) }}
-                                    </span>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            HK$ {{ number_format($payment->amount, 2) }}
+                                        </span>
+                                        @if($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                (HK$ {{ number_format($payment->amount / $payment->group_size, 2) }} per person)
+                                            </div>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $payment->pickup_location ?: 'Not specified' }}
-                                    </span>
+                                    @if($payment->type === 'group_full_payment' && $payment->childPayments()->exists())
+                                        <div class="space-y-1">
+                                            @php $allGroupPayments = collect([$payment])->merge($payment->childPayments); @endphp
+                                            @foreach($allGroupPayments->take(2) as $index => $groupPayment)
+                                                <div class="text-xs text-gray-900 dark:text-gray-100">
+                                                    <strong>{{ $index + 1 }}.</strong> {{ Str::limit($groupPayment->pickup_location ?: 'Not specified', 30) }}
+                                                </div>
+                                            @endforeach
+                                            @if($allGroupPayments->count() > 2)
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    +{{ $allGroupPayments->count() - 2 }} more locations...
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-sm text-gray-900 dark:text-gray-100">
+                                            {{ $payment->pickup_location ?: 'Not specified' }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="text-sm text-gray-900 dark:text-gray-100">

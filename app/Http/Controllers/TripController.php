@@ -75,9 +75,12 @@ class TripController extends Controller
 
         $trip = Trip::with(['joins.user', 'creator'])->findOrFail($id);
 
-        // 計算當前用戶是否已加入
-        $userJoin = $trip->joins->where('phone', $userPhone)->first();
-        $hasJoined = $userJoin !== null;
+        // 計算當前用戶是否已加入且payment已確認
+        $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
+        $hasJoined = $userJoin !== null && $userJoin->payment_confirmed;
+        
+        // 如果有payment記錄且已付款，但TripJoin記錄未確認，說明管理員還未處理
+        $hasPaidButNotConfirmed = $payment && $payment->paid && $userJoin && !$userJoin->payment_confirmed;
 
         // 計算價格（使用雙層定價系統）
         $currentPeople = $trip->joins->count();
@@ -111,8 +114,8 @@ class TripController extends Controller
 
         // 獲取分配的司機信息
         $assignedDriver = null;
-        if ($trip->tripDriver && $trip->tripDriver->status === 'confirmed') {
-            $assignedDriver = $trip->assignedDriver;
+        if ($trip->tripDriver && in_array($trip->tripDriver->status, ['assigned', 'confirmed'])) {
+            $assignedDriver = $trip->getDriver();
         }
 
         return view('trips.show', compact(
@@ -120,6 +123,7 @@ class TripController extends Controller
             'userPhone',
             'hasJoined',
             'hasLeft',
+            'hasPaidButNotConfirmed',
             'currentPeople',
             'availableSlots',
             'price',

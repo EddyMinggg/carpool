@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use Aws\Sns\SnsClient;
-use Aws\Exception\AwsException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -11,35 +9,14 @@ use Exception;
 
 class OtpService
 {
-    private $snsClient;
+    private $vonageSmsService;
     private $maxAttempts = 3;
     private $otpExpireMinutes = 5;
     private $resendCooldownMinutes = 0.17; // 10 seconds for development
 
-    public function __construct()
+    public function __construct(VonageSmsService $vonageSmsService)
     {
-        // Delay SNS client initialization until needed
-    }
-
-    /**
-     * Get or create SNS client
-     */
-    private function getSnsClient()
-    {
-        if (!$this->snsClient) {
-            $this->snsClient = new SnsClient([
-                'version' => 'latest',
-                'region' => config('services.aws.region', 'us-east-1'),
-                'credentials' => [
-                    'key' => config('services.aws.key'),
-                    'secret' => config('services.aws.secret'),
-                ],
-                'http' => [
-                    'verify' => app()->environment('production'), // Only verify SSL in production
-                ],
-            ]);
-        }
-        return $this->snsClient;
+        $this->vonageSmsService = $vonageSmsService;
     }
 
     /**
@@ -82,18 +59,27 @@ class OtpService
                 'updated_at' => Carbon::now(),
             ]);
 
-            // Send SMS via AWS SNS using professional template
+            // Send SMS via Vonage using professional template
             $message = SmsTemplateService::otpVerification($otpCode, $this->otpExpireMinutes);
 
-            $snsClient = $this->getSnsClient();
-            $result = $snsClient->publish([
-                'Message' => $message,
-                'PhoneNumber' => $phone,
-            ]);
+            $smsResult = $this->vonageSmsService->sendSms($phone, $message);
 
-            Log::info('OTP sent successfully', [
+            if (!$smsResult['success']) {
+                Log::error('Failed to send OTP via Vonage', [
+                    'phone' => $phone,
+                    'error' => $smsResult['error'] ?? 'Unknown error'
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Failed to send OTP code. Please try again.',
+                    'error' => $smsResult['error'] ?? 'SMS service error'
+                ];
+            }
+
+            Log::info('OTP sent successfully via Vonage', [
                 'phone' => $phone,
-                'message_id' => $result['MessageId'] ?? null,
+                'message_id' => $smsResult['message_id'] ?? null,
                 'otp_code' => $otpCode // Log OTP for development
             ]);
 
@@ -106,11 +92,12 @@ class OtpService
             return [
                 'success' => true,
                 'message' => 'OTP code sent successfully.',
-                'expires_in' => $this->otpExpireMinutes * 60
+                'expires_in' => $this->otpExpireMinutes * 60,
+                'message_id' => $smsResult['message_id'] ?? null
             ];
 
-        } catch (AwsException $e) {
-            Log::error('AWS SNS Error', [
+        } catch (Exception $e) {
+            Log::error('OTP Service Error', [
                 'phone' => $phone,
                 'error' => $e->getMessage()
             ]);

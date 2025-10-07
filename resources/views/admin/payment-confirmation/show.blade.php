@@ -369,13 +369,30 @@
             <!-- Mobile Header -->
             <div class="mobile-card">
                 <div class="mobile-section-title">
-                    💰 Confirm Payment
+                    @if($payment->type === 'group_full_payment')
+                        � Confirm Group Payment
+                    @else
+                        �💰 Confirm Payment
+                    @endif
                 </div>
                 <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
                     User: {{ $payment->user_phone }}
+                    @if($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                        <span style="background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 6px;">
+                            GROUP ({{ $payment->group_size }} people)
+                        </span>
+                    @endif
                 </div>
-                <div class="mobile-payment-badge {{ $payment->type }}">
-                    {{ $payment->type === 'deposit' ? '💰 DEPOSIT (20%)' : '💳 REMAINING (80%)' }}
+                <div class="mobile-payment-badge {{ $payment->type === 'group_full_payment' ? 'deposit' : ($payment->type === 'deposit' ? 'deposit' : 'remaining') }}">
+                    @if($payment->type === 'group_full_payment')
+                        👥 GROUP BOOKING
+                    @elseif($payment->type === 'deposit')
+                        💰 DEPOSIT PAYMENT
+                    @elseif($payment->type === 'remaining')
+                        💳 REMAINING PAYMENT
+                    @else
+                        💰 {{ strtoupper($payment->type) }} PAYMENT
+                    @endif
                 </div>
             </div>
 
@@ -439,14 +456,53 @@
                         <div class="mobile-info-value">{{ $payment->trip->planned_departure_time->format('Y-m-d H:i') }}</div>
                     </div>
                     <div class="mobile-info-item">
-                        <div class="mobile-info-label">Payment Amount</div>
+                        <div class="mobile-info-label">
+                            @if($payment->type === 'group_full_payment')
+                                Total Payment Amount
+                            @else
+                                Payment Amount
+                            @endif
+                        </div>
                         <div class="mobile-info-value mobile-amount">HK$ {{ number_format($payment->amount, 2) }}</div>
                     </div>
-                    @if($payment->pickup_location)
-                    <div class="mobile-info-item">
-                        <div class="mobile-info-label">Pickup Location</div>
-                        <div class="mobile-info-value">{{ $payment->pickup_location }}</div>
-                    </div>
+                    @if($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                        <div class="mobile-info-item">
+                            <div class="mobile-info-label">Per Person</div>
+                            <div class="mobile-info-value">HK$ {{ number_format($payment->amount / $payment->group_size, 2) }}</div>
+                        </div>
+                    @endif
+                    
+                    @if($payment->type === 'group_full_payment' && $payment->childPayments()->exists())
+                        <!-- Group Booking Details -->
+                        <div class="mobile-info-item" style="grid-column: 1 / -1;">
+                            <div class="mobile-info-label">Group Passengers</div>
+                            <div style="background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                                @php $allGroupPayments = collect([$payment])->merge($payment->childPayments); @endphp
+                                @foreach($allGroupPayments as $index => $groupPayment)
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; {{ !$loop->last ? 'border-bottom: 1px solid #dbeafe;' : '' }}">
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 14px; color: #1f2937; font-weight: 500;">
+                                                <strong>{{ $index + 1 }}.</strong> {{ $groupPayment->user_phone }}
+                                                @if($index === 0)<span style="color: #059669; font-weight: 600;"> (Main Booker)</span>@endif
+                                            </div>
+                                            @if($groupPayment->pickup_location)
+                                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">
+                                                    📍 {{ $groupPayment->pickup_location }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div style="font-size: 12px; color: #6b7280; margin-left: 12px;">
+                                            HK$ {{ number_format($groupPayment->amount, 0) }}
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @elseif($payment->pickup_location)
+                        <div class="mobile-info-item">
+                            <div class="mobile-info-label">Pickup Location</div>
+                            <div class="mobile-info-value">{{ $payment->pickup_location }}</div>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -454,77 +510,32 @@
             <!-- Payment Confirmation Form -->
             <div class="mobile-card">
                 <div class="mobile-section-title">
-                    ✅ Confirm Payment Receipt
+                    ✅ Quick Payment Confirmation
+                </div>
+                
+                <!-- Email Notification Preview -->
+                <div class="mobile-info-box">
+                    <div class="mobile-info-title">
+                        📧 Email Notification
+                    </div>
+                    <div class="mobile-info-text">
+                        Confirming will automatically send an email to <strong>{{ optional(\App\Models\User::where('phone', $payment->user_phone)->first())->email ?? $payment->user_phone }}</strong> with payment confirmation and trip details.
+                    </div>
                 </div>
                 
                 <form action="{{ route('admin.payment-confirmation.confirm', $payment) }}" method="POST">
                     @csrf
-
-                    <!-- Reference Code -->
-                    <div class="mobile-form-group">
-                        <label for="reference_code" class="mobile-form-label">
-                            Payment Reference Code *
-                        </label>
-                        <input type="text" 
-                               name="reference_code" 
-                               id="reference_code" 
-                               value="{{ old('reference_code') }}"
-                               placeholder="Enter reference code"
-                               class="mobile-form-input"
-                               required>
-                        <div class="mobile-help-text">
-                            Enter the reference code from the user's payment proof
-                        </div>
-                    </div>
-
-                    <!-- Additional Notes -->
-                    <div class="mobile-form-group">
-                        <label for="notes" class="mobile-form-label">
-                            Additional Notes (Optional)
-                        </label>
-                        <textarea name="notes" 
-                                  id="notes" 
-                                  placeholder="Any additional notes..."
-                                  class="mobile-form-textarea">{{ old('notes') }}</textarea>
-                    </div>
-
-                    <!-- Email Notification Preview -->
-                    <div class="mobile-info-box">
-                        <div class="mobile-info-title">
-                            📧 Email Notification Preview
-                        </div>
-                        <div class="mobile-info-text">
-                            After confirming, an email will be sent to <strong>{{ $payment->user_phone }}</strong> with:
-                        </div>
-                        <ul class="mobile-info-list">
-                            <li>{{ ucfirst($payment->type) }} payment confirmation for trip #{{ $payment->trip->id }}</li>
-                            <li>Payment amount: HK$ {{ number_format($payment->amount, 2) }}</li>
-                            <li>Trip details and departure time</li>
-                            <li>Further instructions for the trip</li>
-                        </ul>
-                    </div>
-
-                    <!-- Confirmation Checkbox -->
-                    <div class="mobile-checkbox-container">
-                        <input type="checkbox" 
-                               name="confirm_payment" 
-                               id="confirm_payment" 
-                               value="1"
-                               class="mobile-checkbox"
-                               required>
-                        <label for="confirm_payment" class="mobile-checkbox-label">
-                            I confirm that I have verified the payment proof and the payment amount is correct. An email notification will be sent to the user.
-                        </label>
-                    </div>
+                    <!-- Auto-generated reference code (hidden) -->
+                    <input type="hidden" name="auto_confirm" value="1">
 
                     <!-- Action Buttons -->
                     <div class="mobile-action-buttons">
-                        <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" 
+                        <a href="{{ route('admin.payment-confirmation.global') }}" 
                            class="mobile-btn mobile-btn-secondary">
-                            Cancel
+                            Back to Search
                         </a>
                         <button type="submit" class="mobile-btn mobile-btn-primary">
-                            ✅ Confirm & Send Email
+                            ✅ Confirm Payment
                         </button>
                     </div>
                 </form>
@@ -609,8 +620,28 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Payment Type</label>
                                 <p class="text-gray-900 dark:text-gray-100">
-                                    <span class="px-3 py-1 text-xs font-bold rounded-full border-2 {{ $payment->type === 'deposit' ? 'bg-orange-200 text-orange-900 border-orange-400 dark:bg-orange-800 dark:text-orange-100 dark:border-orange-500' : 'bg-indigo-200 text-indigo-900 border-indigo-400 dark:bg-indigo-800 dark:text-indigo-100 dark:border-indigo-500' }}">
-                                        {{ $payment->type === 'deposit' ? '💰 DEPOSIT (20%)' : '💳 REMAINING (80%)' }}
+                                    @php
+                                        $badgeClasses = 'px-3 py-1 text-xs font-bold rounded-full border-2 ';
+                                        if($payment->type === 'group_full_payment') {
+                                            $badgeClasses .= 'bg-green-200 text-green-900 border-green-400 dark:bg-green-800 dark:text-green-100 dark:border-green-500';
+                                        } elseif($payment->type === 'deposit') {
+                                            $badgeClasses .= 'bg-orange-200 text-orange-900 border-orange-400 dark:bg-orange-800 dark:text-orange-100 dark:border-orange-500';
+                                        } elseif($payment->type === 'remaining') {
+                                            $badgeClasses .= 'bg-indigo-200 text-indigo-900 border-indigo-400 dark:bg-indigo-800 dark:text-indigo-100 dark:border-indigo-500';
+                                        } else {
+                                            $badgeClasses .= 'bg-gray-200 text-gray-900 border-gray-400 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-500';
+                                        }
+                                    @endphp
+                                    <span class="{{ $badgeClasses }}">
+                                        @if($payment->type === 'group_full_payment')
+                                            👥 GROUP BOOKING
+                                        @elseif($payment->type === 'deposit')
+                                            💰 DEPOSIT PAYMENT
+                                        @elseif($payment->type === 'remaining')
+                                            💳 REMAINING PAYMENT
+                                        @else
+                                            💰 {{ strtoupper($payment->type) }} PAYMENT
+                                        @endif
                                     </span>
                                 </p>
                             </div>
@@ -653,76 +684,30 @@
             <!-- Payment Confirmation Form -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Confirm Payment Receipt</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Payment Confirmation</h3>
                     
-                    <form action="{{ route('admin.payment-confirmation.confirm', $payment) }}" method="POST" class="space-y-6">
+                    <!-- Email Notification Preview -->
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
+                        <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">📧 Email Notification</h4>
+                        <p class="text-sm text-blue-700 dark:text-blue-300">
+                            Confirming will automatically send an email to <strong>{{ optional(\App\Models\User::where('phone', $payment->user_phone)->first())->email ?? $payment->user_phone }}</strong> with payment confirmation and trip details.
+                        </p>
+                    </div>
+                    
+                    <form action="{{ route('admin.payment-confirmation.confirm', $payment) }}" method="POST">
                         @csrf
-
-                        <!-- Reference Code -->
-                        <div>
-                            <label for="reference_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Payment Reference Code *
-                            </label>
-                            <input type="text" 
-                                   name="reference_code" 
-                                   id="reference_code" 
-                                   value="{{ old('reference_code') }}"
-                                   placeholder="Enter bank transfer reference or transaction ID"
-                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200"
-                                   required>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Enter the reference code from the user's payment proof (bank transfer, e-wallet, etc.)
-                            </p>
-                        </div>
-
-                        <!-- Additional Notes -->
-                        <div>
-                            <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Additional Notes (Optional)
-                            </label>
-                            <textarea name="notes" 
-                                      id="notes" 
-                                      rows="3"
-                                      placeholder="Any additional notes about this payment confirmation"
-                                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200">{{ old('notes') }}</textarea>
-                        </div>
-
-                        <!-- Email Notification Preview -->
-                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                            <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">📧 Email Notification Preview</h4>
-                            <p class="text-sm text-blue-700 dark:text-blue-300">
-                                After confirming, an email will be sent to <strong>{{ $payment->user_phone }}</strong> with:
-                            </p>
-                            <ul class="mt-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
-                                <li>• {{ ucfirst($payment->type) }} payment confirmation for trip #{{ $payment->trip->id }}</li>
-                                <li>• Payment amount: HK$ {{ number_format($payment->amount, 2) }}</li>
-                                <li>• Trip details and departure time</li>
-                                <li>• Further instructions for the trip</li>
-                            </ul>
-                        </div>
-
-                        <!-- Confirmation Checkbox -->
-                        <div class="flex items-start">
-                            <input type="checkbox" 
-                                   name="confirm_payment" 
-                                   id="confirm_payment" 
-                                   value="1"
-                                   class="mt-1 rounded border-gray-300 dark:border-gray-600 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
-                                   required>
-                            <label for="confirm_payment" class="ml-3 text-sm text-gray-700 dark:text-gray-300">
-                                I confirm that I have verified the payment proof and the payment amount is correct. An email notification will be sent to the user.
-                            </label>
-                        </div>
+                        <!-- Auto-generated reference code (hidden) -->
+                        <input type="hidden" name="auto_confirm" value="1">
 
                         <!-- Actions -->
-                        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                            <a href="{{ route('admin.payment-confirmation.index', $payment->trip) }}" 
+                        <div class="flex justify-end space-x-3">
+                            <a href="{{ route('admin.payment-confirmation.global') }}" 
                                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
-                                Cancel
+                                Back to Search
                             </a>
                             <button type="submit" 
-                                    class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
-                                ✅ Confirm Payment & Send Email
+                                    class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
+                                ✅ Confirm Payment
                             </button>
                         </div>
                     </form>
@@ -804,48 +789,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
-            const referenceInput = document.getElementById('reference_code');
-            const confirmCheckbox = document.getElementById('confirm_payment');
             
-            // Auto-generate reference code suggestion
-            function generateReferenceCode() {
-                if (!referenceInput.value) {
-                    const now = new Date();
-                    const timestamp = now.toISOString().slice(2, 10).replace(/-/g, '');
-                    const tripId = "{{ $payment->trip->id }}";
-                    const userId = "{{ $payment->user_phone }}";
-                    const paymentId = "{{ $payment->id }}";
-                    referenceInput.value = `REF${tripId}${userId}P${paymentId}${timestamp}`;
-                }
-            }
-
-            // Focus on reference code input
-            referenceInput.focus();
-
-            // Generate reference code suggestion on focus if empty
-            referenceInput.addEventListener('focus', generateReferenceCode);
-
-            // Form validation
+            // Simple form submission with loading state
             form.addEventListener('submit', function(e) {
-                if (!confirmCheckbox.checked) {
-                    e.preventDefault();
-                    alert('Please confirm that you have verified the payment proof.');
-                    confirmCheckbox.focus();
-                    return false;
-                }
-
-                if (!referenceInput.value.trim()) {
-                    e.preventDefault();
-                    alert('Please enter a payment reference code.');
-                    referenceInput.focus();
-                    return false;
-                }
-
-                // Show loading state
                 const submitBtn = form.querySelector('button[type="submit"]');
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '⏳ Confirming Payment...';
+                    submitBtn.innerHTML = '⏳ Confirming...';
                 }
             });
         });

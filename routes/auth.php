@@ -29,6 +29,16 @@ Route::middleware('guest')->group(function () {
     Route::post('resend-otp-form', [RegisteredUserController::class, 'resendOtpForm'])
         ->name('otp.resend.form');
 
+    // AJAX Registration routes
+    Route::post('register/send-otp', [RegisteredUserController::class, 'sendOtpAjax'])
+        ->name('register.send-otp');
+    
+    Route::post('register/verify-otp', [RegisteredUserController::class, 'verifyOtpAjax'])
+        ->name('register.verify-otp');
+    
+    Route::post('register/resend-otp', [RegisteredUserController::class, 'resendOtpAjax'])
+        ->name('register.resend-otp');
+
 
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])

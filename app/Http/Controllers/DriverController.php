@@ -38,9 +38,17 @@ class DriverController extends Controller
             ->orderBy('planned_departure_time', 'asc')
             ->paginate(10, ['*'], 'available');
 
+        // Get driver's assigned trips for statistics (simplified flow)
+        $myTrips = $driver->driverTrips()->with(['trip'])
+            ->get()
+            ->map(function ($tripDriver) {
+                // Use assignment status (confirmed = active, completed = done)
+                $tripDriver->trip_status = $tripDriver->trip->trip_status;
+                $tripDriver->assignment_status = $tripDriver->status;
+                return $tripDriver;
+            });
 
-
-        return view('driver.dashboard', compact('availableTrips'));
+        return view('driver.dashboard', compact('availableTrips', 'myTrips'));
     }
 
     /**
@@ -72,13 +80,14 @@ class DriverController extends Controller
         try {
             DB::beginTransaction();
 
-            // Create trip-driver assignment
+            // Create trip-driver assignment with confirmed status (no need for separate confirmation)
             TripDriver::create([
                 'trip_id' => $trip->id,
                 'driver_id' => $driver->id,
-                'status' => 'assigned',
+                'status' => 'confirmed', // Direct confirmation when accepting
                 'notes' => $request->notes,
                 'assigned_at' => Carbon::now(),
+                'confirmed_at' => Carbon::now(), // Set confirmed time immediately
             ]);
 
             DB::commit();
@@ -182,24 +191,26 @@ class DriverController extends Controller
             abort(403, 'Access denied. Driver role required.');
         }
 
-        // Get driver's assigned trips
-        $assignedTrips = Trip::with(['creator', 'joins.user', 'tripDriver'])
+        // Get driver's assigned trips with proper eager loading
+        $assignedTrips = Trip::with(['creator', 'joins.user', 'tripDriver' => function ($query) use ($driver) {
+                $query->where('driver_id', $driver->id);
+            }])
             ->whereHas('tripDriver', function ($query) use ($driver) {
                 $query->where('driver_id', $driver->id);
             })
             ->orderBy('planned_departure_time', 'asc')
             ->paginate(15);
 
-        // Statistics for my trips only
+        // Statistics for my trips only (simplified flow: confirmed = accepted)
         $stats = [
-            'my_assigned' => TripDriver::where('driver_id', $driver->id)
-                ->where('status', 'assigned')
-                ->count(),
-            'my_confirmed' => TripDriver::where('driver_id', $driver->id)
+            'my_active' => TripDriver::where('driver_id', $driver->id)
                 ->where('status', 'confirmed')
                 ->count(),
             'my_completed' => TripDriver::where('driver_id', $driver->id)
                 ->where('status', 'completed')
+                ->count(),
+            'my_cancelled' => TripDriver::where('driver_id', $driver->id)
+                ->where('status', 'cancelled')
                 ->count(),
         ];
 

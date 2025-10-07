@@ -18,8 +18,7 @@ class Payment extends Model
         'type',
         'pickup_location',
         'paid',
-        'group_size',
-        'parent_payment_id'
+        'group_size'
     ];
 
     public function trip()
@@ -30,6 +29,21 @@ class Payment extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    // Get all trip joins for this payment's group booking
+    public function tripJoins()
+    {
+        if ($this->type === 'group_full_payment' && $this->group_size > 1) {
+            // For group bookings, return multiple trip joins for the same trip
+            return $this->hasMany(TripJoin::class, 'trip_id', 'trip_id')
+                       ->where('payment_confirmation', true)
+                       ->limit($this->group_size);
+        } else {
+            // For individual bookings, return the specific user's trip join
+            return $this->hasOne(TripJoin::class, 'trip_id', 'trip_id')
+                       ->where('user_phone', $this->user_phone);
+        }
     }
 
     // Scopes

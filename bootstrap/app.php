@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\Localization;
+use App\Http\Middleware\PreventDriverTripAccess;
 use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ->alias([
                 'admin' => AdminMiddleware::class,
                 'super_admin' => SuperAdminMiddleware::class,
+                'prevent.driver.trips' => PreventDriverTripAccess::class,
             ])
             ->web(append: [
                 Localization::class

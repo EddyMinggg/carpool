@@ -16,7 +16,7 @@ Route::get('/verified', function () {
     return view('email-verified');
 })->name('email-verified');
 
-Route::prefix('trips')->group(function () {
+Route::prefix('trips')->middleware(['auth', 'verified', 'prevent.driver.trips'])->group(function () {
     Route::get('/', [TripController::class, 'index'])->name('trips');
     Route::get('/{id}', [TripController::class, 'show'])->name('trips.show');
     Route::delete('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
@@ -24,7 +24,7 @@ Route::prefix('trips')->group(function () {
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::prefix('payment')->group(function () {
+    Route::prefix('payment')->middleware('prevent.driver.trips')->group(function () {
         Route::post('/', [PaymentController::class, 'store'])->name('payment.create');
         Route::get('/{id}', [PaymentController::class, 'show'])->name('payment.code');
     });

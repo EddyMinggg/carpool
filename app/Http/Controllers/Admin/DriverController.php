@@ -11,7 +11,7 @@ use Illuminate\Validation\Rules;
 
 class DriverController extends Controller
 {
-    // 用戶列表
+    // 司機列表
     public function index(Request $request)
     {
         // 檢測移動設備
@@ -20,8 +20,8 @@ class DriverController extends Controller
 
         $currentUser = Auth::user();
 
-        // 構建基礎查詢 - User Management 只顯示普通用戶
-        $query = User::where('user_role', 'driver');
+        // 構建基礎查詢 - Driver Management 只顯示司機用戶
+        $query = User::where('user_role', User::ROLE_DRIVER);
 
         // 移動版使用分頁，桌面版獲取所有數據供 DataTable 使用
         if ($isMobile) {
@@ -30,10 +30,18 @@ class DriverController extends Controller
             $drivers = $query->get();
         }
 
-        return view('admin.drivers.index', compact('drivers', 'isMobile'));
+        // 計算統計資訊
+        $statistics = [
+            'total_drivers' => $query->count(),
+            'active_drivers' => $query->whereNotNull('email_verified_at')->count(),
+            'new_this_month' => $query->where('created_at', '>=', now()->startOfMonth())->count(),
+            'verified_drivers' => $query->whereNotNull('email_verified_at')->count(),
+        ];
+
+        return view('admin.drivers.index', compact('drivers', 'isMobile', 'statistics'));
     }
 
-    // 用戶詳情
+    // 司機詳情
     public function show(User $driver)
     {
         // 檢測設備類型
@@ -43,7 +51,7 @@ class DriverController extends Controller
         return view('admin.drivers.show', compact('driver', 'isMobile'));
     }
 
-    // 編輯用戶
+    // 編輯司機
     public function edit(User $driver)
     {
         // 檢測設備類型
@@ -54,7 +62,7 @@ class DriverController extends Controller
     }
 
     /**
-     * Show the form for creating a new admin.
+     * Show the form for creating a new driver.
      */
     public function create(Request $request)
     {
@@ -73,22 +81,25 @@ class DriverController extends Controller
         $request->validate([
             'username' => ['required', 'string', 'max:50', 'unique:users'],
             'email' => ['required', 'string', 'email', 'max:319', 'unique:users'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         User::create([
             'username' => $request->username,
             'email' => $request->email,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
-            'user_role' => 'driver',
-            'email_verified_at' => now(), // Auto-verify admin emails
+            'user_role' => User::ROLE_DRIVER,
+            'email_verified_at' => now(), // Auto-verify driver emails
+            'phone_verified_at' => $request->phone ? now() : null, // Auto-verify driver phone if provided
         ]);
 
         return redirect()->route('admin.drivers.index')
-            ->with('success', 'Admin created successfully!');
+            ->with('success', 'Driver created successfully!');
     }
 
-    // 更新用戶
+    // 更新司機
     public function update(Request $request, User $driver)
     {
         $currentUser = Auth::user();
@@ -102,20 +113,17 @@ class DriverController extends Controller
             'username' => 'required|string|max:50',
             'email' => 'required|email|max:319',
             'phone' => 'nullable|string|max:20',
-            'user_role' => 'required|in:user,driver,admin,super_admin',
         ]);
 
-        // 普通 admin 不能將用戶提升為 super admin
-        if ($currentUser->user_role === User::ROLE_ADMIN && isset($validated['user_role']) && $validated['user_role'] == User::ROLE_SUPER_ADMIN) {
-            unset($validated['user_role']);
-        }
+        // 確保 driver 角色保持不變
+        $validated['user_role'] = User::ROLE_DRIVER;
 
         $driver->update($validated);
         return redirect()->route('admin.drivers.show', $driver->id)
-            ->with('success', 'User updated successfully.');
+            ->with('success', 'Driver updated successfully.');
     }
 
-    // 刪除用戶
+    // 刪除司機 (物理刪除用戶記錄)
     public function destroy(User $driver)
     {
         $currentUser = Auth::user();
@@ -132,8 +140,10 @@ class DriverController extends Controller
                 ->with('error', 'You cannot delete yourself.');
         }
 
-        $driver->delete();
+        // 物理刪除用戶記錄 (跳過軟刪除)
+        $driver->forceDelete();
+        
         return redirect()->route('admin.drivers.index')
-            ->with('success', 'User deleted successfully.');
+            ->with('success', 'Driver deleted successfully.');
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\OtpService;
+use App\Services\VonageSmsService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -195,5 +196,179 @@ class RegisteredUserController extends Controller
         }
 
         return back()->with('success', 'A new verification code has been sent to your phone.');
+    }
+
+    /**
+     * Send OTP for registration (AJAX)
+     */
+    public function sendOtpAjax(Request $request)
+    {
+        try {
+            // Validate registration data
+            $request->validate([
+                'username' => ['required', 'string', 'max:255', 'unique:'.User::class],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+                'phone_country_code' => ['required', 'string', 'in:+852,+86,+1,+44'],
+                'phone' => ['required', 'string', 'regex:/^[0-9]{8,15}$/'],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ], [
+                'phone.regex' => 'The phone number must be 8-15 digits.',
+                'phone_country_code.in' => 'Please select a valid country code.',
+                'username.unique' => 'This username is already taken.',
+                'email.unique' => 'This email address is already registered.',
+            ]);
+
+            // Combine country code and phone number
+            $fullPhoneNumber = $request->phone_country_code . $request->phone;
+
+            // Check if phone number is already registered
+            if (User::where('phone', $fullPhoneNumber)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This phone number is already registered.'
+                ], 422);
+            }
+
+            // Prepare user data for OTP service
+            $userData = [
+                'username' => $request->username,
+                'email' => $request->email,
+                'phone' => $fullPhoneNumber,
+                'password' => Hash::make($request->password),
+                'user_role' => User::ROLE_USER,
+            ];
+
+            // Send OTP
+            $otpService = app(OtpService::class);
+            $result = $otpService->sendOtp($fullPhoneNumber, $userData, $request->ip());
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Verification code sent successfully.',
+                    'phone' => $fullPhoneNumber
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message']
+                ], 400);
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Registration send OTP error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Verify OTP and complete registration (AJAX)
+     */
+    public function verifyOtpAjax(Request $request)
+    {
+        try {
+            $request->validate([
+                'otp_code' => ['required', 'string', 'size:6', 'regex:/^[0-9]+$/'],
+                'username' => ['required', 'string'],
+                'email' => ['required', 'email'],
+                'phone_country_code' => ['required', 'string'],
+                'phone' => ['required', 'string'],
+                'password' => ['required', 'string'],
+            ]);
+
+            // Combine phone number
+            $fullPhoneNumber = $request->phone_country_code . $request->phone;
+
+            // Verify OTP
+            $otpService = app(OtpService::class);
+            $result = $otpService->verifyOtp($fullPhoneNumber, $request->otp_code, $request->ip());
+
+            if (!$result['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message']
+                ], 400);
+            }
+
+            // Create user account
+            $user = User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'phone' => $fullPhoneNumber,
+                'password' => $request->password, // Already hashed from sendOtpAjax
+                'user_role' => User::ROLE_USER,
+                'phone_verified_at' => now(),
+            ]);
+
+            event(new Registered($user));
+            Auth::login($user);
+
+            // Send email verification notification
+            $user->sendEmailVerificationNotification();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Registration completed successfully!',
+                'redirect' => route('verification.notice')
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid verification code.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Registration verify OTP error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred during registration. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Resend OTP for registration (AJAX)
+     */
+    public function resendOtpAjax(Request $request)
+    {
+        try {
+            $request->validate([
+                'phone_country_code' => ['required', 'string'],
+                'phone' => ['required', 'string'],
+            ]);
+
+            $fullPhoneNumber = $request->phone_country_code . $request->phone;
+
+            // Send OTP (without user data since we're just resending)
+            $otpService = app(OtpService::class);
+            $result = $otpService->sendOtp($fullPhoneNumber, null, $request->ip());
+
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['success'] 
+                    ? 'A new verification code has been sent to your phone.'
+                    : $result['message']
+            ], $result['success'] ? 200 : 400);
+
+        } catch (\Exception $e) {
+            \Log::error('Resend OTP error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resend verification code. Please try again.'
+            ], 500);
+        }
     }
 }

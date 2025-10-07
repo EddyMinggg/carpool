@@ -24,7 +24,23 @@ class PaymentController extends Controller
                 ->with('success', __('Payment confirmed! You have successfully joined the trip.'));
         }
 
-        return view('payment.code', ['payment' => $payment]);
+        // 檢查是否為 group booking
+        $isGroupBooking = $payment->passengers > 1;
+        
+        // 如果是group booking，获取所有相关的TripJoin记录
+        $groupTripJoins = [];
+        if ($isGroupBooking) {
+            $groupTripJoins = TripJoin::where('trip_id', $payment->trip_id)
+                ->where('reference_code', $payment->reference_code)
+                ->orderBy('id')
+                ->get();
+        }
+
+        return view('payment.code', [
+            'payment' => $payment,
+            'isGroupBooking' => $isGroupBooking,
+            'groupTripJoins' => $groupTripJoins
+        ]);
     }
 
     /**
@@ -126,21 +142,7 @@ class PaymentController extends Controller
                 'user_fee' => $pricePerPerson,
                 'pickup_location' => $passenger['pickup_location'],
                 'payment_confirmation' => false,
-                // 可以添加額外字段來標記這是團體預訂的一部分
             ]);
-            
-            // 為每個乘客創建個別的付款記錄（方便追蹤）
-            if ($index > 0) { // 第一個已經是主要付款記錄
-                Payment::create([
-                    'reference_code' => $mainPayment->reference_code . '-' . ($index + 1),
-                    'trip_id' => $trip->id,
-                    'user_phone' => $fullPhone,
-                    'amount' => $pricePerPerson,
-                    'pickup_location' => $passenger['pickup_location'],
-                    'type' => 'group_member_payment',
-                    'parent_payment_id' => $mainPayment->id,
-                ]);
-            }
         }
         
         return redirect()->route('payment.code', ['id' => $mainPayment->id])

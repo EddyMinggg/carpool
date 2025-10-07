@@ -26,10 +26,12 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
 
     // Payment Confirmation routes
     Route::prefix('payment-confirmation')->name('payment-confirmation.')->group(function () {
+        Route::get('/', [PaymentConfirmationController::class, 'global'])->name('global'); // New global search page
         Route::get('/trip/{trip}', [PaymentConfirmationController::class, 'index'])->name('index');
         Route::get('/payment/{payment}', [PaymentConfirmationController::class, 'show'])->name('show');
         Route::post('/payment/{payment}', [PaymentConfirmationController::class, 'confirm'])->name('confirm');
         Route::post('/trip/{trip}/bulk-confirm', [PaymentConfirmationController::class, 'bulkConfirm'])->name('bulk-confirm');
+        Route::get('/search', [PaymentConfirmationController::class, 'search'])->name('search'); // AJAX search endpoint
         Route::get('/statistics', [PaymentConfirmationController::class, 'statistics'])->name('statistics');
     });
 });
