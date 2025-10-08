@@ -48,12 +48,12 @@
             </h2>
             
             <!-- Trip Information -->
-            <div class="mt-6 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Trip Details') }}</h3>
+            <div class="mt-6 bg-secondary dark:bg-secondary-accent border border-gray-200 dark:border-gray-800 rounded-lg p-4 shadow-sm">
+                <h3 class="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-3">{{ __('Trip Details') }}</h3>
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between items-start">
-                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Destination') }}:</span>
-                        <span class="text-gray-900 dark:text-gray-100 font-semibold text-right">{{ $payment->trip->dropoff_location }}</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('From') }}</span>
+                        <span class="text-gray-700 dark:text-gray-200 font-semibold">{{ $payment->pickup_location }}</span>
                     </div>
                     
                     @if($isGroupBooking)
@@ -92,17 +92,17 @@
                         </div>
                     @else
                         <!-- Single Booking - One Pickup Location -->
-                        <div class="flex justify-between items-start">
-                            <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Pickup Location') }}:</span>
-                            <span class="text-gray-900 dark:text-gray-100 font-semibold text-right max-w-xs break-words">{{ $payment->pickup_location }}</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('To') }}</span>
+                            <span class="text-gray-700 dark:text-gray-200 font-semibold" style="margin-top: 0.1rem;">{{ $payment->trip->dropoff_location }}</span>
                         </div>
                     @endif
                     
-                    <div class="flex justify-between items-start">
-                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Departure Time') }}:</span>
-                        <span class="text-gray-900 dark:text-gray-100 font-semibold">{{ $payment->trip->planned_departure_time->format('Y-m-d H:i') }}</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ __('Departure Time') }}</span>
+                        <span class="text-gray-700 dark:text-gray-200 font-semibold">{{ $payment->trip->planned_departure_time->format('Y-m-d H:i') }}</span>
                     </div>
-                    <div class="flex justify-between items-start pt-2 border-t border-gray-200 dark:border-gray-600">
+                    <div class="flex justify-between items-center pt-3 border-t border-gray-200 dark:border-gray-600">
                         <span class="text-gray-600 dark:text-gray-400 font-medium">
                             @if($isGroupBooking)
                                 @php
@@ -111,10 +111,10 @@
                                 @endphp
                                 {{ __('Total Amount') }} ({{ $passengerCount }} {{ __('passengers') }}):
                             @else
-                                {{ __('Deposit Amount') }}:
+                                {{ __('Deposit Amount') }}
                             @endif
                         </span>
-                        <span class="text-gray-900 dark:text-gray-100 font-bold text-lg text-blue-600 dark:text-blue-400">HK$ {{ number_format($payment->amount, 2) }}</span>
+                        <span class="text-gray-700 dark:text-gray-200 font-bold text-lg text-blue-600 dark:text-blue-400">HK$ {{ number_format($payment->amount, 2) }}</span>
                     </div>
                 </div>
             </div>
@@ -188,7 +188,7 @@
             <!-- Manual refresh button -->
             <div class="w-full mt-6 flex justify-center">
                 <button id="check-status-btn" 
-                    class="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800 disabled:bg-green-900 dark:disabled:bg-green-900 text-white px-6 py-3 rounded-xl font-semibold transition shadow-md flex items-center gap-2">
+                    class="bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary disabled:bg-primary-dark dark:disabled:bg-primary-darker text-gray-200 px-6 py-3 rounded-xl font-semibold transition shadow-md flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>

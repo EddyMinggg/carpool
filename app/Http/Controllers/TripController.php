@@ -168,6 +168,7 @@ class TripController extends Controller
         $trips = Trip::with('joins')
             ->where('planned_departure_time', '>', $now)
             ->where('planned_departure_time', '<=', $now->copy()->addWeeks(2))
+            ->whereNot('trip_status', 'cancelled')
             ->get();
 
         $groupedTrips = $trips->filter(function ($trip) use ($now) {

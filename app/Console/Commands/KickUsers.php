@@ -40,12 +40,28 @@ class KickUsers extends Command
             $this->info("Marked {$departedTripsCount} trips as departed");
         }
 
-        $chargingTripCount = Trip::where('planned_departure_time', '<=', $now->addHour())->update([
-            'trip_status' => 'charging',
-        ]);
+        $chargingTripCount = Trip::where('type', 'normal')
+            ->where('planned_departure_time', '<=', $now->addDay())
+            ->update([
+                'trip_status' => 'charging',
+            ]);
 
         if ($chargingTripCount > 0) {
             $this->info("Marked {$chargingTripCount} trips as charging remaining payment");
+        }
+
+        $cancelledTrips = Trip::where('type', 'normal')
+            ->where('planned_departure_time', '<=', $now->addDays(2))
+            ->get();
+
+        $cancelledTripIds = $cancelledTrips->filter(function ($trip) {
+            return $trip->joins()->count() < $trip->min_passengers;
+        })->pluck('id');
+
+        $cancelledTripsCount = Trip::whereIn('id', $cancelledTripIds)->update(['trip_status' => 'cancelled']);
+
+        if ($cancelledTripsCount > 0) {
+            $this->info("Marked {$cancelledTripsCount} trips as cancelled");
         }
 
         $awaitingTrips = Trip::where('trip_status', 'awaiting')->get();
