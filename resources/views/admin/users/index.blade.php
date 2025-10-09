@@ -464,7 +464,7 @@
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             Active Users</p>
                         <p style="font-size: 1.875rem; font-weight: bold;" id="active-users">
-                            {{ $users->whereNotNull('email_verified_at')->count() }}
+                            {{ $users->whereNotNull('phone_verified_at')->count() }}
                         </p>
                     </div>
                     <div class="stats-icon-bg">
@@ -601,7 +601,7 @@
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     Active</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-active-users">
-                                    {{ $users->whereNotNull('email_verified_at')->count() }}</p>
+                                    {{ $users->whereNotNull('phone_verified_at')->count() }}</p>
                             </div>
                         </div>
 
