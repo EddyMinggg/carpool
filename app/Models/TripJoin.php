@@ -39,10 +39,10 @@ class TripJoin extends Model
         return $this->belongsTo(Trip::class, 'trip_id', 'id');
     }
 
-    // Relationship: TripJoin belongs to a User
+    // Relationship: TripJoin belongs to a User (through phone number)
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_phone', 'phone');
     }
 
     // Check if user has voted

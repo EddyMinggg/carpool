@@ -10,19 +10,8 @@
                 </a>
             </div>
 
-            <!-- Location Picker - Centered -->
-            <div class="flex-1 flex justify-center px-2 md:px-8 overflow-hidden">
-                <div class="w-52 md:w-full">
-                    <div id="header-location-picker"
-                        class="h-10 w-full flex items-center overflow-hidden text-sm bg-white dark:bg-secondary-accent rounded-lg px-3 sm:px-4 py-2.5 border border-gray-200 dark:border-gray-600 cursor-pointer transition-all hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md active:scale-98 w-full"
-                        @click="window.location='{{ route('map') }}'">
-                        <i class="text-gray-400 material-icons text-lg mr-2 sm:mr-3 flex-shrink-0">&#xe1b7;</i>
-                        <span
-                            class="truncate {{ session('location') == null ? 'italic text-gray-400' : 'text-gray-400' }}"
-                            id="header_pickup_location">{{ session('location') ?? __('Pick location...') }}</span>
-                    </div>
-                </div>
-            </div>
+            <!-- Spacer -->
+            <div class="flex-1"></div>
 
             <!-- Controls - Fixed width -->
             <div class="flex items-center flex-shrink-0 gap-1">

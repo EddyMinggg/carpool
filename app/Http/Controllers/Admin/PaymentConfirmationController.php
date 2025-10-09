@@ -7,6 +7,8 @@ use App\Models\Trip;
 use App\Models\TripJoin;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\Coupon;
+use App\Models\CouponUsage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -118,8 +120,11 @@ class PaymentConfirmationController extends Controller
             // Update trip_joins payment_confirmation status for all related users
             $this->updateTripJoinPaymentStatus($payment);
 
+            // Record coupon usage if coupon was used
+            $this->recordCouponUsage($payment);
+
             // Send email notification
-            // $this->sendPaymentConfirmationEmail($payment, $request->notes);
+            $this->sendPaymentConfirmationEmail($payment, $isAutoConfirm ? null : $request->notes);
 
             Log::info('Payment(s) confirmed', [
                 'main_payment_id' => $payment->id,
@@ -235,28 +240,58 @@ class PaymentConfirmationController extends Controller
     private function sendPaymentConfirmationEmail(Payment $payment, string $adminNotes = null)
     {
         try {
-            $payment->load(['user', 'trip']);
+            $payment->load(['trip']);
+            
+            // Find user by phone number from payment
+            $user = User::where('phone', $payment->user_phone)->first();
+            
+            // Skip email if user doesn't exist or no email
+            if (!$user || !$user->email) {
+                Log::info('Skipping email - user not found or no email', [
+                    'payment_id' => $payment->id,
+                    'user_phone' => $payment->user_phone,
+                ]);
+                return;
+            }
+
+            // Get trip join details
+            $tripJoin = TripJoin::where('trip_id', $payment->trip_id)
+                              ->where('user_phone', $payment->user_phone)
+                              ->first();
 
             Mail::send('emails.payment-confirmed', [
-                'payment' => $payment,
-                'user' => $payment->user,
-                'trip' => $payment->trip,
+                'userName' => $user->username ?: 'Carpool Member',
+                'tripId' => $payment->trip->id,
+                'destination' => $payment->trip->dropoff_location ?: 'To be confirmed',
+                'departureDate' => $payment->trip->planned_departure_time ? $payment->trip->planned_departure_time->format('Y-m-d') : 'To be confirmed',
+                'departureTime' => $payment->trip->planned_departure_time ? $payment->trip->planned_departure_time->format('H:i') : 'To be confirmed',
+                'pickupLocation' => $tripJoin ? $tripJoin->pickup_location : 'To be confirmed',
+                'amountPaid' => number_format($payment->amount, 2),
+                'paymentType' => ucfirst($payment->type),
+                'referenceCode' => $payment->reference_code,
+                'confirmedDate' => now()->format('Y-m-d H:i'),
+                'tripUrl' => route('trips.show', $payment->trip->id),
+                'appName' => 'Snowpins',
+                'appUrl' => config('app.url'),
                 'adminNotes' => $adminNotes,
-                'paymentType' => ucfirst($payment->type), // 'Deposit' or 'Remaining'
-            ], function ($message) use ($payment) {
-                $message->to($payment->user->email, $payment->user->username)
-                    ->subject('Payment Confirmed - ' . ucfirst($payment->type) . ' for Trip #' . $payment->trip->id);
+            ], function ($message) use ($payment, $user) {
+                $message->to($user->email, $user->username)
+                    ->subject('Payment Confirmed - Welcome to Trip #' . $payment->trip->id);
             });
 
             Log::info('Payment confirmation email sent', [
                 'payment_id' => $payment->id,
-                'user_email' => $payment->user->email,
+                'user_email' => $user->email,
+                'user_phone' => $payment->user_phone,
+                'trip_id' => $payment->trip->id,
                 'type' => $payment->type,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to send payment confirmation email', [
                 'payment_id' => $payment->id,
+                'user_phone' => $payment->user_phone ?? 'unknown',
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
@@ -444,5 +479,64 @@ class PaymentConfirmationController extends Controller
                 'url' => route('admin.payment-confirmation.show', $payment),
             ];
         }));
+    }
+
+    /**
+     * Record coupon usage when payment is confirmed
+     */
+    private function recordCouponUsage(Payment $payment)
+    {
+        // Check if payment has coupon information
+        if (!$payment->coupon_code || !$payment->coupon_discount) {
+            return;
+        }
+
+        try {
+            // Find the coupon
+            $coupon = Coupon::where('code', $payment->coupon_code)->first();
+            if (!$coupon) {
+                Log::warning('Coupon not found when recording usage', [
+                    'payment_id' => $payment->id,
+                    'coupon_code' => $payment->coupon_code,
+                ]);
+                return;
+            }
+
+            // Check if usage already recorded for this payment
+            $existingUsage = CouponUsage::where('payment_id', $payment->id)
+                                     ->where('coupon_id', $coupon->id)
+                                     ->first();
+            
+            if ($existingUsage) {
+                // Already recorded
+                return;
+            }
+
+            // Create usage record
+            CouponUsage::create([
+                'coupon_id' => $coupon->id,
+                'user_phone' => $payment->user_phone,
+                'payment_id' => $payment->id,
+                'discount_amount' => $payment->coupon_discount,
+            ]);
+
+            // Update coupon used_count
+            $coupon->increment('used_count');
+
+            Log::info('Coupon usage recorded', [
+                'payment_id' => $payment->id,
+                'coupon_id' => $coupon->id,
+                'coupon_code' => $coupon->code,
+                'user_phone' => $payment->user_phone,
+                'discount_amount' => $payment->coupon_discount,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to record coupon usage', [
+                'payment_id' => $payment->id,
+                'coupon_code' => $payment->coupon_code,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

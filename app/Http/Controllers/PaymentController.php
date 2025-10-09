@@ -64,6 +64,9 @@ class PaymentController extends Controller
                 'passengers.*.phone_country_code' => 'required|in:+852,+86',
                 'passengers.*.pickup_location' => 'required|string|max:255',
                 'total_amount' => 'required|numeric|min:0',
+                'coupon_code' => 'nullable|string|max:50',
+                'coupon_discount' => 'nullable|numeric|min:0',
+                'subtotal_amount' => 'nullable|numeric|min:0',
             ]);
         } else {
             // 單人預訂驗證
@@ -118,9 +121,24 @@ class PaymentController extends Controller
             }
         }
         
-        // 計算定價（新邏輯：全額付款）
+        // 計算定價（包含優惠券折扣）
         $pricePerPerson = $request->input('price_per_person', $this->calculatePriceForTrip($trip, $peopleCount));
-        $totalAmount = $pricePerPerson * $peopleCount;
+        $subtotalAmount = $request->input('subtotal_amount', $pricePerPerson * $peopleCount);
+        $totalAmount = $request->input('total_amount', $subtotalAmount);
+        $couponDiscount = $request->input('coupon_discount', 0);
+        
+        // 處理優惠券（如果有）
+        $couponCode = $request->input('coupon_code');
+        if ($couponCode && $couponDiscount > 0) {
+            // 驗證並更新優惠券使用次數
+            $coupon = \App\Models\Coupon::where('code', strtoupper($couponCode))
+                ->where('enabled', true)
+                ->first();
+            
+            if ($coupon) {
+                $coupon->increment('used_count');
+            }
+        }
         
         // 創建主要付款記錄（代表整個團體）
         $mainPayment = Payment::create([
@@ -131,6 +149,8 @@ class PaymentController extends Controller
             'pickup_location' => $passengers[0]['pickup_location'],
             'type' => 'group_full_payment',
             'group_size' => $peopleCount,
+            'coupon_code' => $couponCode,
+            'coupon_discount' => $couponDiscount,
         ]);
         
         // 為每個乘客創建 TripJoin 記錄

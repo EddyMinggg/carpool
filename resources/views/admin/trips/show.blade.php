@@ -228,11 +228,13 @@
                     <div class="mobile-status">
                         <span class="mobile-status-badge" style="
                             background-color: {{ $trip->trip_status === 'awaiting' ? '#dbeafe' : 
-                               ($trip->trip_status === 'voting' ? '#fef3c7' : 
-                               ($trip->trip_status === 'completed' ? '#dcfce7' : '#fee2e2')) }};
+                               ($trip->trip_status === 'departed' ? '#f3e8ff' : 
+                               ($trip->trip_status === 'charging' ? '#fef3c7' : 
+                               ($trip->trip_status === 'completed' ? '#dcfce7' : '#fee2e2'))) }};
                             color: {{ $trip->trip_status === 'awaiting' ? '#1e40af' : 
-                               ($trip->trip_status === 'voting' ? '#92400e' : 
-                               ($trip->trip_status === 'completed' ? '#166534' : '#991b1b')) }};
+                               ($trip->trip_status === 'departed' ? '#7c3aed' : 
+                               ($trip->trip_status === 'charging' ? '#92400e' : 
+                               ($trip->trip_status === 'completed' ? '#166534' : '#991b1b'))) }};
                         ">
                             {{ ucfirst($trip->trip_status) }}
                         </span>
@@ -251,23 +253,23 @@
                     </div>
                     <div class="mobile-info-item">
                         <div class="mobile-info-label">Departure</div>
-                        <div class="mobile-info-value">{{ $trip->planned_departure_time->format('m/d H:i') }}</div>
+                        <div class="mobile-info-value">{{ $trip->planned_departure_time ? $trip->planned_departure_time->format('m/d H:i') : 'TBD' }}</div>
                     </div>
                     <div class="mobile-info-item">
-                        <div class="mobile-info-label">Capacity</div>
-                        <div class="mobile-info-value">{{ $trip->max_people }} people</div>
+                        <div class="mobile-info-label">Type</div>
+                        <div class="mobile-info-value">{{ ucfirst($trip->type) }}</div>
                     </div>
                     <div class="mobile-info-item">
-                        <div class="mobile-info-label">Base Price</div>
-                        <div class="mobile-info-value">¥{{ number_format($trip->base_price, 2) }}</div>
+                        <div class="mobile-info-label">Price</div>
+                        <div class="mobile-info-value">HK$ {{ number_format($trip->price_per_person, 2) }}</div>
                     </div>
                     <div class="mobile-info-item">
-                        <div class="mobile-info-label">Created</div>
-                        <div class="mobile-info-value">{{ $trip->created_at->format('m/d H:i') }}</div>
+                        <div class="mobile-info-label">Min/Max</div>
+                        <div class="mobile-info-value">{{ $trip->min_passengers }}/{{ $trip->max_people }}</div>
                     </div>
                     <div class="mobile-info-item">
-                        <div class="mobile-info-label">Participants</div>
-                        <div class="mobile-info-value">{{ optional($trip->joins)->count() ?? 0 }}/{{ $trip->max_people }}</div>
+                        <div class="mobile-info-label">Discount</div>
+                        <div class="mobile-info-value">HK$ {{ number_format($trip->four_person_discount, 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -400,24 +402,41 @@
                     </div>
                     <div class="py-3">
                         <p class="text-sm text-gray-500">Planned Departure</p>
-                        <p class="text-gray-900">{{ $trip->planned_departure_time->format('Y-m-d H:i') }}</p>
+                        <p class="text-gray-900">{{ $trip->planned_departure_time ? $trip->planned_departure_time->format('Y-m-d H:i') : 'To be determined' }}</p>
+                    </div>
+                    <div class="py-3">
+                        <p class="text-sm text-gray-500">Trip Type</p>
+                        <p class="text-gray-900">{{ ucfirst($trip->type) }}</p>
+                    </div>
+                    <div class="py-3">
+                        <p class="text-sm text-gray-500">Price Per Person</p>
+                        <p class="text-gray-900">HK$ {{ number_format($trip->price_per_person, 2) }}</p>
+                    </div>
+                    <div class="py-3">
+                        <p class="text-sm text-gray-500">Min Passengers</p>
+                        <p class="text-gray-900">{{ $trip->min_passengers }} people</p>
                     </div>
                     <div class="py-3">
                         <p class="text-sm text-gray-500">Max Capacity</p>
                         <p class="text-gray-900">{{ $trip->max_people }} people</p>
                     </div>
                     <div class="py-3">
-                        <p class="text-sm text-gray-500">Base Price</p>
-                        <p class="text-gray-900">¥{{ number_format($trip->base_price, 2) }}</p>
+                        <p class="text-sm text-gray-500">4-Person Discount</p>
+                        <p class="text-gray-900">HK$ {{ number_format($trip->four_person_discount, 2) }}</p>
                     </div>
                     <div class="py-3">
                         <p class="text-sm text-gray-500">Status</p>
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                             {{ $trip->trip_status === 'awaiting' ? 'bg-blue-100 text-blue-800' : 
-                               ($trip->trip_status === 'voting' ? 'bg-yellow-100 text-yellow-800' : 
-                               ($trip->trip_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')) }}">
+                               ($trip->trip_status === 'departed' ? 'bg-purple-100 text-purple-800' : 
+                               ($trip->trip_status === 'charging' ? 'bg-yellow-100 text-yellow-800' :
+                               ($trip->trip_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'))) }}">
                             {{ ucfirst($trip->trip_status) }}
                         </span>
+                    </div>
+                    <div class="py-3">
+                        <p class="text-sm text-gray-500">Invitation Code</p>
+                        <p class="text-gray-900 font-mono">{{ $trip->invitation_code }}</p>
                     </div>
                     <div class="py-3">
                         <p class="text-sm text-gray-500">Created At</p>

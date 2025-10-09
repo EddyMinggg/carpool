@@ -56,6 +56,7 @@ class CouponController extends Controller
             'valid_to' => 'nullable|date|after_or_equal:valid_from',
             'enabled' => 'boolean',
             'usage_limit' => 'nullable|integer|min:1',
+            'per_user_limit' => 'nullable|integer|min:1',
         ]);
         $validated['enabled'] = $request->has('enabled');
         Coupon::create($validated);
@@ -83,6 +84,7 @@ class CouponController extends Controller
             'valid_to' => 'nullable|date|after_or_equal:valid_from',
             'enabled' => 'boolean',
             'usage_limit' => 'nullable|integer|min:1',
+            'per_user_limit' => 'nullable|integer|min:1',
         ]);
         $validated['enabled'] = $request->has('enabled');
         $coupon->update($validated);

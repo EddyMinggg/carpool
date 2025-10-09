@@ -10,7 +10,11 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void {}
+    public function register(): void
+    {
+        // Bind OtpService
+        $this->app->singleton(\App\Services\OtpService::class);
+    }
 
     /**
      * Bootstrap any application services.

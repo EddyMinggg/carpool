@@ -327,6 +327,7 @@
                             <th>Valid To</th>
                             <th>Enabled</th>
                             <th>Usage Limit</th>
+                            <th>Per User Limit</th>
                             <th>Used Count</th>
                             <th>Actions</th>
                         </tr>
@@ -336,7 +337,7 @@
                             <tr>
                                 <td>{{ $coupon->id }}</td>
                                 <td>{{ $coupon->code }}</td>
-                                <td>¥{{ number_format($coupon->discount_amount, 2) }}</td>
+                                <td>HK$ {{ number_format($coupon->discount_amount, 2) }}</td>
                                 <td>{{ $coupon->valid_from ? $coupon->valid_from->format('Y-m-d') : '-' }}</td>
                                 <td>{{ $coupon->valid_to ? $coupon->valid_to->format('Y-m-d') : '-' }}</td>
                                 <td>
@@ -345,6 +346,7 @@
                                     </span>
                                 </td>
                                 <td>{{ $coupon->usage_limit ?? '-' }}</td>
+                                <td>{{ $coupon->per_user_limit ?? '-' }}</td>
                                 <td>{{ $coupon->used_count }}</td>
                                 <td>
                                     <div class="flex space-x-1">
@@ -426,7 +428,7 @@
                     <div style="margin-bottom: 12px;">
                         <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Discount Amount</div>
                         <div style="font-size: 24px; color: #059669; font-weight: 700;">
-                            ¥{{ number_format($coupon->discount_amount, 2) }}
+                            HK$ {{ number_format($coupon->discount_amount, 2) }}
                         </div>
                     </div>
                     
@@ -454,9 +456,15 @@
                                 {{ $coupon->usage_limit ?? 'Unlimited' }}
                             </div>
                         </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 12px; color: #6b7280;">Per User Limit</div>
+                            <div style="font-size: 14px; color: #059669; font-weight: 600;">
+                                {{ $coupon->per_user_limit ?? 'Unlimited' }}
+                            </div>
+                        </div>
                         <div style="text-align: right;">
                             <div style="font-size: 12px; color: #6b7280;">Used Count</div>
-                            <div style="font-size: 14px; color: #1f2937; font-weight: 600;">
+                            <div style="font-size: 14px; color: #dc2626; font-weight: 600;">
                                 {{ $coupon->used_count }}
                             </div>
                         </div>

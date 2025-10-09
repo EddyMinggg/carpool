@@ -184,12 +184,15 @@ class TripController extends Controller
         dd('$bruh');
 
         $validated = $request->validate([
+            'creator_id' => 'required|exists:users,id',
             'dropoff_location' => 'required|string|max:255',
             'planned_departure_time' => 'required|date',
-            'max_people' => 'required|integer|min:1|max:8',
+            'max_people' => 'required|integer|min:1|max:10',
+            'min_passengers' => 'required|integer|min:1|max:10',
             'price_per_person' => 'required|numeric|min:0',
-            'type' => 'required|in:normal,fixed',
-            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled'
+            'four_person_discount' => 'nullable|numeric|min:0',
+            'type' => 'required|in:normal,golden',
+            'trip_status' => 'required|in:awaiting,departed,charging,completed,cancelled'
         ]);
 
 

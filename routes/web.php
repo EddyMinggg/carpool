@@ -5,8 +5,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\SessionController;
-use App\Http\Controllers\SmsController;
 use App\Http\Controllers\DriverController;
+use App\Http\Controllers\CouponController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -28,6 +28,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/', [PaymentController::class, 'store'])->name('payment.create');
         Route::get('/{id}', [PaymentController::class, 'show'])->name('payment.code');
     });
+
+    // 優惠券相關路由
+    Route::post('/coupon/validate', [CouponController::class, 'validate'])->name('coupon.validate');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
