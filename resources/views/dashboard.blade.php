@@ -22,46 +22,90 @@
             return this.groupedTrips[this.activeDate] || [];
         },
     
-        // 重新設計的日曆生成器 - 支援2週限制
-        get calendarDays() {
-            // 使用當前月份 (2025年10月)
-            const year = 2025;
-            const month = 9; // 0-based, 9 = October
-    
-            // 計算今天和2週後的日期
-            const today = new Date(2025, 9, 5); // 2025年10月5日
-            today.setHours(0, 0, 0, 0);
-    
+        // 計算要顯示的月份年份
+        get currentMonthYear() {
+            const today = new Date();
             const twoWeeksLater = new Date(today);
             twoWeeksLater.setDate(today.getDate() + 14);
+            
+            // 決定要顯示的月份 - 與calendarDays邏輯保持一致
+            let displayMonth = today.getMonth();
+            let displayYear = today.getFullYear();
+            
+            // 如果2週後跨到了下個月，且下個月的日期更多，就顯示下個月
+            if (twoWeeksLater.getMonth() !== today.getMonth()) {
+                const daysInCurrentMonth = new Date(displayYear, displayMonth + 1, 0).getDate() - today.getDate() + 1;
+                const daysInNextMonth = twoWeeksLater.getDate();
+                
+                if (daysInNextMonth >= daysInCurrentMonth) {
+                    displayMonth = twoWeeksLater.getMonth();
+                    displayYear = twoWeeksLater.getFullYear();
+                }
+            }
+            
+            const displayDate = new Date(displayYear, displayMonth, 1);
+            return displayDate.toLocaleDateString('en', { 
+                year: 'numeric', 
+                month: 'long' 
+            });
+        },
+
+        // 重新設計的日曆生成器 - 支援2週限制並自動處理跨月
+        get calendarDays() {
+            // 使用當前日期（動態）
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // 計算2週後的日期
+            const twoWeeksLater = new Date(today);
+            twoWeeksLater.setDate(today.getDate() + 14);
+            
+            // 決定要顯示的月份 - 如果2週內有跨月，顯示包含更多有效日期的月份
+            let displayMonth = today.getMonth();
+            let displayYear = today.getFullYear();
+            
+            // 如果2週後跨到了下個月，且下個月的日期更多，就顯示下個月
+            if (twoWeeksLater.getMonth() !== today.getMonth()) {
+                const daysInCurrentMonth = new Date(displayYear, displayMonth + 1, 0).getDate() - today.getDate() + 1;
+                const daysInNextMonth = twoWeeksLater.getDate();
+                
+                if (daysInNextMonth >= daysInCurrentMonth) {
+                    displayMonth = twoWeeksLater.getMonth();
+                    displayYear = twoWeeksLater.getFullYear();
+                }
+            }
     
-            // 獲取本月第一天是星期幾 (0 = Sunday)
-            const firstDay = new Date(year, month, 1);
+            // 獲取顯示月份的第一天是星期幾 (0 = Sunday)
+            const firstDay = new Date(displayYear, displayMonth, 1);
             const firstDayWeekday = firstDay.getDay();
     
-            // 獲取本月有多少天
-            const lastDay = new Date(year, month + 1, 0);
+            // 獲取顯示月份有多少天
+            const lastDay = new Date(displayYear, displayMonth + 1, 0);
             const daysInMonth = lastDay.getDate();
     
             const calendarDays = [];
     
             // 添加前面月份的空白日期
             for (let i = 0; i < firstDayWeekday; i++) {
-                const prevMonthDate = new Date(year, month, 1 - (firstDayWeekday - i));
+                const prevMonthDate = new Date(displayYear, displayMonth, 1 - (firstDayWeekday - i));
+                const dateStr = this.formatDate(prevMonthDate);
+                const hasTrips = this.groupedTrips[dateStr] && this.groupedTrips[dateStr].length > 0;
+                const inTwoWeekRange = prevMonthDate >= today && prevMonthDate <= twoWeeksLater;
+                
                 calendarDays.push({
                     dayNumber: prevMonthDate.getDate(),
-                    date: this.formatDate(prevMonthDate),
+                    date: dateStr,
                     isCurrentMonth: false,
-                    hasTrips: false,
-                    selectable: false,
-                    inTwoWeekRange: false,
-                    dateType: 'other-month'
+                    hasTrips: hasTrips,
+                    selectable: inTwoWeekRange && hasTrips,
+                    inTwoWeekRange: inTwoWeekRange,
+                    dateType: !inTwoWeekRange ? 'other-month' : (hasTrips ? 'has-trips' : 'no-trips-in-range')
                 });
             }
     
-            // 添加本月的日期
+            // 添加顯示月份的日期
             for (let day = 1; day <= daysInMonth; day++) {
-                const currentDate = new Date(year, month, day);
+                const currentDate = new Date(displayYear, displayMonth, day);
                 currentDate.setHours(0, 0, 0, 0);
     
                 const dateStr = this.formatDate(currentDate);
@@ -97,7 +141,7 @@
             // 補齊剩餘的格子到42個 (6週 x 7天)
             const remainingDays = 42 - calendarDays.length;
             for (let i = 1; i <= remainingDays; i++) {
-                const nextMonthDate = new Date(year, month + 1, i);
+                const nextMonthDate = new Date(displayYear, displayMonth + 1, i);
                 nextMonthDate.setHours(0, 0, 0, 0);
     
                 const dateStr = this.formatDate(nextMonthDate);
@@ -230,7 +274,9 @@
 
                     <!-- 月份標題 -->
                     <div class="text-center mb-4">
-                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-200">{{ __('2025 October') }}</h4>
+                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-200" 
+                            x-text="currentMonthYear">
+                        </h4>
                     </div>
 
                     <!-- 星期標題 -->

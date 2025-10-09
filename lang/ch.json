@@ -134,5 +134,30 @@
     "No Trips": "无班车",
     "Members": "成员",
     "Leave Carpool": "推出拼车",
-    "Share Trip": "分享行程"
+    "Share Trip": "分享行程",
+    
+    "Coupon Code": "优惠券代码",
+    "Enter coupon code": "输入优惠券代码",
+    "Apply": "应用",
+    "Applied": "已应用",
+    "Validating...": "验证中...",
+    "Coupon Discount": "优惠券折扣",
+    "Subtotal": "小计",
+    "Please enter a coupon code": "请输入优惠券代码",
+    "Coupon code not found.": "找不到优惠券代码。",
+    "This coupon is no longer available.": "此优惠券已不可用。",
+    "This coupon is not yet valid.": "此优惠券还未生效。",
+    "This coupon has expired.": "此优惠券已过期。",
+    "This coupon has reached its usage limit.": "此优惠券已达使用限制。",
+    "Coupon is valid!": "优惠券有效！",
+    "Invalid coupon code": "无效的优惠券代码",
+    "Error validating coupon. Please try again.": "验证优惠券时出错，请重试。",
+    
+    "Guest User": "访客用户",
+    "Joined": "加入于",
+    
+    "Payment Confirmed": "付款已确认",
+    "Welcome to your carpool trip": "欢迎加入您的拼车行程",
+    "Your payment has been confirmed and you have successfully joined the carpool trip": "您的付款已确认，您已成功加入拼车行程",
+    "You have reached the usage limit for this coupon.": "您已达到此优惠券的使用限制。"
 } 

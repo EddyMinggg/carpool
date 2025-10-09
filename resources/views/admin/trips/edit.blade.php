@@ -206,27 +206,62 @@
                         @enderror
                     </div>
 
-                    <!-- Trip Status -->
+                    <!-- Min Passengers -->
                     <div class="mobile-form-group">
-                        <label for="trip_status" class="mobile-form-label">Trip Status</label>
-                        <select name="trip_status" id="trip_status" class="mobile-form-select">
-                            <option value="awaiting" {{ $trip->trip_status === 'awaiting' ? 'selected' : '' }}>awaiting</option>
-                            <option value="voting" {{ $trip->trip_status === 'voting' ? 'selected' : '' }}>Voting</option>
-                            <option value="completed" {{ $trip->trip_status === 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="cancelled" {{ $trip->trip_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                        </select>
-                        @error('trip_status')
+                        <label for="min_passengers" class="mobile-form-label">Minimum Passengers</label>
+                        <input type="number" name="min_passengers" id="min_passengers" min="1" max="10" 
+                            class="mobile-form-input"
+                            value="{{ old('min_passengers', $trip->min_passengers) }}">
+                        @error('min_passengers')
                             <p class="mobile-error">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <!-- Base Price -->
+                    <!-- Price Per Person -->
                     <div class="mobile-form-group">
-                        <label for="base_price" class="mobile-form-label">Base Price (¥)</label>
-                        <input type="number" step="0.01" name="base_price" id="base_price" min="0" 
+                        <label for="price_per_person" class="mobile-form-label">Price Per Person (HK$)</label>
+                        <input type="number" step="0.01" name="price_per_person" id="price_per_person" min="0" 
                             class="mobile-form-input"
-                            value="{{ old('base_price', $trip->base_price) }}">
-                        @error('base_price')
+                            value="{{ old('price_per_person', $trip->price_per_person) }}">
+                        @error('price_per_person')
+                            <p class="mobile-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Trip Type -->
+                    <div class="mobile-form-group">
+                        <label for="type" class="mobile-form-label">Trip Type</label>
+                        <select name="type" id="type" class="mobile-form-select">
+                            <option value="normal" {{ $trip->type === 'normal' ? 'selected' : '' }}>Normal</option>
+                            <option value="golden" {{ $trip->type === 'golden' ? 'selected' : '' }}>Golden Hour</option>
+                        </select>
+                        @error('type')
+                            <p class="mobile-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Four Person Discount -->
+                    <div class="mobile-form-group" id="discountField" style="{{ $trip->type === 'golden' ? 'display: none;' : '' }}">
+                        <label for="four_person_discount" class="mobile-form-label">4-Person Group Discount (HK$)</label>
+                        <input type="number" step="0.01" name="four_person_discount" id="four_person_discount" min="0" 
+                            class="mobile-form-input"
+                            value="{{ old('four_person_discount', $trip->four_person_discount) }}">
+                        @error('four_person_discount')
+                            <p class="mobile-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Trip Status -->
+                    <div class="mobile-form-group">
+                        <label for="trip_status" class="mobile-form-label">Trip Status</label>
+                        <select name="trip_status" id="trip_status" class="mobile-form-select">
+                            <option value="awaiting" {{ $trip->trip_status === 'awaiting' ? 'selected' : '' }}>Awaiting</option>
+                            <option value="departed" {{ $trip->trip_status === 'departed' ? 'selected' : '' }}>Departed</option>
+                            <option value="charging" {{ $trip->trip_status === 'charging' ? 'selected' : '' }}>Charging</option>
+                            <option value="completed" {{ $trip->trip_status === 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ $trip->trip_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                        @error('trip_status')
                             <p class="mobile-error">{{ $message }}</p>
                         @enderror
                     </div>
@@ -310,28 +345,64 @@
                         @enderror
                     </div>
 
-                    <!-- Trip Status -->
+                    <!-- Min Passengers -->
                     <div class="mb-4">
-                        <label for="trip_status" class="block text-sm font-medium text-gray-700 mb-1">Trip Status</label>
-                        <select name="trip_status" id="trip_status" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="awaiting" {{ $trip->trip_status === 'awaiting' ? 'selected' : '' }}>Awaiting</option>
-                            <option value="voting" {{ $trip->trip_status === 'voting' ? 'selected' : '' }}>Voting</option>
-                            <option value="completed" {{ $trip->trip_status === 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="cancelled" {{ $trip->trip_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                        </select>
-                        @error('trip_status')
+                        <label for="min_passengers" class="block text-sm font-medium text-gray-700 mb-1">Minimum Passengers</label>
+                        <input type="number" name="min_passengers" id="min_passengers" min="1" max="10" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value="{{ old('min_passengers', $trip->min_passengers) }}">
+                        @error('min_passengers')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <!-- Base Price -->
-                    <div class="mb-6">
-                        <label for="base_price" class="block text-sm font-medium text-gray-700 mb-1">Base Price (¥)</label>
-                        <input type="number" step="0.01" name="base_price" id="base_price" min="0" 
+                    <!-- Price Per Person -->
+                    <div class="mb-4">
+                        <label for="price_per_person" class="block text-sm font-medium text-gray-700 mb-1">Price Per Person (HK$)</label>
+                        <input type="number" step="0.01" name="price_per_person" id="price_per_person" min="0" 
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value="{{ old('base_price', $trip->base_price) }}">
-                        @error('base_price')
+                            value="{{ old('price_per_person', $trip->price_per_person) }}">
+                        @error('price_per_person')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Trip Type -->
+                    <div class="mb-4">
+                        <label for="desktop_type" class="block text-sm font-medium text-gray-700 mb-1">Trip Type</label>
+                        <select name="type" id="desktop_type" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="normal" {{ $trip->type === 'normal' ? 'selected' : '' }}>Normal</option>
+                            <option value="golden" {{ $trip->type === 'golden' ? 'selected' : '' }}>Golden Hour</option>
+                        </select>
+                        @error('type')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Four Person Discount -->
+                    <div class="mb-4" id="desktopDiscountField" style="{{ $trip->type === 'golden' ? 'display: none;' : '' }}">
+                        <label for="four_person_discount" class="block text-sm font-medium text-gray-700 mb-1">4-Person Group Discount (HK$)</label>
+                        <input type="number" step="0.01" name="four_person_discount" id="four_person_discount" min="0" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value="{{ old('four_person_discount', $trip->four_person_discount) }}">
+                        @error('four_person_discount')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Trip Status -->
+                    <div class="mb-6">
+                        <label for="trip_status" class="block text-sm font-medium text-gray-700 mb-1">Trip Status</label>
+                        <select name="trip_status" id="trip_status" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="awaiting" {{ $trip->trip_status === 'awaiting' ? 'selected' : '' }}>Awaiting</option>
+                            <option value="departed" {{ $trip->trip_status === 'departed' ? 'selected' : '' }}>Departed</option>
+                            <option value="charging" {{ $trip->trip_status === 'charging' ? 'selected' : '' }}>Charging</option>
+                            <option value="completed" {{ $trip->trip_status === 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ $trip->trip_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                        @error('trip_status')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -350,3 +421,44 @@
         </div>
     @endif
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const timeSlotSelect = document.getElementById('type');
+    const desktopTimeSlotSelect = document.getElementById('desktop_type');
+    const priceInput = document.getElementById('price_per_person');
+    const mobileDiscountField = document.getElementById('discountField');
+    const desktopDiscountField = document.getElementById('desktopDiscountField');
+    
+    function updateBusinessRules() {
+        const currentSelect = timeSlotSelect || desktopTimeSlotSelect;
+        if (!currentSelect) return;
+        
+        const isGoldenHour = currentSelect.value === 'golden';
+        
+        if (isGoldenHour) {
+            if (mobileDiscountField) mobileDiscountField.style.display = 'none';
+            if (desktopDiscountField) desktopDiscountField.style.display = 'none';
+            if (priceInput) priceInput.value = '250.00';
+        } else {
+            if (mobileDiscountField) mobileDiscountField.style.display = 'block';
+            if (desktopDiscountField) desktopDiscountField.style.display = 'block';
+            if (priceInput && currentSelect.value === 'normal') priceInput.value = '275.00';
+        }
+    }
+    
+    // Event listeners
+    if (timeSlotSelect) {
+        timeSlotSelect.addEventListener('change', updateBusinessRules);
+    }
+    
+    if (desktopTimeSlotSelect) {
+        desktopTimeSlotSelect.addEventListener('change', updateBusinessRules);
+    }
+    
+    // Initial update
+    updateBusinessRules();
+});
+</script>
+@endpush

@@ -154,10 +154,6 @@
             <div class="trip-info">
                 <h3>🚗 Trip Information</h3>
                 <div class="info-row">
-                    <span class="info-label">Trip ID:</span>
-                    <span class="info-value">{{ $tripId }}</span>
-                </div>
-                <div class="info-row">
                     <span class="info-label">Destination:</span>
                     <span class="info-value">{{ $destination }}</span>
                 </div>
@@ -225,7 +221,7 @@
             <p>This email was sent regarding your carpool booking.</p>
             <p><a href="{{ $appUrl }}">{{ $appName }}</a> | <a href="mailto:{{ config('mail.from.address') }}">Contact Support</a></p>
             <p style="margin-top: 15px; font-size: 12px; color: #9ca3af;">
-                Trip ID: {{ $tripId }} | Booking Reference: {{ $referenceCode }}
+                Booking Reference: {{ $referenceCode }}
             </p>
         </div>
     </div>

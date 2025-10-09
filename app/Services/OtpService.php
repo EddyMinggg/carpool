@@ -6,17 +6,35 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Exception;
+use Vonage\Client;
+use Vonage\Client\Credentials\Basic;
+use Vonage\SMS\Message\SMS;
+use GuzzleHttp\Client as HttpClient;
 
 class OtpService
 {
-    private $vonageSmsService;
+    private $vonageClient;
     private $maxAttempts = 3;
     private $otpExpireMinutes = 5;
     private $resendCooldownMinutes = 0.17; // 10 seconds for development
 
-    public function __construct(VonageSmsService $vonageSmsService)
+    public function __construct()
     {
-        $this->vonageSmsService = $vonageSmsService;
+        $credentials = new Basic(
+            config('services.vonage.api_key'),
+            config('services.vonage.api_secret')
+        );
+        
+        // Configure HTTP client for local development SSL issues
+        $httpClient = null;
+        if (app()->environment('local')) {
+            $httpClient = new HttpClient([
+                'verify' => false, // Disable SSL verification for local development
+                'timeout' => 30,
+            ]);
+        }
+        
+        $this->vonageClient = new Client($credentials, [], $httpClient);
     }
 
     /**
@@ -62,18 +80,39 @@ class OtpService
             // Send SMS via Vonage using professional template
             $message = SmsTemplateService::otpVerification($otpCode, $this->otpExpireMinutes);
 
-            $smsResult = $this->vonageSmsService->sendSms($phone, $message);
+            try {
+                $sms = new SMS($phone, config('services.vonage.from_number'), $message);
+                $response = $this->vonageClient->sms()->send($sms);
+                
+                $smsMessage = $response->current();
+                
+                if ($smsMessage->getStatus() == 0) {
+                    Log::info('OTP SMS sent successfully via Vonage', [
+                        'phone' => $phone,
+                        'message_id' => $smsMessage->getMessageId()
+                    ]);
+                } else {
+                    Log::error('Failed to send OTP via Vonage', [
+                        'phone' => $phone,
+                        'status' => $smsMessage->getStatus()
+                    ]);
 
-            if (!$smsResult['success']) {
-                Log::error('Failed to send OTP via Vonage', [
+                    return [
+                        'success' => false,
+                        'message' => 'Failed to send OTP code. Please try again.',
+                        'error' => 'SMS delivery failed'
+                    ];
+                }
+            } catch (Exception $e) {
+                Log::error('Vonage SMS API error', [
                     'phone' => $phone,
-                    'error' => $smsResult['error'] ?? 'Unknown error'
+                    'error' => $e->getMessage()
                 ]);
 
                 return [
                     'success' => false,
-                    'message' => 'Failed to send OTP code. Please try again.',
-                    'error' => $smsResult['error'] ?? 'SMS service error'
+                    'message' => 'SMS service temporarily unavailable. Please try again.',
+                    'error' => $e->getMessage()
                 ];
             }
 

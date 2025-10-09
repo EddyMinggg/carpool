@@ -18,7 +18,9 @@ class Payment extends Model
         'type',
         'pickup_location',
         'paid',
-        'group_size'
+        'group_size',
+        'coupon_code',
+        'coupon_discount'
     ];
 
     public function trip()

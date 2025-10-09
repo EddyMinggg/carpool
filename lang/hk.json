@@ -139,5 +139,10 @@
     "No Trips": "無班車",
     "Members": "成員",
     "Leave Carpool": "推出拼車",
-    "Share Trip": "分享行程"
+    "Share Trip": "分享行程",
+    
+    "Payment Confirmed": "付款已確認",
+    "Welcome to your carpool trip": "歡迎加入您的拼車行程",
+    "Your payment has been confirmed and you have successfully joined the carpool trip": "您的付款已確認，您已成功加入拼車行程",
+    "You have reached the usage limit for this coupon.": "您已達到此優惠券的使用限制。"
 } 

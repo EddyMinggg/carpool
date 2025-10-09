@@ -186,8 +186,8 @@
             </div>
         </div>
 
-        <!-- 司機資訊區域 -->
-        @if ($assignedDriver)
+        <!-- 司機資訊區域 - 只在用戶已加入行程後顯示 -->
+        @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $assignedDriver)
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 shadow-md border border-blue-200 dark:border-blue-800 mt-4">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
@@ -277,7 +277,7 @@
                     </div>
                 </div>
             </div>
-        @else
+        @elseif ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed))
             <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-800 mt-4">
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center">
@@ -308,13 +308,27 @@
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                                {{-- <span
-                                    class="text-blue-600 dark:text-blue-300 font-semibold text-sm">{{ substr($join->user->username, 0, 1) }}</span> --}}
+                                @if($join->user && $join->user->username)
+                                    <span class="text-blue-600 dark:text-blue-300 font-semibold text-sm">
+                                        {{ strtoupper(substr($join->user->username, 0, 1)) }}
+                                    </span>
+                                @else
+                                    <span class="text-blue-600 dark:text-blue-300 font-semibold text-sm">
+                                        {{ strtoupper(substr($join->user_phone, -1)) }}
+                                    </span>
+                                @endif
                             </div>
                             <div>
-                                <div class="font-medium text-gray-900 dark:text-gray-100">{{ $join->user_phone }}
+                                <div class="font-medium text-gray-900 dark:text-gray-100">
+                                    @if($join->user && $join->user->username)
+                                        {{ $join->user->username }}
+                                    @else
+                                        {{ __('Guest User') }}
+                                    @endif
                                 </div>
-                                {{-- 不再顯示任何地址信息，在等待司機區域會顯示自己的地址 --}}
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ __('Joined') }} {{ $join->created_at->diffForHumans() }}
+                                </div>
                             </div>
                         </div>
                         <div class="text-sm">
@@ -709,16 +723,16 @@
             @endif
         @endif
 
-        <!-- 多人預訂功能 -->
+        <!-- 預訂功能 -->
         @if (!$hasLeft && !$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
-            <!-- 多人預訂功能（適用於所有未加入的用戶） -->
+            <!-- 預訂功能（支援個人或多人預訂） -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {{ __('Group Booking') }}
+                        {{ __('Book This Trip') }}
                     </h3>
                     <span class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ __('Book for multiple people') }}
+                        {{ __('Available slots') }}: {{ $availableSlots }}
                     </span>
                 </div>
 
@@ -826,6 +840,42 @@
                         <!-- 額外乘客模板 (將通過 JavaScript 動態生成) -->
                     </div>
 
+                    <!-- 優惠券區域 -->
+                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 mb-4 border border-amber-200 dark:border-amber-800">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="material-icons text-amber-600 dark:text-amber-400">local_offer</span>
+                            <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ __('Coupon Code') }}</h4>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="flex-1">
+                                <input type="text" id="coupon-code" name="coupon_code" placeholder="{{ __('Enter coupon code') }}"
+                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-amber-500 dark:focus:border-amber-600 focus:ring-amber-500 dark:focus:ring-amber-600 text-sm uppercase">
+                            </div>
+                            <button type="button" id="apply-coupon" 
+                                class="px-4 py-2 bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white rounded-lg font-medium text-sm transition">
+                                {{ __('Apply') }}
+                            </button>
+                        </div>
+                        
+                        <!-- 優惠券狀態顯示 -->
+                        <div id="coupon-status" class="mt-3 hidden">
+                            <!-- 成功狀態 -->
+                            <div id="coupon-success" class="hidden p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm">
+                                <div class="flex items-center gap-2 text-green-700 dark:text-green-300">
+                                    <span class="material-icons text-sm">check_circle</span>
+                                    <span id="coupon-success-text"></span>
+                                </div>
+                            </div>
+                            <!-- 錯誤狀態 -->
+                            <div id="coupon-error" class="hidden p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm">
+                                <div class="flex items-center gap-2 text-red-700 dark:text-red-300">
+                                    <span class="material-icons text-sm">error</span>
+                                    <span id="coupon-error-text"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 價格總覽 -->
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
                         <div class="space-y-2">
@@ -836,6 +886,15 @@
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600 dark:text-gray-400">{{ __('Number of people') }}:</span>
                                 <span class="font-medium" id="people-display">1</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-400">{{ __('Subtotal') }}:</span>
+                                <span class="font-medium" id="subtotal-amount">HK$ {{ number_format($price, 0) }}</span>
+                            </div>
+                            <!-- 優惠券折扣行 (僅在套用優惠券時顯示) -->
+                            <div id="coupon-discount-row" class="hidden flex justify-between text-sm">
+                                <span class="text-green-600 dark:text-green-400">{{ __('Coupon Discount') }}:</span>
+                                <span class="font-medium text-green-600 dark:text-green-400" id="coupon-discount-amount">-HK$ 0</span>
                             </div>
                             <div class="border-t border-gray-300 dark:border-gray-500 pt-2">
                                 <div class="flex justify-between font-semibold">
@@ -876,7 +935,7 @@
                     @if($availableSlots > 0)
                         <button type="button" id="submit-group-booking"
                             class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-                            {{ __('Book for Group') }} - <span id="total-amount-btn">HK$ {{ number_format($price, 0) }}</span>
+                            {{ __('Book Now') }} - <span id="total-amount-btn">HK$ {{ number_format($price, 0) }}</span>
                         </button>
                     @else
                         <div class="w-full bg-gray-400 text-white py-4 rounded-xl font-semibold text-lg text-center">
@@ -887,237 +946,115 @@
             </div>
         @endif
 
-        <!-- 操作按鈕 -->
-        <div class="operations space-y-6 hidden">
-            @if ($hasLeft)
-                <div class="mt-8 flex justify-center text-center px-4">
-                    <h2 class="text-md text-gray-900 dark:text-gray-300 font-black">
-                        {{ __('You have left / was kicked from the trip.') }}
-                    </h2>
-                </div>
-            @else
-                @if (!$hasJoined && auth()->check() && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
-                    <!-- 註冊用戶的單人加入拼車表單 -->
-                    @if($availableSlots > 0)
-                        <button type="submit" id="join-trip-btn"
-                            class="w-full mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md"
-                        x-data=""
-                        x-on:click.prevent="
-                            const pickupLocation = document.getElementById('join-pickup-location').value;
-                            if (!pickupLocation || pickupLocation.trim() === '') {
-                                $dispatch('open-modal', 'location-required');
-                                return false;
-                            }
-                            $dispatch('open-modal', 'confirm-join-trip')
-                        ">
-                        {{ __('Join') }} - HK$ {{ number_format($price, 0) }}
-                    </button>
-                    @else
-                        <div class="w-full mt-4 bg-gray-400 text-white py-4 rounded-xl font-semibold text-lg text-center">
-                            {{ __('Trip is Full') }}
-                        </div>
-                    @endif
+        <!-- 離開拼車功能 - 只對已加入的用戶顯示 -->
+        @if ($hasJoined && !$hasLeft)
+            <div class="mt-6">
+                <button
+                    class="w-full bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white py-4 rounded-xl font-semibold transition shadow-md border border-red-300 dark:border-red-500"
+                    x-data=""
+                    x-on:click.prevent="$dispatch('open-modal', 'confirm-leave-trip')">
+                    {{ __('Leave Carpool') }}
+                </button>
 
-                    <!-- 位置選擇提醒 Modal -->
-                    <x-modal name="location-required" focusable>
-                        <div class="p-8 text-center">
-                            <div class="mb-4">
-                                <div
-                                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/50">
-                                    <i
-                                        class="material-icons text-yellow-600 dark:text-yellow-400 text-2xl">location_on</i>
+                <x-modal name="confirm-leave-trip" focusable>
+                    <form action="{{ route('trips.leave', $trip) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <div class="p-8 items-start">
+                            <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
+                                {{ __('Are you sure you want to leave the trip?') }}
+                            </h2>
+
+                            <div
+                                class="mt-8 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
+                                <span class="text-red-500 dark:text-red-400 font-black">
+                                    {{ __('The payment WILL NOT be refunded if you decided to leave the carpool.') }}
+                                </span>
+                            </div>
+
+                            <div
+                                class="mt-1 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
+                                <span class="font-black">
+                                    {{ __('Think carefully before leaving.') }}
+                                </span>
+                            </div>
+
+                            <div
+                                class="mt-3 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
+                                <span class="font-normal">
+                                    {{ __('Payment Amount: ') }}
+                                </span>
+                                <span class="font-black underline">
+                                    {{ 'HK$' . number_format($price, 0) }}
+                                </span>
+                            </div>
+                            <div class="flex mt-6">
+                                <div class="flex items-center h-5">
+                                    <input id="confirm-leave" type="checkbox" value=""
+                                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                </div>
+                                <div class="text-sm ms-2">
+                                    <label for="confirm"
+                                        class="font-normal text-gray-900 dark:text-gray-300">
+                                        {{ __('Confirm') }} </label>
+                                    <p id="private-checkbox-text"
+                                        class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
+                                        {{ __('I have read and understand the terms.') }} </p>
                                 </div>
                             </div>
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                                Location Required
-                            </h3>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm mb-6">
-                                Please select your pickup location before joining the trip!
-                            </p>
-                            <div class="flex justify-center space-x-3">
+                            <div class="mt-6 flex justify-end">
                                 <x-secondary-button x-on:click="$dispatch('close')">
-                                    {{ __('Cancel') }}
+                                    {{ __('Return') }}
                                 </x-secondary-button>
-                                <x-primary-button
-                                    x-on:click="$dispatch('close'); setTimeout(() => { document.getElementById('location-picker').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => document.getElementById('location-picker').click(), 500); }, 100);">
-                                    Select Location
+
+                                <x-primary-button id="leave-button"
+                                    class="ms-3 bg-red-500 dark:bg-red-600 hover:bg-red-500 dark:hover:bg-red-600 disabled:bg-red-700 dark:disabled:bg-red-900 disabled:text-gray-200 dark:disabled:text-gray-400 dark:text-white"
+                                    disabled>
+                                    {{ __('Leave') }}
                                 </x-primary-button>
                             </div>
                         </div>
-                    </x-modal>
-
-                    <x-modal name="confirm-join-trip" focusable>
-                        <form action="{{ route('payment.create') }}" method="POST" id="join-trip-form">
-                            @csrf
-                            <input type="hidden" name="trip_id" value="{{ $trip->id }}">
-                            <input type="hidden" name="amount" value="{{ $price }}">
-                            <input type="hidden" name="user_phone" value="{{ $userPhone }}">
-                            <input type="hidden" name="pickup_location" id="join-pickup-location"
-                            value="{{ session('location') }}">
-                            <div class="p-8 items-start">
-                                <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
-                                    {{ __('Are you sure you want to join the trip?') }}
-                                </h2>
-
-                                <div
-                                    class="mt-8 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
-                                    <span class="font-normal">
-                                        {{ __('Full payment is required upon booking confirmation,') }}
-                                    </span>
-                                    <span class="text-red-500 dark:text-red-400 font-black">
-                                        {{ __('which WILL NOT be refunded if you decided to leave the carpool.') }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="mt-1 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
-                                    <span class="font-black">
-                                        {{ __('Think carefully before joining.') }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="mt-3 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
-                                    <span class="font-normal">
-                                        {{ __('Required Amount: ') }}
-                                    </span>
-                                    <span class="font-black underline">
-                                        {{ 'HK$' . number_format($price, 0) }}
-                                    </span>
-                                </div>
-                                <div class="flex mt-6">
-                                    <div class="flex items-center h-5">
-                                        <input id="confirm-join" type="checkbox" value=""
-                                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    </div>
-                                    <div class="text-sm ms-2">
-                                        <label for="confirm" class="font-normal text-gray-900 dark:text-gray-300">
-                                            {{ __('Confirm') }} </label>
-                                        <p id="private-checkbox-text"
-                                            class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
-                                            {{ __('I have read and understand the terms.') }} </p>
-                                    </div>
-                                </div>
-                                <div class="mt-6 flex justify-end">
-                                    <x-secondary-button x-on:click="$dispatch('close')">
-                                        {{ __('Cancel') }}
-                                    </x-secondary-button>
-
-                                    <x-primary-button id="proceed-button"
-                                        class="ms-3 disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:text-gray-300 dark:disabled:text-gray-700"
-                                        disabled>
-                                        {{ __('Proceed') }}
-                                    </x-primary-button>
-                                </div>
-                            </div>
-                        </form>
-                    </x-modal>
-                @else
-                    <!-- 離開拼車表單 - 所有用戶都可以離開 -->
-                    <div class="mt-6">
-                        <button
-                            class="w-full bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white py-4 rounded-xl font-semibold transition shadow-md border border-red-300 dark:border-red-500"
-                            x-data=""
-                            x-on:click.prevent="$dispatch('open-modal', 'confirm-leave-trip')">
-                            {{ __('Leave Carpool') }}
-                        </button>
-
-                        <x-modal name="confirm-leave-trip" focusable>
-                            <form action="{{ route('trips.leave', $trip) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <div class="p-8 items-start">
-                                    <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
-                                        {{ __('Are you sure you want to leave the trip?') }}
-                                    </h2>
-
-                                    <div
-                                        class="mt-8 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
-                                        <span class="text-red-500 dark:text-red-400 font-black">
-                                            {{ __('The payment WILL NOT be refunded if you decided to leave the carpool.') }}
-                                        </span>
-                                    </div>
-
-                                    <div
-                                        class="mt-1 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
-                                        <span class="font-black">
-                                            {{ __('Think carefully before leaving.') }}
-                                        </span>
-                                    </div>
-
-                                    <div
-                                        class="mt-3 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
-                                        <span class="font-normal">
-                                            {{ __('Payment Amount: ') }}
-                                        </span>
-                                        <span class="font-black underline">
-                                            {{ 'HK$' . number_format($price, 0) }}
-                                        </span>
-                                    </div>
-                                    <div class="flex mt-6">
-                                        <div class="flex items-center h-5">
-                                            <input id="confirm-leave" type="checkbox" value=""
-                                                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                        </div>
-                                        <div class="text-sm ms-2">
-                                            <label for="confirm"
-                                                class="font-normal text-gray-900 dark:text-gray-300">
-                                                {{ __('Confirm') }} </label>
-                                            <p id="private-checkbox-text"
-                                                class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
-                                                {{ __('I have read and understand the terms.') }} </p>
-                                        </div>
-                                    </div>
-                                    <div class="mt-6 flex justify-end">
-                                        <x-secondary-button x-on:click="$dispatch('close')">
-                                            {{ __('Return') }}
-                                        </x-secondary-button>
-
-                                        <x-primary-button id="leave-button"
-                                            class="ms-3 bg-red-500 dark:bg-red-600 hover:bg-red-500 dark:hover:bg-red-600 disabled:bg-red-700 dark:disabled:bg-red-900 disabled:text-gray-200 dark:disabled:text-gray-400 dark:text-white"
-                                            disabled>
-                                            {{ __('Leave') }}
-                                        </x-primary-button>
-                                    </div>
-                                </div>
-                            </form>
-                        </x-modal>
-                    </div>
-                @endif
-            @endif
-        </div>
-
-        @if (!$hasLeft)
-            <!-- Web Share API 分享按鈕 -->
-            <div class="hidden operations">
-                <div class="mt-4 space-y-3">
-                    <!-- 主要分享按鈕 -->
-                    <button id="share-btn"
-                        class="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
-                        <span class="material-icons text-lg">share</span>
-                        <span>{{ __('Share Trip') }}</span>
-                    </button>
-                    
-                    <!-- 降級方案按鈕組 (僅在不支援 Web Share API 時顯示) -->
-                    <div id="fallback-share-buttons" class="hidden space-y-2">
-                        <button id="whatsapp-share-btn"
-                            class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-white"
-                            style="background-color: #25D366;">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787"/>
-                            </svg>
-                            {{ __('Share via WhatsApp') }}
-                        </button>
-                        
-                        <button id="copy-link-btn"
-                            class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
-                            <span class="material-icons text-lg">content_copy</span>
-                            <span id="copy-text">{{ __('Copy Link') }}</span>
-                        </button>
-                    </div>
-                </div>
+                    </form>
+                </x-modal>
             </div>
         @endif
+
+        <!-- 已離開用戶的提示訊息 -->
+        @if ($hasLeft)
+            <div class="mt-8 flex justify-center text-center px-4">
+                <h2 class="text-md text-gray-900 dark:text-gray-300 font-black">
+                    {{ __('You have left / was kicked from the trip.') }}
+                </h2>
+            </div>
+        @endif
+
+        <!-- Web Share API 分享按鈕 - 所有用戶都可以分享 -->
+        <div class="mt-4 space-y-3">
+            <!-- 主要分享按鈕 -->
+            <button id="share-btn"
+                class="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
+                <span class="material-icons text-lg">share</span>
+                <span>{{ __('Share Trip') }}</span>
+            </button>
+            
+            <!-- 降級方案按鈕組 (僅在不支援 Web Share API 時顯示) -->
+            <div id="fallback-share-buttons" class="hidden space-y-2">
+                <button id="whatsapp-share-btn"
+                    class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-white"
+                    style="background-color: #25D366;">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787"/>
+                    </svg>
+                    {{ __('Share via WhatsApp') }}
+                </button>
+                
+                <button id="copy-link-btn"
+                    class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+                    <span class="material-icons text-lg">content_copy</span>
+                    <span id="copy-text">{{ __('Copy Link') }}</span>
+                </button>
+            </div>
+        </div>
     </div>
 </x-app-layout>
 
@@ -1379,59 +1316,14 @@
                 const currentSelectingPassenger = localStorage.getItem('currentSelectingPassenger');
                 
                 if (currentSelectingPassenger !== null) {
-                    // 這是為 group booking 中的乘客選擇地址
                     const passengerIndex = parseInt(currentSelectingPassenger);
                     updatePassengerLocation(passengerIndex, location);
-                    
-                    // 清理選擇狀態
                     localStorage.removeItem('currentSelectingPassenger');
-                } else {
-                    // 這是單人預訂的地址選擇
-                    // Update displayed location (mobile version)
-                    const displayElement = document.querySelector('#pickup_location_display span');
-                    if (displayElement) {
-                        displayElement.textContent = location.formatted_address;
-                        displayElement.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic');
-                        displayElement.classList.add('text-gray-900', 'dark:text-gray-100');
-                    }
-
-                    // Update displayed location (desktop version)
-                    const displayElementDesktop = document.querySelector('#pickup_location_display_desktop span');
-                    if (displayElementDesktop) {
-                        displayElementDesktop.textContent = location.formatted_address;
-                        displayElementDesktop.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic');
-                        displayElementDesktop.classList.add('text-gray-900', 'dark:text-gray-100');
-                    }
-
-                    // Update hidden field in form
-                    const hiddenField = document.getElementById('join-pickup-location');
-                    if (hiddenField) {
-                        hiddenField.value = location.formatted_address;
-                    }
-
-                    // Trigger custom event for Alpine.js to listen
-                    window.dispatchEvent(new CustomEvent('location-updated', {
-                        detail: {
-                            address: location.formatted_address
-                        }
-                    }));
-
-                    // Hide location selection prompt card
-                    const locationAlert = document.querySelector('.bg-amber-50');
-                    if (locationAlert) {
-                        locationAlert.style.display = 'none';
-                    }
                 }
             }
         });
 
-        $('#confirm-join').on('click', function() {
-            if ($(this).is(':checked')) {
-                $('#proceed-button').prop("disabled", false);
-            } else {
-                $('#proceed-button').prop("disabled", true);
-            }
-        });
+
 
         $('#confirm-leave').on('click', function() {
             if ($(this).is(':checked')) {
@@ -1451,7 +1343,6 @@
             if (timer > 86400) { // 86400 seconds = 24 hours
                 $('#cd').hide();
                 $('#waiting-driver').hide();
-                $('.operations').show();
                 $('.overlay').hide();
                 return;
             }
@@ -1459,27 +1350,23 @@
             setInterval(function() {
                 if (--timer < 0) {
                     timer = 0;
-                    // Time's up! Show waiting for driver interface
+                    // Time's up! Show waiting for driver interface only if user has joined
                     $('#cd').hide();
-                    $('#waiting-driver').show();
-                    $('.operations').hide();
+                    @if ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed))
+                        $('#waiting-driver').show();
+                    @endif
                     $('.overlay').hide();
                     return;
                 }
 
-                // 1 day left
                 // If countdown is within 24 hours, show countdown
                 if (timer <= 86400) {
-                    $('#cd').show();
+                    @if ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed))
+                        $('#cd').show();
+                    @else
+                        $('#cd').hide();
+                    @endif
                     $('#waiting-driver').hide();
-
-                    // 1 hour left --> disallow operations
-                    if (timer <= 3600) {
-                        $('.operations').hide();
-                    } else {
-                        $('.operations').show();
-                    }
-
                     $('.overlay').hide();
 
                     hours = parseInt((timer / 60 / 60) % 24, 10);
@@ -1799,6 +1686,10 @@
         const basePricePerPerson = {{ $trip->price_per_person }};
         const fourPersonDiscount = {{ $trip->four_person_discount }};
         const availableSlots = {{ $availableSlots }};
+        
+        // 優惠券相關變數
+        let appliedCoupon = null;
+        let couponDiscountAmount = 0;
 
         // 計算根據人數的價格（新定價邏輯）
         function calculatePricePerPerson(peopleCount) {
@@ -1820,18 +1711,122 @@
         function updatePriceDisplay() {
             const peopleCount = parseInt($('#people-count').val()) || 1;
             const pricePerPerson = calculatePricePerPerson(peopleCount);
-            const totalAmount = peopleCount * pricePerPerson;
+            const subtotalAmount = peopleCount * pricePerPerson;
+            const finalAmount = Math.max(0, subtotalAmount - couponDiscountAmount);
             
             $('#people-display').text(peopleCount);
             $('#price-per-person-display').text(`HK$ ${pricePerPerson.toLocaleString()}`);
-            $('#total-amount').text(`HK$ ${totalAmount.toLocaleString()}`);
-            $('#total-amount-btn').text(`HK$ ${totalAmount.toLocaleString()}`);
+            $('#subtotal-amount').text(`HK$ ${subtotalAmount.toLocaleString()}`);
+            
+            // 更新優惠券折扣顯示
+            if (appliedCoupon && couponDiscountAmount > 0) {
+                $('#coupon-discount-row').removeClass('hidden');
+                $('#coupon-discount-amount').text(`-HK$ ${couponDiscountAmount.toLocaleString()}`);
+            } else {
+                $('#coupon-discount-row').addClass('hidden');
+            }
+            
+            $('#total-amount').text(`HK$ ${finalAmount.toLocaleString()}`);
+            $('#total-amount-btn').text(`HK$ ${finalAmount.toLocaleString()}`);
             
             // 為價格顯示添加動畫效果
-            $('#total-amount, #price-per-person-display').addClass('price-updated');
+            $('#total-amount, #price-per-person-display, #subtotal-amount').addClass('price-updated');
             setTimeout(() => {
-                $('#total-amount, #price-per-person-display').removeClass('price-updated');
+                $('#total-amount, #price-per-person-display, #subtotal-amount').removeClass('price-updated');
             }, 300);
+        }
+        
+        // 套用優惠券
+        function applyCoupon() {
+            const couponCode = $('#coupon-code').val().trim().toUpperCase();
+            if (!couponCode) {
+                showCouponError('{{ __("Please enter a coupon code") }}');
+                return;
+            }
+            
+            // 顯示加載狀態
+            const applyBtn = $('#apply-coupon');
+            const originalText = applyBtn.text();
+            applyBtn.text('{{ __("Validating...") }}').prop('disabled', true);
+            
+            // 發送 AJAX 請求驗證優惠券
+            $.ajax({
+                url: '{{ route("coupon.validate") }}',
+                method: 'POST',
+                data: {
+                    code: couponCode,
+                    trip_id: '{{ $trip->id }}',
+                    amount: calculateSubtotal(),
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.valid) {
+                        appliedCoupon = response.coupon;
+                        couponDiscountAmount = response.discount_amount;
+                        showCouponSuccess(`{{ __("Coupon applied! Discount: HK$") }}${response.discount_amount}`);
+                        updatePriceDisplay();
+                        
+                        // 禁用輸入框和按鈕
+                        $('#coupon-code').prop('disabled', true);
+                        applyBtn.text('{{ __("Applied") }}').addClass('bg-green-600 hover:bg-green-700');
+                        
+                        // 添加移除按鈕
+                        if (!$('#remove-coupon').length) {
+                            applyBtn.after(`
+                                <button type="button" id="remove-coupon" 
+                                    class="ml-2 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm">
+                                    {{ __("Remove") }}
+                                </button>
+                            `);
+                        }
+                    } else {
+                        showCouponError(response.message || '{{ __("Invalid coupon code") }}');
+                    }
+                },
+                error: function() {
+                    showCouponError('{{ __("Error validating coupon. Please try again.") }}');
+                },
+                complete: function() {
+                    applyBtn.text(originalText).prop('disabled', false);
+                }
+            });
+        }
+        
+        // 移除優惠券
+        function removeCoupon() {
+            appliedCoupon = null;
+            couponDiscountAmount = 0;
+            
+            $('#coupon-code').prop('disabled', false).val('');
+            $('#apply-coupon').text('{{ __("Apply") }}').removeClass('bg-green-600 hover:bg-green-700').addClass('bg-amber-600 hover:bg-amber-700');
+            $('#remove-coupon').remove();
+            $('#coupon-status').addClass('hidden');
+            $('#coupon-success, #coupon-error').addClass('hidden');
+            
+            updatePriceDisplay();
+        }
+        
+        // 計算小計
+        function calculateSubtotal() {
+            const peopleCount = parseInt($('#people-count').val()) || 1;
+            const pricePerPerson = calculatePricePerPerson(peopleCount);
+            return peopleCount * pricePerPerson;
+        }
+        
+        // 顯示優惠券成功訊息
+        function showCouponSuccess(message) {
+            $('#coupon-status').removeClass('hidden');
+            $('#coupon-error').addClass('hidden');
+            $('#coupon-success').removeClass('hidden');
+            $('#coupon-success-text').text(message);
+        }
+        
+        // 顯示優惠券錯誤訊息
+        function showCouponError(message) {
+            $('#coupon-status').removeClass('hidden');
+            $('#coupon-success').addClass('hidden');
+            $('#coupon-error').removeClass('hidden');
+            $('#coupon-error-text').text(message);
         }
 
         // 創建額外乘客表單
@@ -2026,14 +2021,22 @@
             
             if (!isValid) return;
             
-            // 計算總金額並添加到表單（全額付款）
+            // 計算總金額並添加到表單（考慮優惠券折扣）
             const peopleCount = parseInt($('#people-count').val()) || 1;
             const pricePerPerson = calculatePricePerPerson(peopleCount);
-            const totalAmount = peopleCount * pricePerPerson;
+            const subtotalAmount = peopleCount * pricePerPerson;
+            const finalAmount = Math.max(0, subtotalAmount - couponDiscountAmount);
             
-            // 添加總金額到表單
-            form.append(`<input type="hidden" name="total_amount" value="${totalAmount}">`);
+            // 添加金額相關資訊到表單
+            form.append(`<input type="hidden" name="subtotal_amount" value="${subtotalAmount}">`);
+            form.append(`<input type="hidden" name="total_amount" value="${finalAmount}">`);
             form.append(`<input type="hidden" name="price_per_person" value="${pricePerPerson}">`);
+            
+            // 添加優惠券資訊 (如果有套用)
+            if (appliedCoupon) {
+                form.append(`<input type="hidden" name="coupon_code" value="${appliedCoupon.code}">`);
+                form.append(`<input type="hidden" name="coupon_discount" value="${couponDiscountAmount}">`);
+            }
             
             // 清理保存的表單狀態
             localStorage.removeItem('groupBookingFormData');
@@ -2192,6 +2195,35 @@
             // 設置自動保存
             setupAutoSave();
         }
+
+        // === 優惠券事件監聽器 ===
+        
+        // 套用優惠券按鈕
+        $('#apply-coupon').on('click', function() {
+            applyCoupon();
+        });
+        
+        // 優惠券代碼輸入框 Enter 鍵
+        $('#coupon-code').on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                e.preventDefault();
+                applyCoupon();
+            }
+        });
+        
+        // 移除優惠券按鈕 (動態添加的元素使用事件委託)
+        $(document).on('click', '#remove-coupon', function() {
+            removeCoupon();
+        });
+        
+        // 優惠券代碼輸入時自動轉為大寫
+        $('#coupon-code').on('input', function() {
+            $(this).val($(this).val().toUpperCase());
+            // 清除之前的狀態訊息
+            if ($(this).val() === '') {
+                $('#coupon-status').addClass('hidden');
+            }
+        });
 
         // 頁面載入時初始化
         initializeGroupBooking();
