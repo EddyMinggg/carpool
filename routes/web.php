@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [TripController::class, 'dashboard'])->name('dashboard');
 
-Route::get('/verified', function () {
-    return view('email-verified');
-})->name('email-verified');
+// Route::get('/verified', function () {
+//     return view('email-verified');
+// })->name('email-verified');
 
 Route::prefix('trips')->middleware(['auth', 'verified', 'prevent.driver.trips'])->group(function () {
     Route::get('/', [TripController::class, 'index'])->name('trips');
@@ -44,6 +44,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/assignments/{assignment}/complete', [DriverController::class, 'completeTrip'])->name('driver.complete-trip');
     });
 });
+
+Route::get('/otp', [SmsController::class, 'sendOtp'])->name('sms.otp');
 
 Route::get('lang', [LanguageController::class, 'change'])->name("change.lang");
 Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');

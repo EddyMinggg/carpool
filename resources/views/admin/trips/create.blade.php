@@ -297,17 +297,7 @@
                             <!-- Batch trip items will be added here -->
                         </div>
                         
-                        <button type="button" id="addBatchTripBtn" style="
-                            background: #10b981; 
-                            color: white; 
-                            border: none; 
-                            padding: 12px 16px; 
-                            border-radius: 8px; 
-                            cursor: pointer; 
-                            width: 100%; 
-                            margin-top: 16px;
-                            font-weight: 600;
-                        ">+ Add Another Trip</button>
+                        <button type="button" id="addBatchTripBtn" class="bg-green-500 text-white py-3 px-4 rounded-lg cursor-pointer w-full my-4 font-semibold">+ Add Another Trip</button>
                     </div>
 
                     <!-- Creation Mode Toggle -->
@@ -462,10 +452,8 @@
                         <div id="desktopBatchTripsContainer">
                             <!-- Batch trip items will be added here -->
                         </div>
-                        
-                        <button type="button" id="desktopAddBatchTripBtn" class="mt-4 w-full bg-green-600 text-white px-4 py-3 rounded-md hover:bg-green-700 transition-colors font-semibold">
-                            + Add Another Trip
-                        </button>
+                    
+                        <button type="button" id="desktopAddBatchTripBtn" class="bg-green-600 text-white py-3 px-4 rounded-lg cursor-pointer w-full my-4 font-semibold">+ Add Another Trip</button>
                     </div>
 
                     <!-- Creation Mode Toggle -->

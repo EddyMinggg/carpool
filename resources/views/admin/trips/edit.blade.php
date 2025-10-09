@@ -220,13 +220,13 @@
                         @enderror
                     </div>
 
-                    <!-- Base Price -->
+                    <!-- Price Per Person -->
                     <div class="mobile-form-group">
-                        <label for="base_price" class="mobile-form-label">Base Price (¥)</label>
-                        <input type="number" step="0.01" name="base_price" id="base_price" min="0" 
+                        <label for="price_per_person" class="mobile-form-label">Price Per Person (¥)</label>
+                        <input type="number" step="0.01" name="price_per_person" id="price_per_person" min="0" 
                             class="mobile-form-input"
-                            value="{{ old('base_price', $trip->base_price) }}">
-                        @error('base_price')
+                            value="{{ old('price_per_person', $trip->price_per_person) }}">
+                        @error('price_per_person')
                             <p class="mobile-error">{{ $message }}</p>
                         @enderror
                     </div>
@@ -316,7 +316,6 @@
                         <select name="trip_status" id="trip_status" 
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="awaiting" {{ $trip->trip_status === 'awaiting' ? 'selected' : '' }}>Awaiting</option>
-                            <option value="voting" {{ $trip->trip_status === 'voting' ? 'selected' : '' }}>Voting</option>
                             <option value="completed" {{ $trip->trip_status === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="cancelled" {{ $trip->trip_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         </select>
@@ -325,13 +324,13 @@
                         @enderror
                     </div>
 
-                    <!-- Base Price -->
+                    <!-- Price Per Person -->
                     <div class="mb-6">
-                        <label for="base_price" class="block text-sm font-medium text-gray-700 mb-1">Base Price (¥)</label>
-                        <input type="number" step="0.01" name="base_price" id="base_price" min="0" 
+                        <label for="price_per_person" class="block text-sm font-medium text-gray-700 mb-1">Price Per Person (¥)</label>
+                        <input type="number" step="0.01" name="price_per_person" id="price_per_person" min="0" 
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value="{{ old('base_price', $trip->base_price) }}">
-                        @error('base_price')
+                            value="{{ old('price_per_person', $trip->price_per_person) }}">
+                        @error('price_per_person')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

@@ -6,9 +6,6 @@
         // $dates 和 $activeDate 已經在控制器中正確設定
     @endphp
 
-    {{-- cyan-800 cyan-950 --}}
-
-
     <div x-data="{
         activeDate: '{{ $activeDate }}',
         dates: {{ json_encode($dates->values()) }},
@@ -373,8 +370,8 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-1">
                                 <i class="text-gray-600 dark:text-gray-200 material-icons">&#xe5c8;</i>
-                                <div 
-                                    class="text-gray-600 dark:text-gray-200 text-lg font-semibold truncate" style="margin-top: 0.1rem;"
+                                <div class="text-gray-600 dark:text-gray-200 text-lg font-semibold truncate"
+                                    style="margin-top: 0.1rem;"
                                     x-text="trip.dropoff_location || '{{ __('Huafa') }}'">
                                 </div>
                             </div>

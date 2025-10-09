@@ -81,7 +81,7 @@ class TripController extends Controller
         ]);
 
         $trip = $this->createSingleTrip($validated);
-        
+
         return redirect()->route('admin.trips.index')->with('success', 'Trip created successfully!');
     }
 
@@ -116,14 +116,14 @@ class TripController extends Controller
         }
 
         return redirect()->route('admin.trips.index')
-                        ->with('success', "Successfully created {$createdTrips} trips!");
+            ->with('success', "Successfully created {$createdTrips} trips!");
     }
 
     private function createSingleTrip($data)
     {
         // 根據時段類型自動設置業務邏輯參數
         $isGoldenHour = ($data['type'] === 'golden');
-        
+
         if ($isGoldenHour) {
             // 黃金時段：1人即可出發，無優惠
             $minPassengers = 1;
@@ -181,14 +181,17 @@ class TripController extends Controller
      */
     public function update(Request $request, Trip $trip)
     {
+        dd('$bruh');
+
         $validated = $request->validate([
             'dropoff_location' => 'required|string|max:255',
             'planned_departure_time' => 'required|date',
             'max_people' => 'required|integer|min:1|max:8',
-            'base_price' => 'required|numeric|min:0',
+            'price_per_person' => 'required|numeric|min:0',
             'type' => 'required|in:normal,fixed',
             'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled'
         ]);
+
 
         $trip->update($validated);
 

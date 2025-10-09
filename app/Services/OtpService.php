@@ -2,32 +2,35 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\PhoneVerification;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Exception;
 
+use App\Notifications\OtpNotification;
+
 class OtpService
 {
-    private $vonageSmsService;
     private $maxAttempts = 3;
     private $otpExpireMinutes = 5;
-    private $resendCooldownMinutes = 0.17; // 10 seconds for development
+    private $resendCooldownMinutes = 0.5; // 10 seconds for development
 
-    public function __construct(VonageSmsService $vonageSmsService)
+    private $isSandbox;
+
+    public function __construct(readonly private User $user)
     {
-        $this->vonageSmsService = $vonageSmsService;
+        $this->isSandbox = config('sms.mode') === 'SANDBOX';
     }
 
     /**
      * Generate and send OTP code
      */
-    public function sendOtp(string $phone, array $userData = null, string $ipAddress = null): array
+    public function sendOtp()
     {
         try {
             // Check rate limiting - only allow one OTP per minute
-            $recentOtp = DB::table('phone_verifications')
-                ->where('phone', $phone)
+            $recentOtp = PhoneVerification::where('phone', $this->user->phone)
                 ->where('created_at', '>', Carbon::now()->subMinutes($this->resendCooldownMinutes))
                 ->first();
 
@@ -40,83 +43,63 @@ class OtpService
             }
 
             // Generate 6-digit OTP
-            $otpCode = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            $otpCode = $this->isSandbox ? '000000' : str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
             $expiresAt = Carbon::now()->addMinutes($this->otpExpireMinutes);
 
             // Clean up old OTP records for this phone
-            DB::table('phone_verifications')
-                ->where('phone', $phone)
-                ->delete();
+            PhoneVerification::where('phone', $this->user->phone)->delete();
 
             // Store OTP in database
-            DB::table('phone_verifications')->insert([
-                'phone' => $phone,
+            PhoneVerification::create([
+                'phone' => $this->user->phone,
                 'otp_code' => $otpCode,
                 'expires_at' => $expiresAt,
-                'ip_address' => $ipAddress,
-                'user_data' => $userData ? json_encode($userData) : null,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
+                'ip_address' => request()->ip()
             ]);
 
-            // Send SMS via Vonage using professional template
-            $message = SmsTemplateService::otpVerification($otpCode, $this->otpExpireMinutes);
-
-            $smsResult = $this->vonageSmsService->sendSms($phone, $message);
-
-            if (!$smsResult['success']) {
-                Log::error('Failed to send OTP via Vonage', [
-                    'phone' => $phone,
-                    'error' => $smsResult['error'] ?? 'Unknown error'
-                ]);
-
-                return [
-                    'success' => false,
-                    'message' => 'Failed to send OTP code. Please try again.',
-                    'error' => $smsResult['error'] ?? 'SMS service error'
-                ];
+            if (!$this->isSandbox) {
+                $this->user->notify(new OtpNotification($otpCode));
             }
 
-            Log::info('OTP sent successfully via Vonage', [
-                'phone' => $phone,
-                'message_id' => $smsResult['message_id'] ?? null,
-                'otp_code' => $otpCode // Log OTP for development
-            ]);
+            // // Send SMS via Vonage using professional template
+            // $message = SmsTemplateService::otpVerification($otpCode, $this->otpExpireMinutes);
 
-            // In development mode, also write OTP to a file for easy access
-            if (app()->environment('local')) {
-                $otpFile = storage_path('logs/current_otp.txt');
-                file_put_contents($otpFile, "Phone: {$phone}\nOTP Code: {$otpCode}\nTime: " . now()->format('Y-m-d H:i:s') . "\n");
-            }
+            // $smsResult = $this->vonageSmsService->sendSms($phone, $message);
+
+            // if (!$smsResult['success']) {
+            //     Log::error('Failed to send OTP via Vonage', [
+            //         'phone' => $phone,
+            //         'error' => $smsResult['error'] ?? 'Unknown error'
+            //     ]);
+
+            //     return [
+            //         'success' => false,
+            //         'message' => 'Failed to send OTP code. Please try again.',
+            //         'error' => $smsResult['error'] ?? 'SMS service error'
+            //     ];
+            // }
+
+            // Log::info('OTP sent successfully via Vonage', [
+            //     'phone' => $phone,
+            //     'message_id' => $smsResult['message_id'] ?? null,
+            //     'otp_code' => $otpCode // Log OTP for development
+            // ]);
+
+            // // In development mode, also write OTP to a file for easy access
+            // if (app()->environment('local')) {
+            //     $otpFile = storage_path('logs/current_otp.txt');
+            //     file_put_contents($otpFile, "Phone: {$phone}\nOTP Code: {$otpCode}\nTime: " . now()->format('Y-m-d H:i:s') . "\n");
+            // }
 
             return [
                 'success' => true,
                 'message' => 'OTP code sent successfully.',
                 'expires_in' => $this->otpExpireMinutes * 60,
-                'message_id' => $smsResult['message_id'] ?? null
             ];
-
         } catch (Exception $e) {
-            Log::error('OTP Service Error', [
-                'phone' => $phone,
-                'error' => $e->getMessage()
-            ]);
-
             return [
                 'success' => false,
                 'message' => 'Failed to send OTP code. Please try again.',
-                'error' => $e->getMessage()
-            ];
-
-        } catch (Exception $e) {
-            Log::error('OTP Service Error', [
-                'phone' => $phone,
-                'error' => $e->getMessage()
-            ]);
-
-            return [
-                'success' => false,
-                'message' => 'An error occurred. Please try again.',
                 'error' => $e->getMessage()
             ];
         }
@@ -125,12 +108,12 @@ class OtpService
     /**
      * Verify OTP code
      */
-    public function verifyOtp(string $phone, string $otpCode, string $ipAddress = null): array
+    public function verifyOtp(string $otpCode): array
     {
         try {
-            $verification = DB::table('phone_verifications')
-                ->where('phone', $phone)
+            $verification = PhoneVerification::where('phone', $this->user->phone)
                 ->where('is_verified', false)
+                ->latest()
                 ->first();
 
             if (!$verification) {
@@ -142,9 +125,7 @@ class OtpService
 
             // Check if OTP has expired
             if (Carbon::parse($verification->expires_at)->isPast()) {
-                DB::table('phone_verifications')
-                    ->where('id', $verification->id)
-                    ->delete();
+                PhoneVerification::where('id', $verification->id)->delete();
 
                 return [
                     'success' => false,
@@ -154,9 +135,7 @@ class OtpService
 
             // Check max attempts
             if ($verification->attempts >= $this->maxAttempts) {
-                DB::table('phone_verifications')
-                    ->where('id', $verification->id)
-                    ->delete();
+                PhoneVerification::where('id', $verification->id)->delete();
 
                 return [
                     'success' => false,
@@ -165,11 +144,9 @@ class OtpService
             }
 
             // Verify OTP code
-            if ($verification->otp_code !== $otpCode) {
+            if ($verification->otp_code != $otpCode) {
                 // Increment attempts
-                DB::table('phone_verifications')
-                    ->where('id', $verification->id)
-                    ->increment('attempts');
+                PhoneVerification::where('id', $verification->id)->increment('attempts');
 
                 $remainingAttempts = $this->maxAttempts - ($verification->attempts + 1);
 
@@ -180,25 +157,19 @@ class OtpService
             }
 
             // Mark as verified
-            DB::table('phone_verifications')
-                ->where('id', $verification->id)
+            PhoneVerification::where('id', $verification->id)
                 ->update([
                     'is_verified' => true,
                     'updated_at' => Carbon::now()
                 ]);
 
+            $this->user->markPhoneAsVerified();
+
             return [
                 'success' => true,
-                'message' => 'Phone number verified successfully.',
-                'user_data' => $verification->user_data ? json_decode($verification->user_data, true) : null
+                'message' => 'Phone number verified successfully.'
             ];
-
         } catch (Exception $e) {
-            Log::error('OTP Verification Error', [
-                'phone' => $phone,
-                'error' => $e->getMessage()
-            ]);
-
             return [
                 'success' => false,
                 'message' => 'Verification failed. Please try again.'
@@ -211,9 +182,7 @@ class OtpService
      */
     public function cleanupExpiredOtps(): int
     {
-        return DB::table('phone_verifications')
-            ->where('expires_at', '<', Carbon::now())
-            ->delete();
+        return PhoneVerification::where('expires_at', '<', Carbon::now())->delete();
     }
 
     /**
@@ -221,8 +190,7 @@ class OtpService
      */
     public function getOtpStatus(string $phone): array
     {
-        $verification = DB::table('phone_verifications')
-            ->where('phone', $phone)
+        $verification = PhoneVerification::where('phone', $phone)
             ->where('is_verified', false)
             ->first();
 

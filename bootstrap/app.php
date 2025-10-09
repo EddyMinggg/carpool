@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\PhoneVerificationMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'admin' => AdminMiddleware::class,
                 'super_admin' => SuperAdminMiddleware::class,
                 'prevent.driver.trips' => PreventDriverTripAccess::class,
+                'verified' => PhoneVerificationMiddleware::class,
             ])
             ->web(append: [
                 Localization::class
