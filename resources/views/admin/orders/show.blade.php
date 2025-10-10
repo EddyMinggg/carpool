@@ -129,27 +129,47 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12 py-2">
                 <div class="py-3">
                     <p class="text-sm text-gray-500">User</p>
-                    <p class="text-gray-900">{{ $order->user->username ?? 'Deleted User' }}</p>
+                    <p class="text-gray-900">{{ $order->user->username ?? 'Guest' }}</p>
                 </div>
                 <div class="py-3">
-                    <p class="text-sm text-gray-500">Trip</p>
-                    <p class="text-gray-900">{{ $order->trip->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}</p>
+                    <p class="text-sm text-gray-500">Phone</p>
+                    <p class="text-gray-900">{{ $order->user_phone }}</p>
                 </div>
                 <div class="py-3">
-                    <p class="text-sm text-gray-500">Role</p>
-                    <p class="text-gray-900">{{ ucfirst($order->join_role) }}</p>
+                    <p class="text-sm text-gray-500">Route</p>
+                    <p class="text-gray-900">{{ $order->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}</p>
                 </div>
                 <div class="py-3">
-                    <p class="text-sm text-gray-500">Pickup Location</p>
-                    <p class="text-gray-900">{{ $order->pickup_location ?? '-' }}</p>
+                    <p class="text-sm text-gray-500">Trip Departure</p>
+                    <p class="text-gray-900">{{ $order->trip->planned_departure_time ? $order->trip->planned_departure_time->format('Y-m-d H:i') : 'TBD' }}</p>
                 </div>
                 <div class="py-3">
-                    <p class="text-sm text-gray-500">Fee (¥)</p>
+                    <p class="text-sm text-gray-500">Fee (HK$)</p>
                     <p class="text-gray-900">{{ number_format($order->user_fee, 2) }}</p>
                 </div>
                 <div class="py-3">
-                    <p class="text-sm text-gray-500">Created At</p>
+                    <p class="text-sm text-gray-500">Payment Status</p>
+                    <p class="text-gray-900">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {{ $order->payment_confirmation ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                            {{ $order->payment_confirmation ? 'Paid' : 'Pending' }}
+                        </span>
+                    </p>
+                </div>
+                <div class="py-3">
+                    <p class="text-sm text-gray-500">Join Time</p>
                     <p class="text-gray-900">{{ $order->created_at->format('Y-m-d H:i') }}</p>
+                </div>
+                <div class="py-3">
+                    <p class="text-sm text-gray-500">Trip Status</p>
+                    <p class="text-gray-900">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {{ $order->trip->trip_status === 'awaiting' ? 'bg-blue-100 text-blue-800' : 
+                               ($order->trip->trip_status === 'departed' ? 'bg-purple-100 text-purple-800' : 
+                               ($order->trip->trip_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')) }}">
+                            {{ ucfirst($order->trip->trip_status) }}
+                        </span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -160,22 +180,23 @@
         {{-- 訂單狀態和基本信息卡片 --}}
         <div class="mobile-info-card">
             {{-- 狀態圖標 --}}
+                            {{-- 狀態圖標 --}}
             <div style="text-align: center; margin-bottom: 20px;">
-                <div class="status-icon {{ $order->join_role === 'driver' ? 'status-driver' : 'status-passenger' }}">
-                    @if($order->join_role === 'driver')
-                        <i class="fas fa-car"></i>
+                <div class="status-icon {{ $order->payment_confirmation ? 'status-passenger' : 'status-driver' }}">
+                    @if($order->payment_confirmation)
+                        <i class="fas fa-check"></i>
                     @else
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-clock"></i>
                     @endif
                 </div>
                 
-                {{-- 訂單ID和角色 --}}
+                {{-- 訂單ID和付款狀態 --}}
                 <div style="text-align: center;">
                     <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0; max-width: 100%; word-wrap: break-word;">
                         Order #{{ $order->id }}
                     </h2>
-                    <span class="role-badge {{ $order->join_role === 'driver' ? 'role-driver' : 'role-passenger' }}">
-                        {{ ucfirst($order->join_role) }}
+                    <span class="role-badge {{ $order->payment_confirmation ? 'role-passenger' : 'role-driver' }}">
+                        {{ $order->payment_confirmation ? 'Paid' : 'Pending' }}
                     </span>
                 </div>
             </div>
@@ -191,15 +212,15 @@
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">User</div>
                 <div style="font-size: 16px; color: #1f2937; word-wrap: break-word; max-width: 100%;">
-                    {{ $order->user->username ?? 'Deleted User' }}
+                    {{ $order->user->username ?? 'Guest' }}
                 </div>
             </div>
             
-            {{-- 接送地點 --}}
+            {{-- 電話號碼 --}}
             <div>
-                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Pickup Location</div>
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Phone</div>
                 <div style="font-size: 16px; color: #1f2937; word-wrap: break-word;">
-                    {{ $order->pickup_location ?? '-' }}
+                    {{ $order->user_phone }}
                 </div>
             </div>
         </div>
@@ -212,9 +233,17 @@
             
             {{-- 行程路線 --}}
             <div style="margin-bottom: 16px;">
-                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Trip Route</div>
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Route</div>
                 <div style="font-size: 16px; color: #1f2937; word-wrap: break-word;">
-                    {{ $order->trip->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}
+                    {{ $order->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}
+                </div>
+            </div>
+            
+            {{-- 出發時間 --}}
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Departure</div>
+                <div style="font-size: 16px; color: #1f2937;">
+                    {{ $order->trip->planned_departure_time ? $order->trip->planned_departure_time->format('Y-m-d H:i') : 'TBD' }}
                 </div>
             </div>
             
@@ -222,13 +251,21 @@
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Fee</div>
                 <div style="font-size: 20px; color: #059669; font-weight: 700;">
-                    ¥{{ number_format($order->user_fee, 2) }}
+                    HK$ {{ number_format($order->user_fee, 2) }}
                 </div>
             </div>
             
-            {{-- 創建時間 --}}
+            {{-- 付款狀態 --}}
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Payment Status</div>
+                <span class="role-badge {{ $order->payment_confirmation ? 'role-passenger' : 'role-driver' }}">
+                    {{ $order->payment_confirmation ? 'Paid' : 'Pending' }}
+                </span>
+            </div>
+            
+            {{-- 加入時間 --}}
             <div>
-                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Created At</div>
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Join Time</div>
                 <div style="font-size: 16px; color: #1f2937;">
                     {{ $order->created_at->format('Y-m-d H:i') }}
                 </div>

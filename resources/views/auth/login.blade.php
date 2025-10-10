@@ -25,25 +25,18 @@
                 class="absolute bottom-0 h-0.5 bg-primary dark:bg-primary-dark transition-transform duration-300 transform scale-x-0 translate-x-0 tab-indicator">
             </div>
 
-            <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('username') || old('email') || old('phone')) ? '' : 'active' }} inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
-                data-dui-tab-target="tab1-group4">
+            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-login inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab1-group4">
                 {{ __('Login') }}
             </a>
-            <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('invitation_code') || old('phone')) ? '' : 'active' }} inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
-                data-dui-tab-target="tab2-group4">
+            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-join-trip inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab2-group4">
                 {{ __('Join Trip') }}
             </a>
-            <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'active' : '' }} inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1"
-                data-dui-tab-target="tab3-group4">
+            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-register inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab3-group4">
                 {{ __('Register') }}
             </a>
         </div>
         <div class="mt-4 tab-content-container">
-            <div id="tab1-group4"
-                class="tab-content {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'hidden' : 'block' }} font-medium text-sm text-gray-700 dark:text-gray-300">
+            <div id="tab1-group4" class="tab-content hidden font-medium text-sm text-gray-700 dark:text-gray-300">
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
                     <!-- Email Address -->
@@ -88,11 +81,10 @@
                     </div>
                 </form>
             </div>
-            <div id="tab2-group4"
-                class="tab-content {{ $errors->any() && (old('invitation_code') || old('phone')) ? 'hidden' : 'block' }} font-medium text-sm text-gray-700 dark:text-gray-300">
+            <div id="tab2-group4" class="tab-content hidden font-medium text-sm text-gray-700 dark:text-gray-300">
                 <form method="POST" action="{{ route('guest') }}">
                     @csrf
-                    <!-- Email Address -->
+                    <!-- Invitation Code -->
                     <div>
                         <x-input-label for="invitation_code" :value="__('Invitation Code')" />
                         <x-text-input id="invitation_code" class="block mt-1 w-full" name="invitation_code"
@@ -127,8 +119,7 @@
                     </div>
                 </form>
             </div>
-            <div id="tab3-group4"
-                class="tab-content {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'block' : 'hidden' }} font-medium text-sm text-gray-700 dark:text-gray-300">
+            <div id="tab3-group4" class="tab-content hidden font-medium text-sm text-gray-700 dark:text-gray-300">
 
                 <!-- Registration Progress Indicator -->
                 {{-- <div class="mb-6">
@@ -289,8 +280,17 @@
         const tabContents = document.querySelectorAll('.tab-content');
         const tabIndicator = document.querySelector('.tab-indicator');
 
-        // Check if we should show register tab (due to validation errors)
-        const hasRegisterErrors = @json($errors->any() && (old('username') || old('email') || old('phone')));
+        // Define error conditions for each tab more clearly
+        const errors = @json($errors->toArray());
+        const oldInput = {
+            username: @json(old('username')),
+            email: @json(old('email')),
+            phone: @json(old('phone')),
+            invitation_code: @json(old('invitation_code')),
+            phone_invite: @json(old('phone_invite')),
+            phone_country_code_invite: @json(old('phone_country_code_invite')),
+            password: @json(old('password'))
+        };
 
         function showTab(targetId, activeLink) {
             // Hide all tab contents
@@ -324,15 +324,33 @@
             tabIndicator.style.width = `${width}px`;
         }
 
-        // Initialize tabs
-        if (hasRegisterErrors) {
-            // Show register tab if there are register errors
-            const registerLink = document.querySelector('[data-dui-tab-target="tab2-group4"]');
-            showTab('tab2-group4', registerLink);
-        } else {
-            // Show login tab by default
-            const loginLink = document.querySelector('[data-dui-tab-target="tab1-group4"]');
-            showTab('tab1-group4', loginLink);
+        // Determine which tab to show based on form submission context
+        function determineActiveTab() {
+            // Check if register form was submitted (has username or register-specific errors)
+            if (oldInput.username || errors.username || errors.phone_country_code) {
+                return { tabId: 'tab3-group4', linkClass: '.tab-register' };
+            }
+            
+            // Check if join trip form was submitted (has invitation_code or phone_invite)
+            if (oldInput.invitation_code || oldInput.phone_invite || 
+                errors.invitation_code || errors.phone_invite || errors.phone_country_code_invite) {
+                return { tabId: 'tab2-group4', linkClass: '.tab-join-trip' };
+            }
+            
+            // Check if login form was submitted or has login errors
+            if (errors.email || errors.password) {
+                return { tabId: 'tab1-group4', linkClass: '.tab-login' };
+            }
+            
+            // Default to login tab
+            return { tabId: 'tab1-group4', linkClass: '.tab-login' };
+        }
+
+        // Initialize the correct tab
+        const activeTab = determineActiveTab();
+        const activeLink = document.querySelector(activeTab.linkClass);
+        if (activeLink) {
+            showTab(activeTab.tabId, activeLink);
         }
 
         // Add click handlers to tab links

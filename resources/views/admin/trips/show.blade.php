@@ -290,11 +290,10 @@
                     @foreach($trip->joins as $join)
                         <div class="mobile-participant">
                             <div class="mobile-participant-name">
-                                {{ $join->user->username ?? $join->user->name ?? 'Deleted User' }}
+                                {{ $join->user->username ?? $join->user->name ?? 'Guest' }}
                             </div>
                             <div class="mobile-participant-details">
-                                <div><strong>Role:</strong> {{ ucfirst($join->join_role) }}</div>
-                                <div><strong>Fee:</strong> ¥{{ number_format($join->user_fee, 2) }}</div>
+                                <div><strong>Fee:</strong> HK${{ number_format($join->user_fee, 2) }}</div>
                                 <div><strong>Pickup:</strong> {{ $join->pickup_location ?? '-' }}</div>
                             </div>
                         </div>
@@ -313,16 +312,16 @@
                     @foreach($trip->payments as $payment)
                         <div class="mobile-participant">
                             <div class="mobile-participant-name">
-                                {{ $payment->user->name ?? 'Deleted User' }}
+                                {{ $payment->user->username ?? $payment->user->name ?? 'Guest' }}
                             </div>
                             <div class="mobile-participant-details">
-                                <div><strong>Amount:</strong> ¥{{ number_format($payment->payment_amount, 2) }}</div>
+                                <div><strong>Amount:</strong> HK${{ number_format($payment->amount ?? 0, 2) }}</div>
                                 <div><strong>Status:</strong> 
-                                    <span style="color: {{ $payment->payment_status === 'paid' ? '#059669' : ($payment->payment_status === 'refunded' ? '#3b82f6' : '#eab308') }};">
-                                        {{ ucfirst($payment->payment_status) }}
+                                    <span style="color: {{ $payment->paid === 1 ? '#059669' : '#eab308' }};">
+                                        {{ $payment->paid === 1 ? 'Paid' : 'Not Paid' }}
                                     </span>
                                 </div>
-                                <div style="grid-column: 1 / -1;"><strong>Time:</strong> {{ $payment->payment_time ? $payment->payment_time->format('Y-m-d H:i') : 'Not Paid' }}</div>
+                                <div style="grid-column: 1 / -1;"><strong>Time:</strong> {{ $payment->updated_at->format('Y-m-d H:i') }}</div>
                             </div>
                         </div>
                     @endforeach
@@ -451,19 +450,15 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Location</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee (¥)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee (HK$)</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($trip->joins as $join)
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $join->user->username ?? $join->user->name ?? 'Deleted User' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ ucfirst($join->join_role) }}
+                                            {{ $join->user->username ?? $join->user->name ?? 'Guest' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ $join->pickup_location ?? '-' }}
@@ -481,13 +476,6 @@
 
             <!-- Payment Records -->
             <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 class="text-lg font-semibold text-gray-800">Payment Records</h3>
-                    <a href="{{ route('admin.payment-confirmation.index', $trip->id) }}" 
-                       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                        💰 Manage Payment Confirmations
-                    </a>
-                </div>
                 @if(empty($trip->payments) || $trip->payments->isEmpty())
                     <p class="text-gray-500">No payment records yet</p>
                 @else
@@ -496,7 +484,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount (¥)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount (HK$)</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Time</th>
                                 </tr>
@@ -505,20 +493,19 @@
                                 @foreach($trip->payments as $payment)
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $payment->user->name ?? 'Deleted User' }}
+                                            {{ $payment->user->username ?? $payment->user->name ?? 'Guest' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ number_format($payment->payment_amount, 2) }}
+                                            {{ number_format($payment->amount ?? 0, 2) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                {{ $payment->payment_status === 'paid' ? 'bg-green-100 text-green-800' : 
-                                                   ($payment->payment_status === 'refunded' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                                {{ ucfirst($payment->payment_status) }}
+                                                {{ $payment->paid === 1 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                                {{ $payment->paid === 1 ? 'Paid' : 'Not Paid' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $payment->payment_time ? $payment->payment_time->format('Y-m-d H:i') : 'Not Paid' }}
+                                            {{ $payment->updated_at->format('Y-m-d H:i') }}
                                         </td>
                                     </tr>
                                 @endforeach

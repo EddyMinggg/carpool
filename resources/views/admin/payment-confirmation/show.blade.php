@@ -477,32 +477,44 @@
                         <div class="mobile-info-item" style="grid-column: 1 / -1;">
                             <div class="mobile-info-label">Group Passengers</div>
                             <div style="background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px solid #bfdbfe;">
-                                @php $allGroupPayments = collect([$payment])->merge($payment->childPayments); @endphp
+                                                                @php $allGroupPayments = collect([$payment])->merge($payment->childPayments); @endphp
                                 @foreach($allGroupPayments as $index => $groupPayment)
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; {{ !$loop->last ? 'border-bottom: 1px solid #dbeafe;' : '' }}">
-                                        <div style="flex: 1;">
-                                            <div style="font-size: 14px; color: #1f2937; font-weight: 500;">
+                                    @php
+                                        // Safely get trip join using direct query
+                                        $tripJoin = \App\Models\TripJoin::where('trip_id', $groupPayment->trip_id)
+                                                                       ->where('user_phone', $groupPayment->user_phone)
+                                                                       ->first();
+                                        $pickupLocation = $tripJoin ? $tripJoin->pickup_location : null;
+                                    @endphp
+                                    <div style="margin-bottom: 8px;">
+                                        <div style="font-weight: 500; font-size: 14px;">
+                                            <div style="display: flex; align-items: center; gap: 6px;">
                                                 <strong>{{ $index + 1 }}.</strong> {{ $groupPayment->user_phone }}
                                                 @if($index === 0)<span style="color: #059669; font-weight: 600;"> (Main Booker)</span>@endif
                                             </div>
-                                            @if($groupPayment->pickup_location)
+                                            @if($pickupLocation)
                                                 <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">
-                                                    📍 {{ $groupPayment->pickup_location }}
+                                                    📍 {{ $pickupLocation }}
                                                 </div>
                                             @endif
-                                        </div>
-                                        <div style="font-size: 12px; color: #6b7280; margin-left: 12px;">
-                                            HK$ {{ number_format($groupPayment->amount, 0) }}
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
                         </div>
-                    @elseif($payment->pickup_location)
-                        <div class="mobile-info-item">
-                            <div class="mobile-info-label">Pickup Location</div>
-                            <div class="mobile-info-value">{{ $payment->pickup_location }}</div>
-                        </div>
+                    @else
+                        @php
+                            // Safely get trip join using direct query
+                            $mainTripJoin = \App\Models\TripJoin::where('trip_id', $payment->trip_id)
+                                                               ->where('user_phone', $payment->user_phone)
+                                                               ->first();
+                        @endphp
+                        @if($mainTripJoin && $mainTripJoin->pickup_location)
+                            <div class="mobile-info-item">
+                                <div class="mobile-info-label">Pickup Location</div>
+                                <div class="mobile-info-value">{{ $mainTripJoin->pickup_location }}</div>
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -670,10 +682,16 @@
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Payment Amount</label>
                                 <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">HK$ {{ number_format($payment->amount, 2) }}</p>
                             </div>
-                            @if($payment->pickup_location)
+                            @php
+                                // Safely get trip join using direct query
+                                $mainTripJoin = \App\Models\TripJoin::where('trip_id', $payment->trip_id)
+                                                                  ->where('user_phone', $payment->user_phone)
+                                                                  ->first();
+                            @endphp
+                            @if($mainTripJoin && $mainTripJoin->pickup_location)
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Pickup Location</label>
-                                <p class="text-gray-900 dark:text-gray-100">{{ $payment->pickup_location }}</p>
+                                <p class="text-gray-900 dark:text-gray-100">{{ $mainTripJoin->pickup_location }}</p>
                             </div>
                             @endif
                         </div>

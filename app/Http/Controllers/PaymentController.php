@@ -25,21 +25,31 @@ class PaymentController extends Controller
         }
 
         // 檢查是否為 group booking
-        $isGroupBooking = $payment->passengers > 1;
+        $isGroupBooking = $payment->group_size && $payment->group_size > 1;
         
-        // 如果是group booking，获取所有相关的TripJoin记录
+        // 獲取相關的TripJoin記錄（僅用於備用，主要使用payment中的group_size）
         $groupTripJoins = [];
         if ($isGroupBooking) {
+            // 簡化查詢，只取最近的記錄作為備用
             $groupTripJoins = TripJoin::where('trip_id', $payment->trip_id)
-                ->where('reference_code', $payment->reference_code)
-                ->orderBy('id')
+                ->orderBy('created_at', 'desc')
+                ->limit($payment->group_size ?? 2)
                 ->get();
+        }
+
+        // 為單人預訂也獲取 TripJoin 數據（用於顯示 pickup_location）
+        $userTripJoin = null;
+        if (!$isGroupBooking) {
+            $userTripJoin = TripJoin::where('trip_id', $payment->trip_id)
+                ->where('user_phone', $payment->user_phone)
+                ->first();
         }
 
         return view('payment.code', [
             'payment' => $payment,
             'isGroupBooking' => $isGroupBooking,
-            'groupTripJoins' => $groupTripJoins
+            'groupTripJoins' => $groupTripJoins,
+            'userTripJoin' => $userTripJoin
         ]);
     }
 
@@ -73,7 +83,6 @@ class PaymentController extends Controller
             $request->validate([
                 'trip_id' => 'required|exists:trips,id',
                 'amount' => 'required|decimal:0,2',
-                'pickup_location' => 'required|string|max:255',
             ]);
         }
 
@@ -146,7 +155,6 @@ class PaymentController extends Controller
             'trip_id' => $trip->id,
             'user_phone' => $passengers[0]['phone_country_code'] . $passengers[0]['phone'], // 主預訂人
             'amount' => $totalAmount,
-            'pickup_location' => $passengers[0]['pickup_location'],
             'type' => 'group_full_payment',
             'group_size' => $peopleCount,
             'coupon_code' => $couponCode,
@@ -221,7 +229,6 @@ class PaymentController extends Controller
             'trip_id' => $request->input('trip_id'),
             'user_phone' => $user->phone ?? $request->user_phone,
             'amount' => $pricePerPerson,
-            'pickup_location' => $request->input('pickup_location'),
             'type' => 'full_payment',
         ]);
 

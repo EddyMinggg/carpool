@@ -61,9 +61,13 @@
                     $isUpcoming = $departureTime > $now && $departureTime->diffInDays($now) <= 1;
                 @endphp
 
+                @php
+                    $userTripJoin = $payment->tripJoins->first();
+                    $pickupLocation = $userTripJoin ? $userTripJoin->pickup_location : __('Not specified');
+                @endphp
                 <a href="{{ route('trips.show', ['id' => $trip->id]) }}"
                     class="block bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 trip-card {{ $payment->paid ? 'paid-trip' : 'unpaid-trip' }}"
-                    data-search-text="{{ strtolower($trip->dropoff_location . ' ' . $payment->pickup_location) }}"
+                    data-search-text="{{ strtolower($trip->dropoff_location . ' ' . $pickupLocation) }}"
                     data-paid="{{ $payment->paid ? 'true' : 'false' }}"
                     style="{{ $payment->paid ? '' : 'display: none;' }}">
 
@@ -116,7 +120,7 @@
                                     <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                         {{ __('Pickup') }}</div>
                                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
-                                        {{ $payment->pickup_location }}
+                                        {{ $pickupLocation }}
                                     </div>
                                 </div>
                                 <div>

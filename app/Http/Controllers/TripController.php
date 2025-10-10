@@ -18,7 +18,7 @@ class TripController extends Controller
      */
     public function index()
     {
-        $payments = Payment::with('trip')
+        $payments = Payment::with(['trip', 'tripJoins'])
             ->where('user_phone', Auth::user()->phone)
             ->orderBy('created_at', 'desc')
             ->paginate(10);

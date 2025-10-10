@@ -23,7 +23,7 @@ class PaymentConfirmationController extends Controller
     public function index(Trip $trip)
     {
         // Get all pending payments (not yet confirmed) for this trip
-        $pendingPayments = Payment::with(['trip', 'user'])
+        $pendingPayments = Payment::with(['trip', 'user', 'tripJoins'])
             ->where('trip_id', $trip->id)
             ->where('paid', false)
             ->orderBy('type', 'asc') // Show deposits first, then remaining
@@ -31,7 +31,7 @@ class PaymentConfirmationController extends Controller
             ->get();
 
         // Get confirmed payments for reference
-        $confirmedPayments = Payment::with(['trip', 'user'])
+        $confirmedPayments = Payment::with(['trip', 'user', 'tripJoins'])
             ->where('trip_id', $trip->id)
             ->where('paid', true)
             ->orderBy('type', 'asc') // Show deposits first, then remaining
@@ -75,7 +75,7 @@ class PaymentConfirmationController extends Controller
         }
 
         // Load relationships
-        $payment->load(['trip', 'user']);
+        $payment->load(['trip', 'user', 'tripJoins']);
 
         // Mobile device detection
         $userAgent = request()->header('User-Agent');

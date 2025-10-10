@@ -383,18 +383,26 @@
                                                 HK$ {{ number_format($groupPayment->amount, 0) }}
                                             </div>
                                         </div>
-                                        @if($groupPayment->pickup_location)
+                                        @php
+                                            $groupTripJoin = $groupPayment->tripJoins->first();
+                                        @endphp
+                                        @if($groupTripJoin && $groupTripJoin->pickup_location)
                                             <div style="font-size: 9px; color: #6b7280; margin-left: 12px; margin-top: 2px;">
-                                                📍 {{ Str::limit($groupPayment->pickup_location, 25) }}
+                                                📍 {{ Str::limit($groupTripJoin->pickup_location, 25) }}
                                             </div>
                                         @endif
                                     @endforeach
                                 </div>
-                            @elseif($payment->pickup_location)
-                                <div style="background: #f8fafc; padding: 8px; border-radius: 6px; margin: 8px 0;">
-                                    <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">PICKUP LOCATION</div>
-                                    <div style="font-size: 12px; color: #374151;">{{ $payment->pickup_location }}</div>
-                                </div>
+                            @else
+                                @php
+                                    $mainTripJoin = $payment->tripJoins->first();
+                                @endphp
+                                @if($mainTripJoin && $mainTripJoin->pickup_location)
+                                    <div style="background: #f8fafc; padding: 8px; border-radius: 6px; margin: 8px 0;">
+                                        <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">PICKUP LOCATION</div>
+                                        <div style="font-size: 12px; color: #374151;">{{ $mainTripJoin->pickup_location }}</div>
+                                    </div>
+                                @endif
                             @endif
                             
                             <a href="{{ route('admin.payment-confirmation.show', $payment) }}" class="mobile-action-btn">
@@ -676,8 +684,12 @@
                                         <div class="space-y-1">
                                             @php $allGroupPayments = collect([$payment])->merge($payment->childPayments); @endphp
                                             @foreach($allGroupPayments->take(2) as $index => $groupPayment)
+                                                @php
+                                                    $groupTripJoin = $groupPayment->tripJoins->first();
+                                                    $pickupLocation = $groupTripJoin ? $groupTripJoin->pickup_location : 'Not specified';
+                                                @endphp
                                                 <div class="text-xs text-gray-900 dark:text-gray-100">
-                                                    <strong>{{ $index + 1 }}.</strong> {{ Str::limit($groupPayment->pickup_location ?: 'Not specified', 30) }}
+                                                    <strong>{{ $index + 1 }}.</strong> {{ Str::limit($pickupLocation, 30) }}
                                                 </div>
                                             @endforeach
                                             @if($allGroupPayments->count() > 2)
@@ -687,8 +699,11 @@
                                             @endif
                                         </div>
                                     @else
+                                        @php
+                                            $mainTripJoin = $payment->tripJoins->first();
+                                        @endphp
                                         <span class="text-sm text-gray-900 dark:text-gray-100">
-                                            {{ $payment->pickup_location ?: 'Not specified' }}
+                                            {{ ($mainTripJoin && $mainTripJoin->pickup_location) ? $mainTripJoin->pickup_location : 'Not specified' }}
                                         </span>
                                     @endif
                                 </td>

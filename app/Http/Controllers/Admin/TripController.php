@@ -153,7 +153,7 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
-        $trip->load(['creator', 'joins.user']);
+        $trip->load(['creator', 'joins.user', 'payments.user']);
 
         // Mobile device detection
         $userAgent = request()->header('User-Agent');

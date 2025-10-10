@@ -16,7 +16,6 @@ class Payment extends Model
         'user_phone',
         'amount',
         'type',
-        'pickup_location',
         'paid',
         'group_size',
         'coupon_code',
@@ -30,7 +29,7 @@ class Payment extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_phone', 'phone');
     }
 
     // Get all trip joins for this payment's group booking
