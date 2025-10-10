@@ -42,9 +42,9 @@ x-transition:leave-end="opacity-0">
 
             <!-- Modal Header -->
             <div class="px-6 pt-6 pb-4">
-                <div class="flex items-center">
+                <div class="flex items-center justify-center">
                     <!-- 圖標 -->
-                    <div class="flex-shrink-0 w-10 h-10 mx-auto flex items-center justify-center rounded-full"
+                    <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full"
                          :class="{
                             'bg-red-100 dark:bg-red-900': type === 'error',
                             'bg-yellow-100 dark:bg-yellow-900': type === 'warning',
@@ -70,7 +70,7 @@ x-transition:leave-end="opacity-0">
                     </div>
                     
                     <!-- 標題 -->
-                    <div class="ml-4 text-left">
+                    <div class="ms-3 text-left">
                         <h3 class="text-lg font-semibold" 
                             :class="{
                                 'text-red-900 dark:text-red-100': type === 'error',
