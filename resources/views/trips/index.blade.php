@@ -67,9 +67,9 @@
                 @endphp
                 <a href="{{ route('trips.show', ['id' => $trip->id]) }}"
                     class="block bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 trip-card {{ $payment->paid ? 'paid-trip' : 'unpaid-trip' }}"
-                    data-search-text="{{ strtolower($trip->dropoff_location . ' ' . $pickupLocation) }}"
-                    data-paid="{{ $payment->paid ? 'true' : 'false' }}"
-                    style="{{ $payment->paid ? '' : 'display: none;' }}">
+                    data-search-text="{{ strtolower($trip->dropoff_location . ' ' . $payment->pickup_location) }}"
+                    data-paid="{{ $payment->payment_confirmed == 1 ? 'true' : 'false' }}"
+                    style="{{ $payment->payment_confirmed == 1 ? '' : 'display: none;' }}">
 
                     <!-- 頂部狀態指示器 -->
                     <div class="flex items-center justify-between mb-4">
@@ -92,14 +92,14 @@
                             @endif
 
                             <span
-                                class="px-3 py-1 text-xs font-semibold rounded-full {{ $payment->paid ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200' }}">
-                                {{ __($payment->paid ? 'Paid' : 'Unpaid') }}
+                                class="px-3 py-1 text-xs font-semibold rounded-full {{ $payment->payment_confirmed ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200' }}">
+                                {{ __($payment->payment_confirmed ? 'Paid' : 'Unpaid') }}
                             </span>
                         </div>
 
                         <div class="text-right">
                             <div class="text-lg font-bold text-primary-accent">
-                                HK$ {{ number_format($payment->amount, 0) }}
+                                HK$ {{ number_format($payment->user_fee, 0) }}
                             </div>
                             <div class="text-xs text-gray-500 dark:text-gray-400">
                                 {{ ucfirst($payment->type) }}
@@ -224,6 +224,8 @@
 
                 tripCards.each(function() {
                     const card = $(this);
+                    console.log(card.data);
+                    
                     const searchText = card.data('search-text');
                     const isPaid = card.data('paid') === true;
 

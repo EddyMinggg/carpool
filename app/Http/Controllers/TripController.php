@@ -78,7 +78,7 @@ class TripController extends Controller
         // 計算當前用戶是否已加入且payment已確認
         $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
         $hasJoined = $userJoin !== null && $userJoin->payment_confirmed;
-        
+
         // 如果有payment記錄且已付款，但TripJoin記錄未確認，說明管理員還未處理
         $hasPaidButNotConfirmed = $payment && $payment->paid && $userJoin && !$userJoin->payment_confirmed;
 
@@ -372,6 +372,4 @@ class TripController extends Controller
 
         return redirect()->back()->with('success', __('Trip has departed successfully!'));
     }
-
-
 }

@@ -1,10 +1,40 @@
 @section('Title', $trip->dropoff_location)
 <x-app-layout>
-    
+
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
-            {{ __('Trip Details') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
+                {{ __('Trip Details') }}
+            </h2>
+            <!-- Web Share API 分享按鈕 - 所有用戶都可以分享 -->
+        <div >
+            <!-- 主要分享按鈕 -->
+            <button id="share-btn"
+                class="w-24 -my-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-3 transition shadow-md text-gray-100 dark:text-gray-300 bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary">
+                <span class="material-icons text-sm">share</span>
+                <span>{{ __('Share') }}</span>
+            </button>
+
+            <!-- 降級方案按鈕組 (僅在不支援 Web Share API 時顯示) -->
+            <div id="fallback-share-buttons" class="hidden space-y-2">
+                <button id="whatsapp-share-btn"
+                    class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-white"
+                    style="background-color: #25D366;">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787" />
+                    </svg>
+                    {{ __('Share via WhatsApp') }}
+                </button>
+
+                <button id="copy-link-btn"
+                    class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+                    <span class="material-icons text-lg">content_copy</span>
+                    <span id="copy-text">{{ __('Copy Link') }}</span>
+                </button>
+            </div>
+        </div>
+        </div>
     </x-slot>
 
 
@@ -47,14 +77,15 @@
         @endif
 
         <!-- 行程資訊卡片 -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+        <div
+            class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
             <div class="flex mb-6 items-center">
                 {{-- <span class="text-gray-600 dark:text-gray-300">{{ __('Status') }}</span> --}}
                 <span
                     class="px-2 py-1 rounded-md text-xs
-                        @if ($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200
-                        @elseif($trip->trip_status === 'charging') bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200
-                        @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200
+                        @if ($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300
+                        @elseif($trip->trip_status === 'charging') bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300
+                        @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300
                         @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
                     {{ ucfirst($trip->trip_status) }}
                 </span>
@@ -67,7 +98,7 @@
                     $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
                     $confirmedLocation = $userJoin ? $userJoin->pickup_location : null;
                     $sessionLocation = session('location');
-                    
+
                     // 優先級：已確認的預訂地址 > session臨時地址
                     $displayLocation = $confirmedLocation ?: $sessionLocation;
                 @endphp
@@ -78,11 +109,13 @@
                     <div class="flex items-start text-sm space-x-3">
                         <div class="flex-1 min-w-0 location-container">
                             <div class="flex items-center mb-2">
-                                <div class="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0"></div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ __('Pickup') }}</div>
+                                <div class="w-3 h-3 bg-green-500 dark:bg-green-600 rounded-full mr-2 flex-shrink-0">
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                    {{ __('Pickup') }}</div>
                             </div>
                             <div id="pickup_location_display"
-                                class="text-gray-900 dark:text-gray-100 font-medium leading-tight location-display">
+                                class="text-gray-800 dark:text-gray-200 font-medium leading-tight location-display">
                                 <span>{{ $displayLocation ?: __('Select pickup location') }}</span>
                             </div>
                         </div>
@@ -102,10 +135,11 @@
                     <div class="flex items-start text-sm space-x-3">
                         <div class="flex-1 min-w-0 location-container">
                             <div class="flex items-center mb-2">
-                                <div class="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ __('Destination') }}</div>
+                                <div class="w-3 h-3 bg-red-500 dark:bg-red-600 rounded-full mr-2 flex-shrink-0"></div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                    {{ __('Destination') }}</div>
                             </div>
-                            <div class="text-gray-900 dark:text-gray-100 font-medium leading-tight location-display">
+                            <div class="text-gray-800 dark:text-gray-200 font-medium leading-tight location-display">
                                 <span>{{ $trip->dropoff_location }}</span>
                             </div>
                         </div>
@@ -117,8 +151,9 @@
                     <!-- Pickup -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
-                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0"></div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ __('Pickup') }}</div>
+                            <div class="w-3 h-3 bg-green-500 dark:bg-green-600 rounded-full mr-2 flex-shrink-0"></div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                {{ __('Pickup') }}</div>
                         </div>
                         <div id="pickup_location_display_desktop"
                             class="text-gray-900 dark:text-gray-100 font-medium leading-tight location-display">
@@ -139,8 +174,9 @@
                     <!-- Destination -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
-                            <div class="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ __('Destination') }}</div>
+                            <div class="w-3 h-3 bg-red-500 dark:bg-red-600 rounded-full mr-2 flex-shrink-0"></div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                {{ __('Destination') }}</div>
                         </div>
                         <div class="text-gray-900 dark:text-gray-100 font-medium leading-tight location-display">
                             <span>{{ $trip->dropoff_location }}</span>
@@ -151,7 +187,7 @@
 
             <div class="flex justify-between items-start mt-6">
                 <div>
-                    <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    <div class="text-3xl font-bold text-primary-accent dark:text-primary">
                         {{ $departureTime->format('H:i') }}
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -159,7 +195,7 @@
                     </div>
                 </div>
                 <div class="text-right">
-                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    <div class="text-2xl font-bold text-primary-accent dark:text-primary">
                         HK$ {{ number_format($price, 0) }}
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -174,77 +210,84 @@
                 <div class="flex justify-between items-center mt-4 mb-2">
                     <span class="text-gray-600 dark:text-gray-300">{{ __('Joined User') }}</span>
                     <span
-                        class="font-semibold text-gray-900 dark:text-gray-100">{{ $currentPeople }}/{{ $trip->max_people }}</span>
+                        class="font-semibold text-gray-800 dark:text-gray-300">{{ $currentPeople }}/{{ $trip->max_people }}</span>
                 </div>
             </div>
         </div>
 
         <!-- 司機資訊區域 - 只在用戶已加入行程後顯示 -->
         @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $assignedDriver)
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 shadow-md border border-blue-200 dark:border-blue-800 mt-4">
-                <div class="flex items-center justify-between mb-4">
+            <div
+                class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
+                <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         {{ __('Driver Information') }}
                     </h3>
-                    <span class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
-                        🚗 {{ __('Assigned') }}
+                    <span
+                        class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
+                        {{ __('Assigned') }}
                     </span>
                 </div>
 
                 <div class="flex items-center gap-4 mb-4">
                     <!-- 司機頭像 -->
-                    <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                        <span class="text-white font-semibold text-xl">
+                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                        <span class="text-blue-600 dark:text-blue-300 font-semibold text-xl">
                             {{ strtoupper(substr($assignedDriver->username, 0, 1)) }}
                         </span>
                     </div>
-                    
+
                     <!-- 司機基本資訊 -->
                     <div class="flex-1">
-                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-xl">
                             {{ $assignedDriver->username }}
                         </h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 my-2">
                             <span class="inline-flex items-center gap-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                                 </svg>
                                 {{ $assignedDriver->email }}
                             </span>
                         </p>
-                        @if($assignedDriver->phone)
+                        @if ($assignedDriver->phone)
                             <p class="text-sm text-gray-600 dark:text-gray-400">
                                 <span class="inline-flex items-center gap-1">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
                                     {{ $assignedDriver->phone }}
                                 </span>
                             </p>
                         @endif
                     </div>
-                    
+
                     <!-- 聯絡司機按鈕 -->
-                    @if($assignedDriver->phone)
-                        <div class="flex flex-col gap-2">
+                    @if ($assignedDriver->phone)
+                        <div class="flex flex-col gap-4">
                             <!-- 撥打電話 -->
-                            <a href="tel:{{ $assignedDriver->phone }}" 
-                               class="inline-flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors shadow-lg">
+                            <a href="tel:{{ $assignedDriver->phone }}"
+                                class="inline-flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors shadow-lg">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                 </svg>
                             </a>
-                            
+
                             <!-- WhatsApp -->
-                            <a href="https://wa.me/{{ str_replace(['+', '-', ' '], '', $assignedDriver->phone) }}" 
-                               target="_blank"
-                               class="inline-flex items-center justify-center w-12 h-12 text-white rounded-full transition-colors shadow-lg"
-                               style="background-color: #25D366;">
+                            <a href="https://wa.me/{{ str_replace(['+', '-', ' '], '', $assignedDriver->phone) }}"
+                                target="_blank"
+                                class="inline-flex items-center justify-center w-12 h-12 text-white rounded-full transition-colors shadow-lg bg-green-500 hover:bg-green-600 ">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787"/>
+                                    <path
+                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787" />
                                 </svg>
                             </a>
                         </div>
@@ -252,18 +295,19 @@
                 </div>
 
                 <!-- 司機狀態和提醒 -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                <div class="bg-primary-opaque dark:bg-primary-opaque-dark rounded-lg p-4 mt-6 border border-primary dark:border-primary-dark">
                     <div class="flex items-start gap-3">
-                        <div class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5">
+                        <div class="w-5 h-5 text-primary mt-0.5">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <div class="flex-1">
-                            <div class="font-medium text-gray-900 dark:text-gray-100 text-sm mb-1">
+                            <div class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1">
                                 {{ __('Driver has been assigned to this trip') }}
                             </div>
-                            <div class="text-gray-600 dark:text-gray-400 text-sm">
+                            <div class="text-gray-700 dark:text-gray-400 text-sm">
                                 {{ __('You can contact the driver directly using the buttons above when the trip time approaches.') }}
                             </div>
                         </div>
@@ -271,11 +315,15 @@
                 </div>
             </div>
         @elseif ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed))
-            <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-800 mt-4">
+            <div
+                class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-800 mt-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <div
+                        class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
                     <div class="flex-1">
@@ -293,7 +341,7 @@
         <!-- 成員列表 -->
         @if ($trip->joins->isNotEmpty())
             <div
-                class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
+                class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{{ __('Members') }}</h3>
                 @foreach ($trip->joins as $join)
                     <div
@@ -301,7 +349,7 @@
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                                @if($join->user && $join->user->username)
+                                @if ($join->user && $join->user->username)
                                     <span class="text-blue-600 dark:text-blue-300 font-semibold text-sm">
                                         {{ strtoupper(substr($join->user->username, 0, 1)) }}
                                     </span>
@@ -313,7 +361,7 @@
                             </div>
                             <div>
                                 <div class="font-medium text-gray-900 dark:text-gray-100">
-                                    @if($join->user && $join->user->username)
+                                    @if ($join->user && $join->user->username)
                                         {{ $join->user->username }}
                                     @else
                                         {{ __('Guest User') }}
@@ -354,7 +402,8 @@
         <!-- 等待司機區域 (時間到了後顯示) -->
         <div id="waiting-driver" class="hidden space-y-4 mt-6">
             <!-- 司機信息卡片 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Driver Information') }}
                     </h3>
@@ -496,19 +545,19 @@
 
         @if ($hasJoined)
             <div
-                class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
+                class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <div class="flex flex-col items-center gap-3">
-                    <div class="text-blue-600 dark:text-blue-400 mt-0.5">
+                    <div class="text-primary mt-0.5">
                         <i class="fas fa-exclamation-circle fa-2x" style="font-size: 2.5rem;"></i>
                     </div>
                     <div class="flex-1">
-                        <div class="font-medium text-blue-900 dark:text-blue-100 text-xl text-center my-4">
+                        <div class="font-bold text-gray-700 dark:text-gray-200 text-xl text-center my-4">
                             {{ __('Reminder') }}
                         </div>
-                        <div class="text-blue-700 dark:text-blue-300 text-sm mt-1">
+                        <div class="text-gray-700 dark:text-gray-200 text-sm mt-1">
                             {{ __('Complete your payment to secure your spot! Payment confirmation required before departure.') }}
                         </div>
-                        <div class="text-blue-700 dark:text-blue-300 text-sm mt-1 font-bold">
+                        <div class="text-gray-700 dark:text-gray-200 text-md mt-4 font-bold">
                             {{ __('Full Amount:') . " HK$" . number_format($price, 0) }}
                         </div>
                     </div>
@@ -555,11 +604,15 @@
         <!-- 已付款等待管理員確認狀態 -->
         @if (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)
             <!-- 主要狀態卡片 -->
-            <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-700 mt-4">
+            <div
+                class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-700 mt-4">
                 <div class="flex items-center gap-4 mb-4">
-                    <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <div
+                        class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
                     <div class="flex-1">
@@ -575,53 +628,67 @@
                 <!-- 預訂進度追蹤 -->
                 <div class="mb-4">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-yellow-800 dark:text-yellow-200">{{ __('Booking Progress') }}</span>
+                        <span
+                            class="text-sm font-medium text-yellow-800 dark:text-yellow-200">{{ __('Booking Progress') }}</span>
                         <span class="text-xs text-yellow-600 dark:text-yellow-400">{{ __('Step 2 of 3') }}</span>
                     </div>
                     <div class="flex items-center">
                         <!-- Step 1: Payment -->
                         <div class="flex items-center">
                             <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <span class="ml-2 text-xs text-green-700 dark:text-green-300 font-medium">{{ __('Payment') }}</span>
+                            <span
+                                class="ml-2 text-xs text-green-700 dark:text-green-300 font-medium">{{ __('Payment') }}</span>
                         </div>
-                        
+
                         <!-- Connection line -->
                         <div class="flex-1 h-0.5 bg-yellow-300 dark:bg-yellow-600 mx-2"></div>
-                        
+
                         <!-- Step 2: Confirmation -->
                         <div class="flex items-center">
-                            <div class="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center animate-pulse">
-                                <svg class="w-3 h-3 text-yellow-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            <div
+                                class="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center animate-pulse">
+                                <svg class="w-3 h-3 text-yellow-800" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <span class="ml-2 text-xs text-yellow-700 dark:text-yellow-300 font-medium">{{ __('Confirmation') }}</span>
+                            <span
+                                class="ml-2 text-xs text-yellow-700 dark:text-yellow-300 font-medium">{{ __('Confirmation') }}</span>
                         </div>
-                        
+
                         <!-- Connection line -->
                         <div class="flex-1 h-0.5 bg-gray-300 dark:bg-gray-600 mx-2"></div>
-                        
+
                         <!-- Step 3: Trip -->
                         <div class="flex items-center">
-                            <div class="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                                <svg class="w-3 h-3 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-5 5l-7-7"/>
+                            <div
+                                class="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                                <svg class="w-3 h-3 text-gray-600 dark:text-gray-400" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 14l-5 5l-7-7" />
                                 </svg>
                             </div>
-                            <span class="ml-2 text-xs text-gray-600 dark:text-gray-400 font-medium">{{ __('Trip') }}</span>
+                            <span
+                                class="ml-2 text-xs text-gray-600 dark:text-gray-400 font-medium">{{ __('Trip') }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 處理時間信息 -->
-                <div class="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-3 border border-yellow-200 dark:border-yellow-600 mb-3">
+                <div
+                    class="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-3 border border-yellow-200 dark:border-yellow-600 mb-3">
                     <div class="flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200 mb-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span class="font-medium">{{ __('Expected Processing Time') }}</span>
                     </div>
@@ -633,8 +700,10 @@
 
                 <!-- 聯繫客服 -->
                 <div class="flex items-center gap-2 text-sm">
-                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03 8-9 8s9 3.582 9 8z"/>
+                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03 8-9 8s9 3.582 9 8z" />
                     </svg>
                     <span class="text-yellow-700 dark:text-yellow-300">{{ __('Need help?') }}</span>
                     <a href="tel:+85212345678" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
@@ -646,125 +715,135 @@
             <!-- 你的預訂詳情卡片 -->
             @php
                 $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
-                $userPayment = \App\Models\Payment::where('trip_id', $trip->id)->where('user_phone', $userPhone)->first();
+                $userPayment = \App\Models\Payment::where('trip_id', $trip->id)
+                    ->where('user_phone', $userPhone)
+                    ->first();
             @endphp
-            
+
             @if ($userJoin && $userPayment)
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    {{ __('Your Booking Details') }}
-                </h3>
-                
-                <div class="space-y-4">
-                    <!-- 預訂信息 -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('Reference Code') }}</div>
-                            <div class="font-mono text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $userPayment->reference_code ?: 'Pending Assignment' }}
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {{ __('Your Booking Details') }}
+                    </h3>
+
+                    <div class="space-y-4">
+                        <!-- 預訂信息 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('Reference Code') }}
+                                </div>
+                                <div class="font-mono text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    {{ $userPayment->reference_code ?: 'Pending Assignment' }}
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('Payment Amount') }}
+                                </div>
+                                <div class="font-semibold text-green-600 dark:text-green-400">
+                                    HK$ {{ number_format($userPayment->amount, 0) }}
+                                    @if ($userPayment->passengers > 1)
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                                            ({{ $userPayment->passengers }} {{ __('passengers') }})
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('Payment Amount') }}</div>
-                            <div class="font-semibold text-green-600 dark:text-green-400">
-                                HK$ {{ number_format($userPayment->amount, 0) }}
-                                @if($userPayment->passengers > 1)
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">
-                                        ({{ $userPayment->passengers }} {{ __('passengers') }})
-                                    </span>
-                                @endif
+
+                        <!-- 接送地址 -->
+                        <div
+                            class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-700">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span
+                                    class="text-xs font-medium text-green-800 dark:text-green-200 uppercase tracking-wide">
+                                    {{ __('Your Pickup Location') }}
+                                </span>
+                            </div>
+                            <div class="text-sm text-green-900 dark:text-green-100 font-medium">
+                                {{ $userJoin->pickup_location ?: __('Location not set') }}
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 接送地址 -->
-                    <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-700">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                            <span class="text-xs font-medium text-green-800 dark:text-green-200 uppercase tracking-wide">
-                                {{ __('Your Pickup Location') }}
-                            </span>
-                        </div>
-                        <div class="text-sm text-green-900 dark:text-green-100 font-medium">
-                            {{ $userJoin->pickup_location ?: __('Location not set') }}
-                        </div>
-                    </div>
-
-                    <!-- 溫馨提示 -->
-                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                        <div class="flex items-start gap-2">
-                            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <div class="text-xs text-blue-800 dark:text-blue-200">
-                                <div class="font-medium mb-1">{{ __('What happens next?') }}</div>
-                                <div class="space-y-1">
-                                    <div>• {{ __('Admin will review and confirm your payment') }}</div>
-                                    <div>• {{ __('You will receive notification once confirmed') }}</div>
-                                    <div>• {{ __('Driver details shared 1-2 hours before departure') }}</div>
-                                    <div>• {{ __('Be ready 15 minutes before pickup time') }}</div>
+                        <!-- 溫馨提示 -->
+                        <div
+                            class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div class="text-xs text-blue-800 dark:text-blue-200">
+                                    <div class="font-medium mb-1">{{ __('What happens next?') }}</div>
+                                    <div class="space-y-1">
+                                        <div>• {{ __('Admin will review and confirm your payment') }}</div>
+                                        <div>• {{ __('You will receive notification once confirmed') }}</div>
+                                        <div>• {{ __('Driver details shared 1-2 hours before departure') }}</div>
+                                        <div>• {{ __('Be ready 15 minutes before pickup time') }}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
             @endif
         @endif
-
         <!-- 預訂功能 -->
-        @if (!$hasLeft && !$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
+        @if (!$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
             <!-- 預訂功能（支援個人或多人預訂） -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
+            <div
+                class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {{ __('Book This Trip') }}
                     </h3>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ __('Available slots') }}: {{ $availableSlots }}
-                    </span>
                 </div>
 
                 <form id="group-booking-form" method="POST" action="{{ route('payment.create') }}">
                     @csrf
                     <input type="hidden" name="trip_id" value="{{ $trip->id }}">
                     <input type="hidden" name="is_group_booking" value="1">
-                    
+
                     <!-- 預訂人數選擇 -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            {{ __('Number of People') }}
-                        </label>
-                        
-                        <!-- 可用槽位提示 -->
-                        <div class="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-blue-700 dark:text-blue-300">
-                                    {{ __('Current Status') }}: {{ $currentPeople }}/{{ $trip->max_people }}
+                        @if ($availableSlots > 0)
+                            <!-- 可用槽位提示 -->
+                            <div
+                                class="mb-3 p-3 bg-primary-opaque dark:bg-primary-opaque-dark border border-primary-accent dark:border-primary rounded-lg">
+                                <span class="text-gray-700 dark:text-gray-300 text-sm">
+                                    {{ __('Current Available Slots') }}:
                                 </span>
-                                <span class="font-medium text-blue-800 dark:text-blue-200">
-                                    @if($availableSlots > 0)
-                                        {{ __('Available slots') }}: {{ $availableSlots }}
-                                    @else
-                                        <span class="text-red-600 dark:text-red-400">{{ __('Trip is full') }}</span>
-                                    @endif
+                                <span class="underline text-gray-700 dark:text-gray-200 ms-2 text-lg">
+                                    {{ $availableSlots }}
+                                </span>
+                                @if ($availableSlots < $trip->max_people)
+                                    <div class="mt-2 text-xs text-orange-600 dark:text-orange-400">
+                                        {{ __('Limited slots available! Book quickly.') }}
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div
+                                class="flex justify-center mb-3 p-3 border border-red-500 dark:border-red-600 rounded-lg">
+                                <span class="text-red-500 dark:text-red-600 text-lg font-bold">
+                                    {{ __('Trip is full!') }}
                                 </span>
                             </div>
-                            @if($availableSlots > 0 && $availableSlots < $trip->max_people)
-                                <div class="mt-2 text-xs text-orange-600 dark:text-orange-400">
-                                    {{ __('Limited slots available! Book quickly.') }}
-                                </div>
-                            @endif
-                        </div>
-                        <select id="people-count" name="people_count" 
-                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
-                            @if($availableSlots > 0)
+                        @endif
+                        <select id="people-count" name="people_count"
+                            class="mt-2 w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark">
+                            @if ($availableSlots > 0)
                                 @for ($i = 1; $i <= min($availableSlots, 5); $i++)
-                                    <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? __('person') : __('people') }}</option>
+                                    <option value="{{ $i }}">{{ $i }}
+                                        {{ $i == 1 ? __('person') : __('people') }}</option>
                                 @endfor
                             @else
                                 <option disabled>{{ __('No available slots') }}</option>
@@ -775,37 +854,39 @@
                     <!-- 動態乘客信息表單 -->
                     <div id="passengers-container" class="space-y-4 mb-6">
                         <!-- 第一個乘客 (主預訂人) -->
-                        <div class="passenger-form border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+                        <div
+                            class="passenger-form border border-primary-accent dark:border-primary hover:border-primary rounded-lg p-4 bg-primary-opaque dark:bg-primary-opaque-dark">
                             <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                                <h4 class="font-medium text-gray-700 dark:text-gray-200">
                                     {{ __('Main Booker') }} ({{ __('Passenger 1') }})
                                 </h4>
-                                <span class="text-xs text-blue-600 dark:text-blue-400 font-medium px-2 py-1 bg-blue-100 dark:bg-blue-800 rounded">
+                                <span
+                                    class="text-xs text-gray-100 dark:text-gray-200 font-medium px-2 py-1 bg-primary-accent dark:bg-primary rounded">
                                     {{ __('Primary Contact') }}
                                 </span>
                             </div>
-                            
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         {{ __('Name') }} <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="text" name="passengers[0][name]" required
-                                        class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                                    <x-text-input name="passengers[0][name]" required
+                                        class="w-full border-gray-300 dark:border-gray-700" />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         {{ __('Phone Number') }} <span class="text-red-500">*</span>
                                     </label>
                                     <div class="flex">
-                                        <select name="passengers[0][phone_country_code]" 
-                                            class="rounded-l-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                                        <select name="passengers[0][phone_country_code]"
+                                            class="rounded-l-md border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm">
                                             <option value="+852">+852 (HK)</option>
                                             <option value="+86">+86 (CN)</option>
                                         </select>
-                                        <input type="tel" name="passengers[0][phone]" required
-                                            class="flex-1 rounded-r-md border-l-0 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
-                                            placeholder="12345678">
+                                        <x-text-input type="tel" name="passengers[0][phone]" required
+                                            class="border-gray-300 dark:border-gray-700 block w-full rounded-l-none border-l-0"
+                                            placeholder="12345678"/>
                                     </div>
                                 </div>
                                 <div class="md:col-span-2">
@@ -813,16 +894,19 @@
                                         {{ __('Pickup Location') }} <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
-                                        <input type="hidden" name="passengers[0][pickup_location]" id="passenger-0-location" required>
-                                        <button type="button" 
-                                            class="passenger-location-btn w-full text-left px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-600 transition-colors"
-                                            data-passenger="0"
-                                            onclick="openMapForPassenger(0)">
+                                        <input type="hidden" name="passengers[0][pickup_location]"
+                                            id="passenger-0-location" required>
+                                        <button type="button"
+                                            class="passenger-location-btn w-full text-left px-3 py-2 text-sm bg-secondary dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm transition-colors"
+                                            data-passenger="0" onclick="openMapForPassenger(0)">
                                             <div class="flex items-center justify-between">
-                                                <span class="passenger-location-display text-gray-400 dark:text-gray-500 italic" id="passenger-0-display">
+                                                <span
+                                                    class="passenger-location-display text-gray-400 dark:text-gray-500 italic"
+                                                    id="passenger-0-display">
                                                     {{ __('Click to select pickup location on map') }}
                                                 </span>
-                                                <i class="material-icons text-gray-400 dark:text-gray-500">location_on</i>
+                                                <i
+                                                    class="material-icons text-gray-400 dark:text-gray-500">location_on</i>
                                             </div>
                                         </button>
                                     </div>
@@ -834,33 +918,37 @@
                     </div>
 
                     <!-- 優惠券區域 -->
-                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 mb-4 border border-amber-200 dark:border-amber-800">
+                    <div
+                        class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 mb-6 border border-amber-200 dark:border-amber-800">
                         <div class="flex items-center gap-3 mb-3">
                             <span class="material-icons text-amber-600 dark:text-amber-400">local_offer</span>
-                            <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ __('Coupon Code') }}</h4>
+                            <h4 class="font-medium text-gray-700 dark:text-gray-200">{{ __('Coupon Code') }}</h4>
                         </div>
                         <div class="flex gap-3">
                             <div class="flex-1">
-                                <input type="text" id="coupon-code" name="coupon_code" placeholder="{{ __('Enter coupon code') }}"
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-amber-500 dark:focus:border-amber-600 focus:ring-amber-500 dark:focus:ring-amber-600 text-sm uppercase">
+                                <input type="text" id="coupon-code" name="coupon_code"
+                                    placeholder="{{ __('Enter coupon code') }}"
+                                    class="w-full rounded-md border-gray-400 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-amber-500 dark:focus:border-amber-600 focus:ring-amber-500 dark:focus:ring-amber-600 text-sm uppercase">
                             </div>
-                            <button type="button" id="apply-coupon" 
+                            <button type="button" id="apply-coupon"
                                 class="px-4 py-2 bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white rounded-lg font-medium text-sm transition">
                                 {{ __('Apply') }}
                             </button>
                         </div>
-                        
+
                         <!-- 優惠券狀態顯示 -->
-                        <div id="coupon-status" class="mt-3 hidden">
+                        <div id="coupon-status" class="mt-3">
                             <!-- 成功狀態 -->
-                            <div id="coupon-success" class="hidden p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm">
+                            <div id="coupon-success"
+                                class="hidden p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm">
                                 <div class="flex items-center gap-2 text-green-700 dark:text-green-300">
                                     <span class="material-icons text-sm">check_circle</span>
                                     <span id="coupon-success-text"></span>
                                 </div>
                             </div>
                             <!-- 錯誤狀態 -->
-                            <div id="coupon-error" class="hidden p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm">
+                            <div id="coupon-error"
+                                class="hidden p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm">
                                 <div class="flex items-center gap-2 text-red-700 dark:text-red-300">
                                     <span class="material-icons text-sm">error</span>
                                     <span id="coupon-error-text"></span>
@@ -870,54 +958,59 @@
                     </div>
 
                     <!-- 價格總覽 -->
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
-                        <div class="space-y-2">
+                    <div class="bg-gray-100 dark:bg-neutral-800 rounded-lg p-6 mb-6">
+                        <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">{{ __('Price per person') }}:</span>
-                                <span class="font-medium" id="price-per-person-display">HK$ {{ number_format($price, 0) }}</span>
+                                <span class="text-gray-700 dark:text-gray-300">{{ __('Price per person') }}:</span>
+                                <span class="font-semibold text-gray-900 dark:text-gray-200" id="price-per-person-display">HK$
+                                    {{ number_format($price, 0) }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">{{ __('Number of people') }}:</span>
-                                <span class="font-medium" id="people-display">1</span>
+                                <span class="text-gray-700 dark:text-gray-300">{{ __('Number of people') }}:</span>
+                                <span class="font-semibold text-gray-900 dark:text-gray-200" id="people-display">1</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">{{ __('Subtotal') }}:</span>
-                                <span class="font-medium" id="subtotal-amount">HK$ {{ number_format($price, 0) }}</span>
+                                <span class="text-gray-700 dark:text-gray-300">{{ __('Subtotal') }}:</span>
+                                <span class="font-semibold text-gray-900 dark:text-gray-200" id="subtotal-amount">HK$
+                                    {{ number_format($price, 0) }}</span>
                             </div>
                             <!-- 優惠券折扣行 (僅在套用優惠券時顯示) -->
                             <div id="coupon-discount-row" class="hidden flex justify-between text-sm">
-                                <span class="text-green-600 dark:text-green-400">{{ __('Coupon Discount') }}:</span>
-                                <span class="font-medium text-green-600 dark:text-green-400" id="coupon-discount-amount">-HK$ 0</span>
+                                <span class="text-green-700 dark:text-green-600">{{ __('Coupon Discount') }}:</span>
+                                <span class="font-semibold text-green-600 dark:text-green-500"
+                                    id="coupon-discount-amount">-HK$ 0</span>
                             </div>
                             <div class="border-t border-gray-300 dark:border-gray-500 pt-2">
-                                <div class="flex justify-between font-semibold">
+                                <div class="flex justify-between font-bold text-gray-900 dark:text-gray-200">
                                     <span>{{ __('Total Amount') }}:</span>
-                                    <span class="text-blue-600 dark:text-blue-400" id="total-amount">HK$ {{ number_format($price, 0) }}</span>
+                                    <span class="font-bold text-primary-accent dark:text-primary" id="total-amount">HK$
+                                        {{ number_format($price, 0) }}</span>
                                 </div>
                             </div>
-                            
+
                             <!-- 定價規則說明 -->
-                            <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                <div class="text-xs text-blue-700 dark:text-blue-300">
+                            <div class="mt-3 p-3 bg-primary-opaque dark:bg-primary-opaque-dark rounded-lg">
+                                <div class="text-xs text-gray-700 dark:text-gray-300">
                                     @if ($trip->type === 'golden')
-                                        <strong>{{ __('Golden Hour') }}:</strong> {{ __('Fixed price HK$250 per person') }}
+                                        <strong>{{ __('Golden Hour') }}:</strong>
+                                        {{ __('Fixed price HK$250 per person') }}
                                     @else
                                         <strong>{{ __('Normal Hour') }}:</strong>
                                         <div class="mt-1">
-                                            • 1-3{{ __('people') }}: HK$275/{{ __('person') }}<br>
-                                            • 4+{{ __('people') }}: HK$225/{{ __('person') }} ({{ __('HK$50 discount') }})
+                                            • 1-3 {{ __('people') }}: HK$275/{{ __('person') }}<br>
+                                            • 4+ {{ __('people') }}: HK$225/{{ __('person') }}
+                                            ({{ __('HK$50 discount') }})
                                         </div>
                                     @endif
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <!-- 條款確認 -->
                     <div class="mb-6">
                         <div class="flex items-start gap-3">
                             <input type="checkbox" id="group-booking-terms" required
-                                class="mt-1 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                class="rounded bg-secondary dark:bg-secondary-dark border-gray-300 dark:border-gray-700 text-primary shadow-sm focus:ring-primary dark:focus:ring-primary-dark dark:focus:ring-offset-secondary-dark">
                             <label for="group-booking-terms" class="text-sm text-gray-700 dark:text-gray-300">
                                 {{ __('I confirm that I have the consent of all passengers listed above to book this trip on their behalf. I understand the pricing rules and refund policies are managed by administrators.') }}
                             </label>
@@ -925,10 +1018,11 @@
                     </div>
 
                     <!-- 提交按鈕 -->
-                    @if($availableSlots > 0)
+                    @if ($availableSlots > 0)
                         <button type="button" id="submit-group-booking"
-                            class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-                            {{ __('Book Now') }} - <span id="total-amount-btn">HK$ {{ number_format($price, 0) }}</span>
+                            class="w-full bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary text-gray-100 dark:text-gray-300 py-4 rounded-lg font-semibold text-lg transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                            {{ __('Book Now') }} - <span id="total-amount-btn">HK$
+                                {{ number_format($price, 0) }}</span>
                         </button>
                     @else
                         <div class="w-full bg-gray-400 text-white py-4 rounded-xl font-semibold text-lg text-center">
@@ -943,9 +1037,8 @@
         @if ($hasJoined && !$hasLeft)
             <div class="mt-6">
                 <button
-                    class="w-full bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white py-4 rounded-xl font-semibold transition shadow-md border border-red-300 dark:border-red-500"
-                    x-data=""
-                    x-on:click.prevent="$dispatch('open-modal', 'confirm-leave-trip')">
+                    class="w-full bg-red-600 hover:bg-red-500 dark:bg-red-700 dark:hover:bg-red-600 text-gray-100 dark:text-gray-200 py-4 rounded-xl font-semibold transition shadow-md"
+                    x-data="" x-on:click.prevent="$dispatch('open-modal', 'confirm-leave-trip')">
                     {{ __('Leave Carpool') }}
                 </button>
 
@@ -987,8 +1080,7 @@
                                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                 </div>
                                 <div class="text-sm ms-2">
-                                    <label for="confirm"
-                                        class="font-normal text-gray-900 dark:text-gray-300">
+                                    <label for="confirm" class="font-normal text-gray-900 dark:text-gray-300">
                                         {{ __('Confirm') }} </label>
                                     <p id="private-checkbox-text"
                                         class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
@@ -1020,34 +1112,6 @@
                 </h2>
             </div>
         @endif
-
-        <!-- Web Share API 分享按鈕 - 所有用戶都可以分享 -->
-        <div class="mt-4 space-y-3">
-            <!-- 主要分享按鈕 -->
-            <button id="share-btn"
-                class="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-3 transition shadow-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
-                <span class="material-icons text-lg">share</span>
-                <span>{{ __('Share Trip') }}</span>
-            </button>
-            
-            <!-- 降級方案按鈕組 (僅在不支援 Web Share API 時顯示) -->
-            <div id="fallback-share-buttons" class="hidden space-y-2">
-                <button id="whatsapp-share-btn"
-                    class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-white"
-                    style="background-color: #25D366;">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787"/>
-                    </svg>
-                    {{ __('Share via WhatsApp') }}
-                </button>
-                
-                <button id="copy-link-btn"
-                    class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <span class="material-icons text-lg">content_copy</span>
-                    <span id="copy-text">{{ __('Copy Link') }}</span>
-                </button>
-            </div>
-        </div>
     </div>
 </x-app-layout>
 
@@ -1135,21 +1199,34 @@
 
     /* 觸摸設備優化 */
     @media (hover: none) {
-        #share-btn, #whatsapp-share-btn, #copy-link-btn {
+
+        #share-btn,
+        #whatsapp-share-btn,
+        #copy-link-btn {
             transform: scale(1);
             transition: transform 0.1s ease, background-color 0.2s ease;
         }
-        
-        #share-btn:active, #whatsapp-share-btn:active, #copy-link-btn:active {
+
+        #share-btn:active,
+        #whatsapp-share-btn:active,
+        #copy-link-btn:active {
             transform: scale(0.96);
         }
     }
 
     /* 分享反饋動畫 */
     @keyframes shareSuccess {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
 
     .share-success {
@@ -1160,52 +1237,54 @@
     .passenger-form {
         transition: all 0.3s ease;
     }
-    
-    .passenger-form:hover {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 1px #3b82f6;
-    }
-    
+
     .remove-passenger {
         opacity: 0.6;
         transition: opacity 0.2s ease;
     }
-    
+
     .remove-passenger:hover {
         opacity: 1;
     }
-    
+
     /* 價格總覽動畫 */
     @keyframes priceUpdate {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
-    
+
     .price-updated {
         animation: priceUpdate 0.3s ease;
     }
-    
+
     /* 乘客地址選擇按鈕樣式 */
     .passenger-location-btn {
         transition: all 0.2s ease;
-        background: transparent;
     }
-    
+
     .passenger-location-btn:hover {
         background-color: rgba(59, 130, 246, 0.05);
         border-color: rgba(59, 130, 246, 0.3);
     }
-    
+
     .passenger-location-btn:focus {
         background-color: rgba(59, 130, 246, 0.05);
     }
-    
+
     .passenger-location-btn.has-location {
         background-color: rgba(34, 197, 94, 0.05);
         border-color: rgba(34, 197, 94, 0.3);
     }
-    
+
     .passenger-location-btn.has-location:hover {
         background-color: rgba(34, 197, 94, 0.1);
     }
@@ -1213,75 +1292,79 @@
 
 <script type="module">
     $(document).ready(function() {
-        
+
         // 保存當前表單狀態
         function saveFormState() {
             const formData = {};
-            
+
             // 保存人數選擇
             formData.peopleCount = $('#people-count').val();
-            
+
             // 保存所有乘客數據
             $('.passenger-form').each(function(index) {
                 const passengerData = {};
-                
+
                 // 保存姓名
                 const nameInput = $(this).find('input[name*="[name]"]');
                 if (nameInput.length) {
                     passengerData.name = nameInput.val();
                 }
-                
+
                 // 保存電話國碼
                 const phoneCountryInput = $(this).find('select[name*="[phone_country_code]"]');
                 if (phoneCountryInput.length) {
                     passengerData.phone_country_code = phoneCountryInput.val();
                 }
-                
+
                 // 保存電話號碼
                 const phoneInput = $(this).find('input[name*="[phone]"]');
                 if (phoneInput.length) {
                     passengerData.phone = phoneInput.val();
                 }
-                
+
                 // 保存地址
                 const locationInput = $(this).find('input[name*="[pickup_location]"]');
                 if (locationInput.length) {
                     passengerData.pickup_location = locationInput.val();
                 }
-                
+
                 formData[`passenger_${index}`] = passengerData;
             });
-            
+
             // 保存條款確認狀態
             formData.termsChecked = $('#group-booking-terms').is(':checked');
-            
+
             localStorage.setItem('groupBookingFormData', JSON.stringify(formData));
             console.log('📝 表單狀態已保存');
         }
 
         // 更新指定乘客的位置信息
         window.updatePassengerLocation = function(passengerIndex, location) {
-            console.log(`🎯 updatePassengerLocation 被調用:`, { passengerIndex, location });
-            
+            console.log(`🎯 updatePassengerLocation 被調用:`, {
+                passengerIndex,
+                location
+            });
+
             const hiddenInput = document.getElementById(`passenger-${passengerIndex}-location`);
             const displayElement = document.getElementById(`passenger-${passengerIndex}-display`);
-            const locationBtn = document.querySelector(`.passenger-location-btn[data-passenger="${passengerIndex}"]`);
-            
-            console.log('🔍 DOM元素查找結果:', { 
-                hiddenInput: !!hiddenInput, 
-                displayElement: !!displayElement, 
-                locationBtn: !!locationBtn 
+            const locationBtn = document.querySelector(
+                `.passenger-location-btn[data-passenger="${passengerIndex}"]`);
+
+            console.log('🔍 DOM元素查找結果:', {
+                hiddenInput: !!hiddenInput,
+                displayElement: !!displayElement,
+                locationBtn: !!locationBtn
             });
-            
+
             if (hiddenInput && displayElement && location && location.formatted_address) {
                 // 更新隱藏欄位的值
                 hiddenInput.value = location.formatted_address;
-                
+
                 // 更新顯示文字
                 displayElement.textContent = location.formatted_address;
                 displayElement.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic');
                 displayElement.classList.add('text-gray-900', 'dark:text-gray-100');
-                
+
                 // 更新按鈕樣式，表示已選擇地址
                 if (locationBtn) {
                     locationBtn.classList.add('has-location');
@@ -1291,10 +1374,10 @@
                         icon.classList.add('text-green-600', 'dark:text-green-400');
                     }
                 }
-                
+
                 // 更新localStorage中的表單狀態
                 saveFormState();
-                
+
                 console.log(`✅ 已為乘客 ${passengerIndex} 設置地址:`, location.formatted_address);
             } else {
                 console.warn('❌ 更新乘客地址失敗，缺少必要元素或數據');
@@ -1307,7 +1390,7 @@
             if (location && location.formatted_address) {
                 // 檢查是否有當前選擇的乘客索引
                 const currentSelectingPassenger = localStorage.getItem('currentSelectingPassenger');
-                
+
                 if (currentSelectingPassenger !== null) {
                     const passengerIndex = parseInt(currentSelectingPassenger);
                     updatePassengerLocation(passengerIndex, location);
@@ -1396,7 +1479,7 @@
         // 檢測是否為手機設備
         function isMobile() {
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                   window.innerWidth <= 768;
+                window.innerWidth <= 768;
         }
 
         // 準備分享數據
@@ -1452,22 +1535,22 @@
         // Web Share API 分享功能
         async function shareViaWebAPI() {
             const shareData = getShareData();
-            
+
             try {
                 // 檢查是否可以分享
                 if (navigator.canShare && !navigator.canShare(shareData)) {
                     throw new Error('無法分享此內容');
                 }
-                
+
                 await navigator.share(shareData);
                 console.log('✅ 分享成功');
-                
+
                 // 顯示成功反饋
-                showShareFeedback('success', '{{ __('Shared successfully!') }}');
-                
+                // showShareFeedback('success', '{{ __('Shared successfully!') }}');
+
             } catch (error) {
                 console.log('❌ 分享失敗或取消:', error);
-                
+
                 if (error.name !== 'AbortError') {
                     // 不是用戶取消，顯示降級選項
                     showFallbackOptions();
@@ -1479,26 +1562,28 @@
         function showShareFeedback(type, message) {
             const button = $('#share-btn');
             const originalContent = button.html();
-            
+
             if (type === 'success') {
                 button.html(`
                     <span class="material-icons text-lg">check_circle</span>
                     <span>${message}</span>
                 `).removeClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800')
-                  .addClass('bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800');
+                    .addClass('bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800');
             } else {
                 button.html(`
                     <span class="material-icons text-lg">error</span>
                     <span>${message}</span>
                 `).removeClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800')
-                  .addClass('bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800');
+                    .addClass('bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800');
             }
-            
+
             // 2秒後恢復
             setTimeout(() => {
                 button.html(originalContent)
-                      .removeClass('bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800')
-                      .addClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800');
+                    .removeClass(
+                        'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800'
+                    )
+                    .addClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800');
             }, 2000);
         }
 
@@ -1506,7 +1591,7 @@
         function showFallbackOptions() {
             $('#fallback-share-buttons').removeClass('hidden');
             showShareFeedback('error', '{{ __('Choose sharing method') }}');
-            
+
             // 3秒後隱藏降級選項
             setTimeout(() => {
                 if (navigator.share) {
@@ -1537,11 +1622,15 @@
                 navigator.clipboard.writeText(currentUrl).then(function() {
                     // Successfully copied
                     copyText.text('{{ __('Copied!') }}');
-                    
+
                     // 顯示成功反饋
                     const button = $('#copy-link-btn');
-                    button.removeClass('bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600')
-                          .addClass('bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200');
+                    button.removeClass(
+                            'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        )
+                        .addClass(
+                            'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200'
+                        );
 
                     // 隱藏降級按鈕
                     setTimeout(() => {
@@ -1553,8 +1642,12 @@
                     // Restore after 2 seconds
                     setTimeout(function() {
                         copyText.text(originalText);
-                        button.removeClass('bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200')
-                              .addClass('bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600');
+                        button.removeClass(
+                                'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200'
+                            )
+                            .addClass(
+                                'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            );
                     }, 2000);
                 }).catch(function(err) {
                     // Copy failed, use fallback method
@@ -1590,12 +1683,13 @@
             try {
                 const successful = document.execCommand('copy');
                 const button = $('#copy-link-btn');
-                
+
                 if (successful) {
                     // Successfully copied
                     copyText.text('{{ __('Copied!') }}');
-                    button.removeClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30')
-                          .addClass('bg-green-50 dark:bg-green-900/20');
+                    button.removeClass(
+                            'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30')
+                        .addClass('bg-green-50 dark:bg-green-900/20');
                     button.find('div').removeClass('bg-blue-500').addClass('bg-green-500');
 
                     // 自動關閉分享面板
@@ -1607,20 +1701,25 @@
                     setTimeout(function() {
                         copyText.text(originalText);
                         button.removeClass('bg-green-50 dark:bg-green-900/20')
-                              .addClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30');
+                            .addClass(
+                                'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                            );
                         button.find('div').removeClass('bg-green-500').addClass('bg-blue-500');
                     }, 2000);
                 } else {
                     // Copy failed
                     copyText.text('{{ __('Copy Failed') }}');
-                    button.removeClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30')
-                          .addClass('bg-red-50 dark:bg-red-900/20');
+                    button.removeClass(
+                            'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30')
+                        .addClass('bg-red-50 dark:bg-red-900/20');
                     button.find('div').removeClass('bg-blue-500').addClass('bg-red-500');
 
                     setTimeout(function() {
                         copyText.text(originalText);
                         button.removeClass('bg-red-50 dark:bg-red-900/20')
-                              .addClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30');
+                            .addClass(
+                                'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                            );
                         button.find('div').removeClass('bg-red-500').addClass('bg-blue-500');
                     }, 2000);
                 }
@@ -1629,13 +1728,15 @@
                 copyText.text('{{ __('Copy Failed') }}');
                 const button = $('#copy-link-btn');
                 button.removeClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30')
-                      .addClass('bg-red-50 dark:bg-red-900/20');
+                    .addClass('bg-red-50 dark:bg-red-900/20');
                 button.find('div').removeClass('bg-blue-500').addClass('bg-red-500');
 
                 setTimeout(function() {
                     copyText.text(originalText);
                     button.removeClass('bg-red-50 dark:bg-red-900/20')
-                          .addClass('bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30');
+                        .addClass(
+                            'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                        );
                     button.find('div').removeClass('bg-red-500').addClass('bg-blue-500');
                 }, 2000);
             }
@@ -1646,7 +1747,7 @@
         // WhatsApp share functionality (降級方案)
         $('#whatsapp-share-btn').on('click', function() {
             const shareData = getShareData();
-            
+
             // 構建 WhatsApp 分享訊息
             const message = `${shareData.text}\n\n${shareData.url}`;
             const encodedMessage = encodeURIComponent(message);
@@ -1679,7 +1780,7 @@
         const basePricePerPerson = {{ $trip->price_per_person }};
         const fourPersonDiscount = {{ $trip->four_person_discount }};
         const availableSlots = {{ $availableSlots }};
-        
+
         // 優惠券相關變數
         let appliedCoupon = null;
         let couponDiscountAmount = 0;
@@ -1706,11 +1807,11 @@
             const pricePerPerson = calculatePricePerPerson(peopleCount);
             const subtotalAmount = peopleCount * pricePerPerson;
             const finalAmount = Math.max(0, subtotalAmount - couponDiscountAmount);
-            
+
             $('#people-display').text(peopleCount);
             $('#price-per-person-display').text(`HK$ ${pricePerPerson.toLocaleString()}`);
             $('#subtotal-amount').text(`HK$ ${subtotalAmount.toLocaleString()}`);
-            
+
             // 更新優惠券折扣顯示
             if (appliedCoupon && couponDiscountAmount > 0) {
                 $('#coupon-discount-row').removeClass('hidden');
@@ -1718,33 +1819,34 @@
             } else {
                 $('#coupon-discount-row').addClass('hidden');
             }
-            
+
             $('#total-amount').text(`HK$ ${finalAmount.toLocaleString()}`);
             $('#total-amount-btn').text(`HK$ ${finalAmount.toLocaleString()}`);
-            
+
             // 為價格顯示添加動畫效果
             $('#total-amount, #price-per-person-display, #subtotal-amount').addClass('price-updated');
             setTimeout(() => {
-                $('#total-amount, #price-per-person-display, #subtotal-amount').removeClass('price-updated');
+                $('#total-amount, #price-per-person-display, #subtotal-amount').removeClass(
+                    'price-updated');
             }, 300);
         }
-        
+
         // 套用優惠券
         function applyCoupon() {
             const couponCode = $('#coupon-code').val().trim().toUpperCase();
             if (!couponCode) {
-                showCouponError('{{ __("Please enter a coupon code") }}');
+                showCouponError('{{ __('Please enter a coupon code') }}');
                 return;
             }
-            
+
             // 顯示加載狀態
             const applyBtn = $('#apply-coupon');
             const originalText = applyBtn.text();
-            applyBtn.text('{{ __("Validating...") }}').prop('disabled', true);
-            
+            applyBtn.text('{{ __('Validating...') }}').prop('disabled', true);
+
             // 發送 AJAX 請求驗證優惠券
             $.ajax({
-                url: '{{ route("coupon.validate") }}',
+                url: '{{ route('coupon.validate') }}',
                 method: 'POST',
                 data: {
                     code: couponCode,
@@ -1756,56 +1858,60 @@
                     if (response.valid) {
                         appliedCoupon = response.coupon;
                         couponDiscountAmount = response.discount_amount;
-                        showCouponSuccess(`{{ __("Coupon applied! Discount: HK$") }}${response.discount_amount}`);
+                        showCouponSuccess(
+                            `{{ __("Coupon applied! Discount: HK$") }}${response.discount_amount}`
+                        );
                         updatePriceDisplay();
-                        
+
                         // 禁用輸入框和按鈕
                         $('#coupon-code').prop('disabled', true);
-                        applyBtn.text('{{ __("Applied") }}').addClass('bg-green-600 hover:bg-green-700');
-                        
+                        applyBtn.text('{{ __('Applied') }}').addClass(
+                            'bg-green-600 hover:bg-green-700');
+
                         // 添加移除按鈕
                         if (!$('#remove-coupon').length) {
                             applyBtn.after(`
                                 <button type="button" id="remove-coupon" 
-                                    class="ml-2 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm">
-                                    {{ __("Remove") }}
+                                    class="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm">
+                                    {{ __('Remove') }}
                                 </button>
                             `);
                         }
                     } else {
-                        showCouponError(response.message || '{{ __("Invalid coupon code") }}');
+                        showCouponError(response.message || '{{ __('Invalid coupon code') }}');
                     }
                 },
                 error: function() {
-                    showCouponError('{{ __("Error validating coupon. Please try again.") }}');
+                    showCouponError('{{ __('Error validating coupon. Please try again.') }}');
                 },
                 complete: function() {
                     applyBtn.text(originalText).prop('disabled', false);
                 }
             });
         }
-        
+
         // 移除優惠券
         function removeCoupon() {
             appliedCoupon = null;
             couponDiscountAmount = 0;
-            
+
             $('#coupon-code').prop('disabled', false).val('');
-            $('#apply-coupon').text('{{ __("Apply") }}').removeClass('bg-green-600 hover:bg-green-700').addClass('bg-amber-600 hover:bg-amber-700');
+            $('#apply-coupon').text('{{ __('Apply') }}').removeClass('bg-green-600 hover:bg-green-700')
+                .addClass('bg-amber-600 hover:bg-amber-700');
             $('#remove-coupon').remove();
             $('#coupon-status').addClass('hidden');
             $('#coupon-success, #coupon-error').addClass('hidden');
-            
+
             updatePriceDisplay();
         }
-        
+
         // 計算小計
         function calculateSubtotal() {
             const peopleCount = parseInt($('#people-count').val()) || 1;
             const pricePerPerson = calculatePricePerPerson(peopleCount);
             return peopleCount * pricePerPerson;
         }
-        
+
         // 顯示優惠券成功訊息
         function showCouponSuccess(message) {
             $('#coupon-status').removeClass('hidden');
@@ -1813,7 +1919,7 @@
             $('#coupon-success').removeClass('hidden');
             $('#coupon-success-text').text(message);
         }
-        
+
         // 顯示優惠券錯誤訊息
         function showCouponError(message) {
             $('#coupon-status').removeClass('hidden');
@@ -1827,7 +1933,7 @@
             return `
                 <div class="passenger-form border border-gray-200 dark:border-gray-600 rounded-lg p-4" data-passenger="${index}">
                     <div class="flex items-center justify-between mb-3">
-                        <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                        <h4 class="font-medium text-gray-700 dark:text-gray-200">
                             {{ __('Passenger') }} ${index + 1}
                         </h4>
                         <button type="button" class="remove-passenger text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" 
@@ -1843,22 +1949,21 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 {{ __('Name') }} <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" name="passengers[${index}][name]" required
-                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                            <x-text-input name="passengers[${index}][name]" class="block w-full border-gray-300 dark:border-gray-700" required />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 {{ __('Phone Number') }} <span class="text-red-500">*</span>
                             </label>
                             <div class="flex">
-                                <select name="passengers[${index}][phone_country_code]" 
-                                    class="rounded-l-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
+                                <select name="passengers[${index}][phone_country_code]"
+                                    class="rounded-l-md border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm">
                                     <option value="+852">+852 (HK)</option>
                                     <option value="+86">+86 (CN)</option>
                                 </select>
-                                <input type="tel" name="passengers[${index}][phone]" required
-                                    class="flex-1 rounded-r-md border-l-0 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
-                                    placeholder="12345678">
+                                <x-text-input type="tel" name="passengers[${index}][phone]" required
+                                    class="block w-full rounded-l-none border-l-0 border-gray-300 dark:border-gray-700"
+                                    placeholder="12345678"/>
                             </div>
                         </div>
                         <div class="md:col-span-2">
@@ -1866,16 +1971,19 @@
                                 {{ __('Pickup Location') }} <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <input type="hidden" name="passengers[${index}][pickup_location]" id="passenger-${index}-location" required>
-                                <button type="button" 
-                                    class="passenger-location-btn w-full text-left px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-600 transition-colors"
-                                    data-passenger="${index}"
-                                    onclick="openMapForPassenger(${index})">
+                                <input type="hidden" name="passengers[${index}][pickup_location]"
+                                    id="passenger-${index}-location" required>
+                                <button type="button"
+                                    class="passenger-location-btn w-full text-left px-3 py-2 text-sm bg-secondary dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm transition-colors"
+                                    data-passenger="${index}" onclick="openMapForPassenger(${index})">
                                     <div class="flex items-center justify-between">
-                                        <span class="passenger-location-display text-gray-400 dark:text-gray-500 italic" id="passenger-${index}-display">
+                                        <span
+                                            class="passenger-location-display text-gray-400 dark:text-gray-500 italic"
+                                            id="passenger-${index}-display">
                                             {{ __('Click to select pickup location on map') }}
                                         </span>
-                                        <i class="material-icons text-gray-400 dark:text-gray-500">location_on</i>
+                                        <i
+                                            class="material-icons text-gray-400 dark:text-gray-500">location_on</i>
                                     </div>
                                 </button>
                             </div>
@@ -1889,7 +1997,7 @@
         $('#people-count').on('change', function() {
             const selectedCount = parseInt($(this).val()) || 1;
             const currentForms = $('.passenger-form').length;
-            
+
             // 檢查是否超過可用槽位
             if (selectedCount > availableSlots) {
                 showAlertModal({
@@ -1901,20 +2009,20 @@
                 $(this).val(Math.min(currentForms, availableSlots));
                 return;
             }
-            
+
             // 添加表單
             if (selectedCount > currentForms) {
                 for (let i = currentForms; i < selectedCount; i++) {
                     $('#passengers-container').append(createPassengerForm(i));
                 }
-            } 
+            }
             // 移除多餘表單 (保留第一個)
             else if (selectedCount < currentForms) {
                 $('.passenger-form').slice(selectedCount).remove();
             }
-            
+
             updatePriceDisplay();
-            
+
             // 保存表單狀態
             setTimeout(() => {
                 saveFormState();
@@ -1925,51 +2033,53 @@
         $(document).on('click', '.remove-passenger', function() {
             const passengerIndex = $(this).data('passenger');
             if (passengerIndex === 0) return; // 不允許移除主預訂人
-            
+
             $(this).closest('.passenger-form').remove();
-            
+
             // 重新編號
             $('.passenger-form').each(function(index) {
                 $(this).attr('data-passenger', index);
-                $(this).find('h4').text(index === 0 ? 
-                    '{{ __('Main Booker') }} ({{ __('Passenger 1') }})' : 
+                $(this).find('h4').text(index === 0 ?
+                    '{{ __('Main Booker') }} ({{ __('Passenger 1') }})' :
                     `{{ __('Passenger') }} ${index + 1}`);
-                
+
                 // 更新 name 屬性和 id 屬性
                 $(this).find('input, select').each(function() {
                     const name = $(this).attr('name');
                     if (name && name.includes('passengers[')) {
-                        $(this).attr('name', name.replace(/passengers\[\d+\]/, `passengers[${index}]`));
+                        $(this).attr('name', name.replace(/passengers\[\d+\]/,
+                            `passengers[${index}]`));
                     }
-                    
+
                     const id = $(this).attr('id');
                     if (id && id.includes('passenger-')) {
-                        $(this).attr('id', id.replace(/passenger-\d+/, `passenger-${index}`));
+                        $(this).attr('id', id.replace(/passenger-\d+/,
+                            `passenger-${index}`));
                     }
                 });
-                
+
                 // 更新地址選擇按鈕
                 const locationBtn = $(this).find('.passenger-location-btn');
                 if (locationBtn.length) {
                     locationBtn.attr('data-passenger', index);
                     locationBtn.attr('onclick', `openMapForPassenger(${index})`);
                 }
-                
+
                 // 更新地址顯示元素
                 const locationDisplay = $(this).find('.passenger-location-display');
                 if (locationDisplay.length) {
                     locationDisplay.attr('id', `passenger-${index}-display`);
                 }
-                
+
                 // 更新移除按鈕的 data-passenger
                 $(this).find('.remove-passenger').attr('data-passenger', index);
             });
-            
+
             // 更新人數選擇器
             const newCount = $('.passenger-form').length;
             $('#people-count').val(newCount);
             updatePriceDisplay();
-            
+
             // 保存表單狀態
             setTimeout(() => {
                 saveFormState();
@@ -1980,7 +2090,7 @@
         $('#submit-group-booking').on('click', function() {
             const form = $('#group-booking-form');
             const termsChecked = $('#group-booking-terms').is(':checked');
-            
+
             if (!termsChecked) {
                 showAlertModal({
                     title: '{{ __('Terms Required') }}',
@@ -1990,10 +2100,10 @@
                 });
                 return;
             }
-            
+
             // 驗證所有必填欄位
             let isValid = true;
-            
+
             // 驗證基本欄位
             form.find('input[required], select[required]').each(function() {
                 if (!$(this).val().trim()) {
@@ -2008,7 +2118,7 @@
                     return false;
                 }
             });
-            
+
             // 特別驗證所有乘客的地址是否已選擇
             if (isValid) {
                 const peopleCount = parseInt($('#people-count').val()) || 1;
@@ -2024,37 +2134,40 @@
                         // 滾動到相應的乘客表單
                         const passengerForm = document.querySelector(`[data-passenger="${i}"]`);
                         if (passengerForm) {
-                            passengerForm.scrollIntoView({ behavior: 'smooth' });
+                            passengerForm.scrollIntoView({
+                                behavior: 'smooth'
+                            });
                         }
                         isValid = false;
                         break;
                     }
                 }
             }
-            
+
             if (!isValid) return;
-            
+
             // 計算總金額並添加到表單（考慮優惠券折扣）
             const peopleCount = parseInt($('#people-count').val()) || 1;
             const pricePerPerson = calculatePricePerPerson(peopleCount);
             const subtotalAmount = peopleCount * pricePerPerson;
             const finalAmount = Math.max(0, subtotalAmount - couponDiscountAmount);
-            
+
             // 添加金額相關資訊到表單
             form.append(`<input type="hidden" name="subtotal_amount" value="${subtotalAmount}">`);
             form.append(`<input type="hidden" name="total_amount" value="${finalAmount}">`);
             form.append(`<input type="hidden" name="price_per_person" value="${pricePerPerson}">`);
-            
+
             // 添加優惠券資訊 (如果有套用)
             if (appliedCoupon) {
                 form.append(`<input type="hidden" name="coupon_code" value="${appliedCoupon.code}">`);
-                form.append(`<input type="hidden" name="coupon_discount" value="${couponDiscountAmount}">`);
+                form.append(
+                    `<input type="hidden" name="coupon_discount" value="${couponDiscountAmount}">`);
             }
-            
+
             // 清理保存的表單狀態
             localStorage.removeItem('groupBookingFormData');
             localStorage.removeItem('currentSelectingPassenger');
-            
+
             // 提交表單
             form.submit();
         });
@@ -2063,55 +2176,58 @@
         updatePriceDisplay();
 
         // === 地圖選擇功能 ===
-        
+
         // 恢復表單狀態
         function restoreFormState() {
             const savedData = localStorage.getItem('groupBookingFormData');
             if (!savedData) return;
-            
+
             try {
                 const formData = JSON.parse(savedData);
                 console.log('📋 正在恢復表單狀態...');
-                
+
                 // 恢復人數選擇
                 if (formData.peopleCount) {
                     $('#people-count').val(formData.peopleCount).trigger('change');
                 }
-                
+
                 // 等待表單生成後恢復數據
                 setTimeout(() => {
                     // 恢復各乘客數據
                     $('.passenger-form').each(function(index) {
                         const passengerData = formData[`passenger_${index}`];
                         if (!passengerData) return;
-                        
+
                         // 恢復姓名
                         if (passengerData.name) {
                             $(this).find('input[name*="[name]"]').val(passengerData.name);
                         }
-                        
+
                         // 恢復電話國碼
                         if (passengerData.phone_country_code) {
-                            $(this).find('select[name*="[phone_country_code]"]').val(passengerData.phone_country_code);
+                            $(this).find('select[name*="[phone_country_code]"]').val(
+                                passengerData.phone_country_code);
                         }
-                        
+
                         // 恢復電話號碼
                         if (passengerData.phone) {
                             $(this).find('input[name*="[phone]"]').val(passengerData.phone);
                         }
-                        
+
                         // 恢復地址
                         if (passengerData.pickup_location) {
-                            const locationInput = $(this).find('input[name*="[pickup_location]"]');
+                            const locationInput = $(this).find(
+                                'input[name*="[pickup_location]"]');
                             const locationDisplay = $(this).find('.passenger-location-display');
                             const locationBtn = $(this).find('.passenger-location-btn');
-                            
+
                             if (locationInput.length && locationDisplay.length) {
                                 locationInput.val(passengerData.pickup_location);
                                 locationDisplay.text(passengerData.pickup_location);
-                                locationDisplay.removeClass('text-gray-400 dark:text-gray-500 italic');
+                                locationDisplay.removeClass(
+                                    'text-gray-400 dark:text-gray-500 italic');
                                 locationDisplay.addClass('text-gray-900 dark:text-gray-100');
-                                
+
                                 if (locationBtn.length) {
                                     locationBtn.addClass('has-location');
                                     const icon = locationBtn.find('i');
@@ -2123,37 +2239,41 @@
                             }
                         }
                     });
-                    
+
                     // 恢復條款確認狀態
                     if (formData.termsChecked) {
                         $('#group-booking-terms').prop('checked', true);
                     }
-                    
+
                     console.log('✅ 表單狀態恢復完成');
                 }, 100);
-                
+
             } catch (error) {
                 console.error('恢復表單狀態失敗:', error);
                 localStorage.removeItem('groupBookingFormData');
             }
         }
-        
+
         // 為乘客選擇地圖位置
         window.openMapForPassenger = function(passengerIndex) {
             // 保存當前表單狀態
             saveFormState();
-            
+
             // 設置當前選擇的乘客索引
             localStorage.setItem('currentSelectingPassenger', passengerIndex);
-            
+
             // 打開地圖頁面
-            const mapUrl = '{{ route('map') }}?passenger=' + passengerIndex + '&return=' + encodeURIComponent(window.location.pathname);
+            const mapUrl = '{{ route('map') }}?passenger=' + passengerIndex + '&return=' +
+                encodeURIComponent(window.location.pathname);
             window.location.href = mapUrl;
         };
 
         // 監聽來自地圖頁面的位置選擇事件
         window.addEventListener('passenger-location-selected', function(event) {
-            const { passengerIndex, location } = event.detail;
+            const {
+                passengerIndex,
+                location
+            } = event.detail;
             updatePassengerLocation(passengerIndex, location);
         });
 
@@ -2162,20 +2282,23 @@
             const urlParams = new URLSearchParams(window.location.search);
             const returnedLocation = urlParams.get('location');
             const passengerIndex = urlParams.get('passenger');
-            
-            console.log('📍 檢查地圖返回參數:', { returnedLocation: !!returnedLocation, passengerIndex });
-            
+
+            console.log('📍 檢查地圖返回參數:', {
+                returnedLocation: !!returnedLocation,
+                passengerIndex
+            });
+
             if (returnedLocation && passengerIndex !== null) {
                 try {
                     const location = JSON.parse(decodeURIComponent(returnedLocation));
                     console.log('📍 解析位置數據成功:', location);
-                    
+
                     // 先恢復表單狀態，然後更新地址
                     setTimeout(() => {
                         console.log('📍 為乘客設置地址:', passengerIndex, location);
                         updatePassengerLocation(parseInt(passengerIndex), location);
                     }, 200);
-                    
+
                     // 清理URL參數
                     const newUrl = window.location.pathname;
                     window.history.replaceState({}, document.title, newUrl);
@@ -2201,21 +2324,21 @@
         function initializeGroupBooking() {
             // 首先恢復表單狀態
             restoreFormState();
-            
+
             // 然後檢查是否從地圖返回
             checkMapReturnWithLocation();
-            
+
             // 設置自動保存
             setupAutoSave();
         }
 
         // === 優惠券事件監聽器 ===
-        
+
         // 套用優惠券按鈕
         $('#apply-coupon').on('click', function() {
             applyCoupon();
         });
-        
+
         // 優惠券代碼輸入框 Enter 鍵
         $('#coupon-code').on('keypress', function(e) {
             if (e.which === 13) { // Enter key
@@ -2223,12 +2346,12 @@
                 applyCoupon();
             }
         });
-        
+
         // 移除優惠券按鈕 (動態添加的元素使用事件委託)
         $(document).on('click', '#remove-coupon', function() {
             removeCoupon();
         });
-        
+
         // 優惠券代碼輸入時自動轉為大寫
         $('#coupon-code').on('input', function() {
             $(this).val($(this).val().toUpperCase());

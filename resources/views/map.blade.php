@@ -61,10 +61,10 @@
                 // 存储第一个结果的完整数据
                 if (index === 0) {
                     _locationData = {
-                        formatted_address: result.text || data.text,
+                        formatted_address: data.text || result.text ,
                         lat: result.latlng.lat,
                         lng: result.latlng.lng,
-                        place_name: result.text || data.text,
+                        place_name: data.text || result.text,
                         geometry: {
                             coordinates: [result.latlng.lng, result.latlng.lat]
                         }
