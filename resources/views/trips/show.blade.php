@@ -53,7 +53,7 @@
                 <span
                     class="px-2 py-1 rounded-md text-xs
                         @if ($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200
-                        @elseif($trip->trip_status === 'voting') bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200
+                        @elseif($trip->trip_status === 'charging') bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200
                         @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200
                         @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
                     {{ ucfirst($trip->trip_status) }}
@@ -1892,7 +1892,12 @@
             
             // 檢查是否超過可用槽位
             if (selectedCount > availableSlots) {
-                alert(`{{ __('Cannot book for') }} ${selectedCount} {{ __('people. Only') }} ${availableSlots} {{ __('slots available.') }}`);
+                showAlertModal({
+                    title: '{{ __('Booking Limit Exceeded') }}',
+                    message: `{{ __('Cannot book for') }} ${selectedCount} {{ __('people. Only') }} ${availableSlots} {{ __('slots available.') }}`,
+                    type: 'warning',
+                    buttonText: '{{ __('OK') }}'
+                });
                 $(this).val(Math.min(currentForms, availableSlots));
                 return;
             }
@@ -1977,7 +1982,12 @@
             const termsChecked = $('#group-booking-terms').is(':checked');
             
             if (!termsChecked) {
-                alert('{{ __('Please agree to the terms and conditions.') }}');
+                showAlertModal({
+                    title: '{{ __('Terms Required') }}',
+                    message: '{{ __('Please agree to the terms and conditions.') }}',
+                    type: 'warning',
+                    buttonText: '{{ __('OK') }}'
+                });
                 return;
             }
             
@@ -1988,7 +1998,12 @@
             form.find('input[required], select[required]').each(function() {
                 if (!$(this).val().trim()) {
                     $(this).focus();
-                    alert('{{ __('Please fill in all required fields.') }}');
+                    showAlertModal({
+                        title: '{{ __('Required Fields Missing') }}',
+                        message: '{{ __('Please fill in all required fields.') }}',
+                        type: 'warning',
+                        buttonText: '{{ __('OK') }}'
+                    });
                     isValid = false;
                     return false;
                 }
@@ -2000,7 +2015,12 @@
                 for (let i = 0; i < peopleCount; i++) {
                     const locationInput = document.getElementById(`passenger-${i}-location`);
                     if (!locationInput || !locationInput.value.trim()) {
-                        alert(`{{ __('Please select pickup location for passenger') }} ${i + 1}`);
+                        showAlertModal({
+                            title: '{{ __('Pickup Location Required') }}',
+                            message: `{{ __('Please select pickup location for passenger') }} ${i + 1}`,
+                            type: 'warning',
+                            buttonText: '{{ __('OK') }}'
+                        });
                         // 滾動到相應的乘客表單
                         const passengerForm = document.querySelector(`[data-passenger="${i}"]`);
                         if (passengerForm) {
@@ -2222,3 +2242,6 @@
         initializeGroupBooking();
     });
 </script>
+
+<!-- Alert Modal -->
+<x-alert-modal />

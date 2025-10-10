@@ -71,5 +71,24 @@
     "Payment Confirmed": "Payment Confirmed",
     "Welcome to your carpool trip": "Welcome to your carpool trip",
     "Your payment has been confirmed and you have successfully joined the carpool trip": "Your payment has been confirmed and you have successfully joined the carpool trip",
-    "You have reached the usage limit for this coupon.": "You have reached the usage limit for this coupon."
+    "You have reached the usage limit for this coupon.": "You have reached the usage limit for this coupon.",
+    
+    "Depart": "Depart",
+    "Start Charging": "Start Charging",
+    "Mark trip as departed?": "Mark trip as departed?",
+    "Start charging passengers?": "Start charging passengers?",
+    "This will notify passengers that the trip has started.": "This will notify passengers that the trip has started.",
+    "You can now collect fees from passengers.": "You can now collect fees from passengers.",
+    "This will finalize the trip and mark it as completed.": "This will finalize the trip and mark it as completed.",
+    "This action cannot be undone. Passengers will be notified.": "This action cannot be undone. Passengers will be notified.",
+    "Cancel Trip": "Cancel Trip",
+    "Keep Trip": "Keep Trip",
+    "Confirm Action": "Confirm Action",
+    "Are you sure?": "Are you sure?",
+    "Notice": "Notice",
+    "OK": "OK",
+    "Booking Limit Exceeded": "Booking Limit Exceeded",
+    "Terms Required": "Terms Required",
+    "Required Fields Missing": "Required Fields Missing",
+    "Pickup Location Required": "Pickup Location Required"
 } 

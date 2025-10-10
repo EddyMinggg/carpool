@@ -7,6 +7,7 @@ use App\Http\Controllers\TripController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\SmsController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -42,9 +43,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [DriverController::class, 'dashboard'])->name('driver.dashboard');
         Route::get('/my-trips', [DriverController::class, 'myTrips'])->name('driver.my-trips');
         Route::post('/trips/{trip}/assign', [DriverController::class, 'assignTrip'])->name('driver.assign-trip');
-        Route::post('/assignments/{assignment}/confirm', [DriverController::class, 'confirmTrip'])->name('driver.confirm-trip');
-        Route::post('/assignments/{assignment}/cancel', [DriverController::class, 'cancelTrip'])->name('driver.cancel-trip');
-        Route::post('/assignments/{assignment}/complete', [DriverController::class, 'completeTrip'])->name('driver.complete-trip');
+        Route::post('/assignments/{tripDriver}/confirm', [DriverController::class, 'confirmTrip'])->name('driver.confirm-trip');
+        Route::post('/assignments/{tripDriver}/cancel', [DriverController::class, 'cancelTrip'])->name('driver.cancel-trip');
+        Route::post('/assignments/{tripDriver}/depart', [DriverController::class, 'departTrip'])->name('driver.depart-trip');
+        Route::post('/assignments/{tripDriver}/complete', [DriverController::class, 'completeTrip'])->name('driver.complete-trip');
     });
 });
 

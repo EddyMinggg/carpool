@@ -133,6 +133,49 @@ class SmsTemplateService
     }
 
     /**
+     * Team Join Notification - Golden Hour (Fixed Price)
+     */
+    public static function teamJoinGoldenHour(string $newMemberPhone, int $currentCount, int $maxPeople, string $destination, string $price): string
+    {
+        return "🌟 新成員加入！隊伍現有 {$currentCount}/{$maxPeople} 人前往 {$destination}。黃金時段固定價 HK\${$price}，1人即可出發！新成員：{$newMemberPhone}";
+    }
+
+    /**
+     * Team Join Notification - Regular Hour (Dynamic Pricing)
+     */
+    public static function teamJoinRegularHour(string $newMemberPhone, int $currentCount, int $maxPeople, string $destination, string $basePrice, string $discountPrice = null): string
+    {
+        $message = "⏰ 新成員加入！隊伍現有 {$currentCount}/{$maxPeople} 人前往 {$destination}。";
+        
+        if ($currentCount >= 4 && $discountPrice) {
+            $message .= "已達4人，享受優惠價 HK\${$discountPrice}/人！";
+        } elseif ($currentCount == 3) {
+            $message .= "還差1人就可享優惠價！目前 HK\${$basePrice}/人";
+        } else {
+            $message .= "基價 HK\${$basePrice}/人，4人可享優惠！";
+        }
+        
+        $message .= "新成員：{$newMemberPhone}";
+        return $message;
+    }
+
+    /**
+     * Team Full Notification
+     */
+    public static function teamFull(string $destination, int $teamCount, string $finalPrice): string
+    {
+        return "🎉 隊伍已滿！{$teamCount}人隊伍前往 {$destination}，最終價格 HK\${$finalPrice}/人。請準備出發！";
+    }
+
+    /**
+     * Team Near Full Notification (3/4 people)
+     */
+    public static function teamNearFull(string $destination, string $currentPrice, string $discountPrice): string
+    {
+        return "🔥 隊伍3/4人！還差1人前往 {$destination} 就可享優惠價 HK\${$discountPrice}/人（原價 HK\${$currentPrice}/人）。快邀請朋友！";
+    }
+
+    /**
      * Multilingual Support - Get template in different languages
      */
     public static function getTemplate(string $templateName, array $params, string $language = 'en'): string

@@ -153,6 +153,11 @@ class PaymentController extends Controller
             'coupon_discount' => $couponDiscount,
         ]);
         
+        // 獲取當前隊伍成員（在創建新成員之前）
+        $existingMembers = $trip->joins()->with('user')->get()->filter(function($join) {
+            return $join->user !== null; // 只包含有用戶記錄的成員
+        })->pluck('user')->toArray();
+
         // 為每個乘客創建 TripJoin 記錄
         foreach ($passengers as $index => $passenger) {
             $fullPhone = $passenger['phone_country_code'] . $passenger['phone'];
@@ -163,6 +168,22 @@ class PaymentController extends Controller
                 'pickup_location' => $passenger['pickup_location'],
                 'payment_confirmation' => false,
             ]);
+        }
+
+        // 如果有現有成員且非空，發送團隊通知（僅針對第一個新成員）
+        if (!empty($existingMembers)) {
+            try {
+                $firstPassengerUser = \App\Models\User::where('phone', $passenger['phone_country_code'] . $passengers[0]['phone'])->first();
+                if ($firstPassengerUser) {
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->sendTeamJoinNotification($trip, $firstPassengerUser, $existingMembers);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send team join notification for group booking', [
+                    'trip_id' => $trip->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
         
         return redirect()->route('payment.code', ['id' => $mainPayment->id])
@@ -204,6 +225,11 @@ class PaymentController extends Controller
             'type' => 'full_payment',
         ]);
 
+        // 獲取當前隊伍成員（在創建新成員之前）
+        $existingMembers = $trip->joins()->with('user')->get()->filter(function($join) {
+            return $join->user !== null; // 只包含有用戶記錄的成員
+        })->pluck('user')->toArray();
+
         // 創建加入記錄
         $trip->joins()->create([
             'user_phone' => $user->phone ?? $request->user_phone,
@@ -216,6 +242,23 @@ class PaymentController extends Controller
             ->update([
                 'user_fee' => $pricePerPerson,
             ]);
+
+        // 發送團隊加入通知給現有成員
+        if (!empty($existingMembers)) {
+            try {
+                $newMember = $user ?: \App\Models\User::where('phone', $request->user_phone)->first();
+                if ($newMember) {
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->sendTeamJoinNotification($trip, $newMember, $existingMembers);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send team join notification', [
+                    'trip_id' => $trip->id,
+                    'user_phone' => $user->phone ?? $request->user_phone,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
         return redirect()->route('payment.code', ['id' => $payment->id]);
     }

@@ -71,18 +71,32 @@
                     @foreach ($assignedTrips as $trip)
                         @php
                             $assignment = $trip->tripDriver;
-                            $statusClasses = [
-                                'assigned' =>
-                                    'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200',
-                                'confirmed' => 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200',
-                                'completed' =>
-                                    'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200',
+                            // 簡化狀態流程：awaiting -> departed -> completed
+                            $tripStatusClasses = [
+                                'awaiting' => 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200',
+                                'departed' => 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200',
+                                'completed' => 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200',
                                 'cancelled' => 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200',
+                            ];
+                            
+                            // 直接使用 trip_status，不再考慮司機 status
+                            $displayStatus = $trip->trip_status;
+                            $statusClass = $tripStatusClasses[$displayStatus] ?? $tripStatusClasses['awaiting'];
+                            
+                            // 司機分配狀態說明
+                            $assignmentStatusText = [
+                                'assigned' => '已分配（待確認）',
+                                'confirmed' => '已確認接受',
                             ];
                         @endphp
 
                         @if (!$assignment)
                             @continue
+                        @endif
+
+                        {{-- 調試信息 --}}
+                        @if (config('app.debug'))
+                            <!-- Debug: Assignment ID: {{ $assignment->id ?? 'NULL' }}, Driver ID: {{ $assignment->driver_id ?? 'NULL' }} -->
                         @endif
 
                         <div
@@ -92,9 +106,8 @@
                                 <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
                                     {{ $trip->planned_departure_time->format('H:i') }}
                                 </div>
-                                <div
-                                    class="px-3 py-1 rounded-full text-sm font-medium {{ $statusClasses[$assignment->status] ?? $statusClasses['assigned'] }}">
-                                    {{ ucfirst($assignment->status) }}
+                                <div class="px-3 py-1 rounded-full text-sm font-medium {{ $statusClass }}">
+                                    {{ ucfirst($displayStatus) }}
                                 </div>
                             </div>
 
@@ -131,36 +144,65 @@
                                 </div>
                                 <div class="flex gap-2">
                                     @if ($assignment->status === 'confirmed')
-                                        <!-- Trip is confirmed and ready for completion -->
-                                        <form action="{{ route('driver.complete-trip', $assignment) }}" method="POST"
-                                            onsubmit="return confirm(@js(__('Mark as completed?')));" class="inline">
-                                            @csrf
-                                            <button type="submit"
-                                                class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                                                🏁 {{ __('Complete') }}
-                                            </button>
-                                        </form>
+                                        @if ($trip->trip_status === 'awaiting')
+                                            <!-- 開始接客：標記出發 -->
+                                            <form id="depart-form-{{ $assignment->id }}" action="{{ route('driver.depart-trip', $assignment) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="button"
+                                                    onclick="showConfirmModal({
+                                                        title: '🚀 {{ __('Start Pickup') }}',
+                                                        message: '{{ __('開始接載乘客？') }}<br><small class=\'text-gray-500\'>{{ __('請確保已到達第一個接送點') }}</small>',
+                                                        confirmText: '{{ __('Start Pickup') }}',
+                                                        cancelText: '{{ __('Cancel') }}',
+                                                        onConfirm: () => document.getElementById('depart-form-{{ $assignment->id }}').submit()
+                                                    })"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                                                    🚀 {{ __('Start Pickup') }}
+                                                </button>
+                                            </form>
+                                        @elseif ($trip->trip_status === 'departed')
+                                            <!-- 到達目的地：完成行程 -->
+                                            <form id="complete-form-{{ $assignment->id }}" action="{{ route('driver.complete-trip', $assignment) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="button"
+                                                    onclick="showConfirmModal({
+                                                        title: '🏁 {{ __('Complete Trip') }}',
+                                                        message: '{{ __('確認已到達目的地？') }}<br><small class=\'text-gray-500\'>{{ __('這會將行程標記為已完成') }}</small>',
+                                                        confirmText: '{{ __('Complete Trip') }}',
+                                                        cancelText: '{{ __('Cancel') }}',
+                                                        onConfirm: () => document.getElementById('complete-form-{{ $assignment->id }}').submit()
+                                                    })"
+                                                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                                                    🏁 {{ __('Arrive Destination') }}
+                                                </button>
+                                            </form>
+                                        @endif
 
-                                        <form action="{{ route('driver.cancel-trip', $assignment) }}" method="POST"
-                                            onsubmit="return confirm(@js(__('Cancel this trip?')));" class="inline">
-                                            @csrf
-                                            <button type="submit"
-                                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                                                ❌ {{ __('Cancel') }}
-                                            </button>
-                                        </form>
-                                    @elseif($assignment->status === 'completed')
-                                        <span class="text-sm text-green-600 dark:text-green-400 font-medium">
-                                            ✅ {{ __('Completed') }}
-                                        </span>
-                                    @elseif($assignment->status === 'cancelled')
-                                        <span class="text-sm text-red-600 dark:text-red-400 font-medium">
-                                            ❌ {{ __('Cancelled') }}
-                                        </span>
+                                        <!-- 取消按鈕：只有 awaiting 狀態才能取消，一旦 departed 就不能取消 -->
+                                        @if ($trip->trip_status === 'awaiting')
+                                            <form id="cancel-form-{{ $assignment->id }}" action="{{ route('driver.cancel-trip', $assignment) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="button"
+                                                    onclick="showConfirmModal({
+                                                        title: '❌ {{ __('Cancel Assignment') }}',
+                                                        message: '{{ __('Cancel your assignment to this trip?') }}<br><small class=\'text-gray-500\'>{{ __('The trip will become available for other drivers.') }}</small>',
+                                                        confirmText: '{{ __('Cancel Assignment') }}',
+                                                        cancelText: '{{ __('Keep Assignment') }}',
+                                                        onConfirm: () => document.getElementById('cancel-form-{{ $assignment->id }}').submit()
+                                                    })"
+                                                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                                                    ❌ {{ __('Cancel Assignment') }}
+                                                </button>
+                                            </form>
+                                        @endif
+
                                     @else
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ __('Status') }}: {{ ucfirst($assignment->status) }}
-                                        </span>
+                                        <!-- 顯示司機分配狀態 -->
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-medium {{ $assignment->status === 'confirmed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400' }}">
+                                                {{ $assignmentStatusText[$assignment->status] ?? ucfirst($assignment->status) }}
+                                            </span>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -203,4 +245,7 @@
             {{ session('error') }}
         </div>
     @endif
+
+    <!-- 確認 Modal -->
+    <x-confirm-modal />
 </x-app-layout>

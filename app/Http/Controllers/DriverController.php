@@ -129,12 +129,21 @@ class DriverController extends Controller
     {
         $driver = Auth::user();
 
+        // 調試信息
+        \Log::info('Cancel Trip Debug', [
+            'tripDriver_id' => $tripDriver->id,
+            'tripDriver_driver_id' => $tripDriver->driver_id,
+            'current_driver_id' => $driver->id,
+            'driver_role' => $driver->role ?? 'no_role'
+        ]);
+
         if ($tripDriver->driver_id !== $driver->id) {
-            abort(403, 'Unauthorized action.');
+            abort(403, "Unauthorized action. TripDriver belongs to driver {$tripDriver->driver_id}, but current user is {$driver->id}");
         }
 
-        if (!$tripDriver->canCancel()) {
-            return back()->with('error', 'Trip cannot be cancelled in current status.');
+        // 檢查行程狀態：只有 awaiting 狀態才能取消，一旦 departed 就不能取消
+        if ($tripDriver->trip->trip_status !== 'awaiting') {
+            return back()->with('error', 'Cannot cancel assignment after trip has departed. Current status: ' . $tripDriver->trip->trip_status);
         }
 
         // Check if it's too close to departure time (less than 2 hours)
@@ -143,9 +152,18 @@ class DriverController extends Controller
             return back()->with('error', 'Cannot cancel trip less than 2 hours before departure.');
         }
 
-        $tripDriver->update(['status' => 'cancelled']);
+        DB::beginTransaction();
+        try {
+            // 將 trip 狀態改回 awaiting，刪除司機分配記錄
+            $tripDriver->trip->update(['trip_status' => 'awaiting']);
+            $tripDriver->delete();
 
-        return back()->with('success', 'Trip assignment cancelled.');
+            DB::commit();
+            return back()->with('success', 'Trip assignment cancelled. Trip is now available for other drivers.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Failed to cancel trip assignment. Please try again.');
+        }
     }
 
     /**
@@ -163,12 +181,14 @@ class DriverController extends Controller
             return back()->with('error', 'Only confirmed trips can be completed.');
         }
 
+        // 檢查 trip 狀態是否允許完成 - 只有已出發的行程才能完成
+        if ($tripDriver->trip->trip_status !== 'departed') {
+            return back()->with('error', 'Trip must be departed to be completed.');
+        }
+
         DB::beginTransaction();
         try {
-            // Update trip status
-            $tripDriver->update(['status' => 'completed']);
-
-            // Update the trip status as well
+            // 只更新 trip 狀態為完成，TripDriver 保持 confirmed
             $tripDriver->trip->update(['trip_status' => 'completed']);
 
             DB::commit();
@@ -178,6 +198,40 @@ class DriverController extends Controller
             return back()->with('error', 'Failed to complete trip. Please try again.');
         }
     }
+
+    /**
+     * Mark trip as departed (司機標記已出發)
+     */
+    public function departTrip(TripDriver $tripDriver)
+    {
+        $driver = Auth::user();
+
+        if ($tripDriver->driver_id !== $driver->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 檢查是否可以標記出發 - 只有 awaiting 狀態且已確認的行程才能出發
+        if ($tripDriver->trip->trip_status !== 'awaiting' || $tripDriver->status !== 'confirmed') {
+            return back()->with('error', 'Trip cannot be marked as departed. Current status: ' . $tripDriver->trip->trip_status);
+        }
+
+        DB::beginTransaction();
+        try {
+            // 更新行程狀態為已出發
+            $tripDriver->trip->update([
+                'trip_status' => 'departed',
+                'actual_departure_time' => now()
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Trip marked as departed! Don\'t forget to mark as charging when you start collecting fees.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Failed to mark trip as departed. Please try again.');
+        }
+    }
+
+
 
     /**
      * Driver my trips page - show only assigned trips
@@ -192,25 +246,30 @@ class DriverController extends Controller
         }
 
         // Get driver's assigned trips with proper eager loading
-        $assignedTrips = Trip::with(['creator', 'joins.user', 'tripDriver' => function ($query) use ($driver) {
-                $query->where('driver_id', $driver->id);
-            }])
+        $assignedTrips = Trip::with(['creator', 'joins.user', 'tripDriver'])
             ->whereHas('tripDriver', function ($query) use ($driver) {
                 $query->where('driver_id', $driver->id);
             })
             ->orderBy('planned_departure_time', 'asc')
             ->paginate(15);
 
-        // Statistics for my trips only (simplified flow: confirmed = accepted)
+        // Statistics for my trips (simplified: awaiting -> departed -> completed)
         $stats = [
             'my_active' => TripDriver::where('driver_id', $driver->id)
                 ->where('status', 'confirmed')
+                ->whereHas('trip', function ($query) {
+                    $query->whereIn('trip_status', ['awaiting', 'departed']);
+                })
                 ->count(),
             'my_completed' => TripDriver::where('driver_id', $driver->id)
-                ->where('status', 'completed')
+                ->whereHas('trip', function ($query) {
+                    $query->where('trip_status', 'completed');
+                })
                 ->count(),
             'my_cancelled' => TripDriver::where('driver_id', $driver->id)
-                ->where('status', 'cancelled')
+                ->whereHas('trip', function ($query) {
+                    $query->where('trip_status', 'cancelled');
+                })
                 ->count(),
         ];
 

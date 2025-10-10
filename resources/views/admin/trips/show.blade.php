@@ -296,13 +296,6 @@
                                 <div><strong>Role:</strong> {{ ucfirst($join->join_role) }}</div>
                                 <div><strong>Fee:</strong> ¥{{ number_format($join->user_fee, 2) }}</div>
                                 <div><strong>Pickup:</strong> {{ $join->pickup_location ?? '-' }}</div>
-                                <div><strong>Voted:</strong> 
-                                    @if($join->hasVoted())
-                                        <span style="color: #059669;">Yes</span>
-                                    @else
-                                        <span style="color: #dc2626;">No</span>
-                                    @endif
-                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -460,7 +453,6 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Location</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Voted?</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee (¥)</th>
                                 </tr>
                             </thead>
@@ -475,13 +467,6 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ $join->pickup_location ?? '-' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            @if($join->hasVoted())
-                                                <span class="text-green-600">Yes</span>
-                                            @else
-                                                <span class="text-red-600">No</span>
-                                            @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ number_format($join->user_fee, 2) }}

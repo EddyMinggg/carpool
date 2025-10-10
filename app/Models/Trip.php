@@ -79,6 +79,11 @@ class Trip extends Model
         return $this->hasOne(TripDriver::class, 'trip_id', 'id');
     }
 
+    public function tripDrivers()
+    {
+        return $this->hasMany(TripDriver::class, 'trip_id', 'id');
+    }
+
     public function assignedDriver()
     {
         return $this->belongsToMany(User::class, 'trip_drivers', 'trip_id', 'driver_id')

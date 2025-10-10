@@ -77,7 +77,7 @@ class TripController extends Controller
             'price_per_person' => 'required|numeric|min:0',
             'type' => 'required|in:golden,normal,fixed',
             'four_person_discount' => 'nullable|numeric|min:0',
-            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled'
+            'trip_status' => 'required|in:awaiting,departed,charging,completed,cancelled'
         ]);
 
         $trip = $this->createSingleTrip($validated);
@@ -89,7 +89,7 @@ class TripController extends Controller
     {
         $validated = $request->validate([
             'dropoff_location' => 'required|string|max:255',
-            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled',
+            'trip_status' => 'required|in:awaiting,departed,charging,completed,cancelled',
             'batch_trips' => 'required|array|min:1',
             'batch_trips.*.departure_time' => 'required|date|after:now',
             'batch_trips.*.type' => 'required|in:golden,normal',
@@ -283,8 +283,7 @@ class TripController extends Controller
             'user_id' => $user->id,
             'pickup_location' => $request->pickup_location,
             'join_role' => 'normal',
-            'user_fee' => $userFee,
-            'vote_info' => null
+            'user_fee' => $userFee
         ]);
 
         $this->updateAllUserFees($trip);
