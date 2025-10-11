@@ -18,7 +18,8 @@ class TripController extends Controller
      */
     public function index()
     {
-        $payments = Payment::with(['trip', 'tripJoins'])
+        // Get payments for the current user
+        $payments = Payment::with(['trip', 'user'])
             ->where('user_phone', Auth::user()->phone)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
