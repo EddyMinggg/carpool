@@ -60,8 +60,16 @@ class PaymentController extends Controller
     {
         $user = $request->user();
         
-        // 檢查是否為多人預訂
-        $isGroupBooking = $request->has('is_group_booking') && $request->input('is_group_booking') == '1';
+        // 檢查是否為多人預訂 - 優先使用 people_count，其次檢查 passengers 數組長度
+        $peopleCount = $request->input('people_count');
+        $passengers = $request->input('passengers', []);
+        
+        // 如果有 people_count，則以此為準；否則使用 passengers 數組長度
+        if ($peopleCount !== null) {
+            $isGroupBooking = (int)$peopleCount > 1;
+        } else {
+            $isGroupBooking = count($passengers) > 1;
+        }
         
         if ($isGroupBooking) {
             // 多人預訂驗證
@@ -79,10 +87,19 @@ class PaymentController extends Controller
                 'subtotal_amount' => 'nullable|numeric|min:0',
             ]);
         } else {
-            // 單人預訂驗證
+            // 單人預訂驗證 - 使用和多人預訂相同的結構
             $request->validate([
                 'trip_id' => 'required|exists:trips,id',
-                'amount' => 'required|decimal:0,2',
+                'people_count' => 'required|integer|min:1|max:1',
+                'passengers' => 'required|array',
+                'passengers.*.name' => 'required|string|max:100',
+                'passengers.*.phone' => 'required|string|max:20',
+                'passengers.*.phone_country_code' => 'required|in:+852,+86',
+                'passengers.*.pickup_location' => 'required|string|max:255',
+                'total_amount' => 'required|numeric|min:0',
+                'coupon_code' => 'nullable|string|max:50',
+                'coupon_discount' => 'nullable|numeric|min:0',
+                'subtotal_amount' => 'nullable|numeric|min:0',
             ]);
         }
 
@@ -155,17 +172,12 @@ class PaymentController extends Controller
             'trip_id' => $trip->id,
             'user_phone' => $passengers[0]['phone_country_code'] . $passengers[0]['phone'], // 主預訂人
             'amount' => $totalAmount,
-            'type' => 'group_full_payment',
+            'type' => 'group',
             'group_size' => $peopleCount,
             'coupon_code' => $couponCode,
             'coupon_discount' => $couponDiscount,
         ]);
         
-        // 獲取當前隊伍成員（在創建新成員之前）
-        $existingMembers = $trip->joins()->with('user')->get()->filter(function($join) {
-            return $join->user !== null; // 只包含有用戶記錄的成員
-        })->pluck('user')->toArray();
-
         // 為每個乘客創建 TripJoin 記錄
         foreach ($passengers as $index => $passenger) {
             $fullPhone = $passenger['phone_country_code'] . $passenger['phone'];
@@ -178,21 +190,8 @@ class PaymentController extends Controller
             ]);
         }
 
-        // 如果有現有成員且非空，發送團隊通知（僅針對第一個新成員）
-        if (!empty($existingMembers)) {
-            try {
-                $firstPassengerUser = \App\Models\User::where('phone', $passenger['phone_country_code'] . $passengers[0]['phone'])->first();
-                if ($firstPassengerUser) {
-                    $notificationService = app(\App\Services\NotificationService::class);
-                    $notificationService->sendTeamJoinNotification($trip, $firstPassengerUser, $existingMembers);
-                }
-            } catch (\Exception $e) {
-                \Log::error('Failed to send team join notification for group booking', [
-                    'trip_id' => $trip->id,
-                    'error' => $e->getMessage()
-                ]);
-            }
-        }
+        // NOTE: WhatsApp 通知已移到 Admin 確認付款後才發送
+        // 不在此處發送通知，因為團體成員還未確認付款 (payment_confirmation = false)
         
         return redirect()->route('payment.code', ['id' => $mainPayment->id])
             ->with('success', __('Group booking created successfully for :count people!', ['count' => $peopleCount]));
@@ -203,8 +202,12 @@ class PaymentController extends Controller
      */
     private function handleSingleBooking(Request $request, Trip $trip, $user)
     {
+        $passengers = $request->input('passengers');
+        $passenger = $passengers[0]; // 單人預訂只有一個乘客
+        $userPhone = $passenger['phone_country_code'] . $passenger['phone'];
+        
         // 檢查用戶是否已經加入
-        $existingJoin = $trip->joins()->where('user_phone', $user->phone ?? $request->user_phone)->first();
+        $existingJoin = $trip->joins()->where('user_phone', $userPhone)->first();
         if ($existingJoin) {
             return redirect()->back()->with('error', __('You have already joined this trip.'));
         }
@@ -219,17 +222,31 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
         }
 
-        // 計算價格
-        $currentPeople = $trip->joins()->count();
-        $newPeopleCount = $currentPeople + 1;
-        $pricePerPerson = $this->calculatePriceForTrip($trip, $newPeopleCount);
+        // 計算價格並處理優惠券
+        $totalAmount = $request->input('total_amount');
+        $couponDiscount = $request->input('coupon_discount', 0);
+        $couponCode = $request->input('coupon_code');
+        
+        // 處理優惠券（如果有）
+        if ($couponCode && $couponDiscount > 0) {
+            $coupon = \App\Models\Coupon::where('code', strtoupper($couponCode))
+                ->where('enabled', true)
+                ->first();
+            
+            if ($coupon) {
+                $coupon->increment('used_count');
+            }
+        }
 
         $payment = Payment::create([
             'reference_code' => strtoupper(bin2hex(random_bytes(5))),
             'trip_id' => $request->input('trip_id'),
-            'user_phone' => $user->phone ?? $request->user_phone,
-            'amount' => $pricePerPerson,
-            'type' => 'full_payment',
+            'user_phone' => $userPhone,
+            'amount' => $totalAmount,
+            'type' => 'individual',
+            'group_size' => 1,
+            'coupon_code' => $couponCode,
+            'coupon_discount' => $couponDiscount,
         ]);
 
         // 獲取當前隊伍成員（在創建新成員之前）
@@ -239,33 +256,21 @@ class PaymentController extends Controller
 
         // 創建加入記錄
         $trip->joins()->create([
-            'user_phone' => $user->phone ?? $request->user_phone,
-            'user_fee' => $pricePerPerson,
-            'pickup_location' => $request->input('pickup_location'),
+            'user_phone' => $userPhone,
+            'user_fee' => $totalAmount,
+            'pickup_location' => $passenger['pickup_location'],
         ]);
 
-        // 更新所有現有成員的費用
+        // 重新計算所有成員的費用
+        $currentPeople = $trip->joins()->count();
+        $newPricePerPerson = $this->calculatePriceForTrip($trip, $currentPeople);
         TripJoin::where('trip_id', $trip->id)
             ->update([
-                'user_fee' => $pricePerPerson,
+                'user_fee' => $newPricePerPerson,
             ]);
 
-        // 發送團隊加入通知給現有成員
-        if (!empty($existingMembers)) {
-            try {
-                $newMember = $user ?: \App\Models\User::where('phone', $request->user_phone)->first();
-                if ($newMember) {
-                    $notificationService = app(\App\Services\NotificationService::class);
-                    $notificationService->sendTeamJoinNotification($trip, $newMember, $existingMembers);
-                }
-            } catch (\Exception $e) {
-                \Log::error('Failed to send team join notification', [
-                    'trip_id' => $trip->id,
-                    'user_phone' => $user->phone ?? $request->user_phone,
-                    'error' => $e->getMessage()
-                ]);
-            }
-        }
+        // NOTE: WhatsApp 通知已移到 Admin 確認付款後才發送
+        // 不在此處發送通知，因為用戶還未確認付款 (payment_confirmation = false)
 
         return redirect()->route('payment.code', ['id' => $payment->id]);
     }

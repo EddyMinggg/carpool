@@ -374,12 +374,28 @@
                     </template>
 
                     <!-- 4人折扣提示 -->
-                    <div class="flex justify-start mb-3">
+                    <div class="flex flex-col gap-2 mb-3">
                         <template x-if="trip.type === 'normal' && trip.four_person_discount > 0 && !trip.is_expired">
-                            <span
-                                class="bg-primary dark:bg-primary text-white px-2 py-1 rounded-full text-xs font-medium">
-                                <span x-text="'4+ {{ __('people') }}: -HK$' + trip.four_person_discount"></span>
-                            </span>
+                            <div class="flex flex-col gap-1">
+                                <span
+                                    class="bg-primary dark:bg-primary text-white px-2 py-1 rounded-full text-xs font-medium w-fit">
+                                    <span x-text="'4+ {{ __('people') }}: -HK$' + trip.four_person_discount"></span>
+                                </span>
+                                <!-- 當已有3人時顯示退款政策提醒 -->
+                                <template x-if="trip.current_people >= 3">
+                                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
+                                        <div class="flex items-start gap-1">
+                                            <span class="material-icons text-amber-600 dark:text-amber-400 text-sm mt-0.5">info</span>
+                                            <div class="text-xs text-amber-800 dark:text-amber-200">
+                                                <div class="font-medium mb-1">{{ __('4-Person Discount Available') }}</div>
+                                                <div class="leading-relaxed">
+                                                    {{ __('Full payment required initially. Refunds processed after trip deadline if 4+ people joined.') }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </template>
                     </div>
 

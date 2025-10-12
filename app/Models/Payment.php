@@ -35,7 +35,7 @@ class Payment extends Model
     // Get all trip joins for this payment's group booking
     public function tripJoins()
     {
-        if ($this->type === 'group_full_payment' && $this->group_size > 1) {
+        if ($this->type === 'group' && $this->group_size > 1) {
             // For group bookings, return multiple trip joins for the same trip
             return $this->hasMany(TripJoin::class, 'trip_id', 'trip_id')
                        ->where('payment_confirmation', true)
@@ -58,13 +58,13 @@ class Payment extends Model
         return $query->where('paid', true);
     }
 
-    public function scopeDeposits($query)
+    public function scopeIndividual($query)
     {
-        return $query->where('type', 'deposit');
+        return $query->where('type', 'individual');
     }
 
-    public function scopeRemaining($query)
+    public function scopeGroup($query)
     {
-        return $query->where('type', 'remaining');
+        return $query->where('type', 'group');
     }
 }

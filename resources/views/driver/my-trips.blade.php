@@ -151,7 +151,7 @@
                                                 <button type="button"
                                                     onclick="showConfirmModal({
                                                         title: '🚀 {{ __('Start Pickup') }}',
-                                                        message: '{{ __('開始接載乘客？') }}<br><small class=\'text-gray-500\'>{{ __('請確保已到達第一個接送點') }}</small>',
+                                                        message: '{{ __('Start picking up passengers?') }}<br><small class=\'text-gray-500\'>{{ __('Please ensure you have arrived at the first pickup point') }}</small>',
                                                         confirmText: '{{ __('Start Pickup') }}',
                                                         cancelText: '{{ __('Cancel') }}',
                                                         onConfirm: () => document.getElementById('depart-form-{{ $assignment->id }}').submit()
@@ -167,7 +167,7 @@
                                                 <button type="button"
                                                     onclick="showConfirmModal({
                                                         title: '🏁 {{ __('Complete Trip') }}',
-                                                        message: '{{ __('確認已到達目的地？') }}<br><small class=\'text-gray-500\'>{{ __('這會將行程標記為已完成') }}</small>',
+                                                        message: '{{ __('Confirm you have arrived at the destination?') }}<br><small class=\'text-gray-500\'>{{ __('This will mark the trip as completed') }}</small>',
                                                         confirmText: '{{ __('Complete Trip') }}',
                                                         cancelText: '{{ __('Cancel') }}',
                                                         onConfirm: () => document.getElementById('complete-form-{{ $assignment->id }}').submit()

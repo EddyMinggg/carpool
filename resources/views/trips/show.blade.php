@@ -79,7 +79,7 @@
         <!-- 行程資訊卡片 -->
         <div
             class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-            <div class="flex mb-6 items-center">
+            <div class="flex flex-wrap gap-2 mb-6 items-center">
                 {{-- <span class="text-gray-600 dark:text-gray-300">{{ __('Status') }}</span> --}}
                 <span
                     class="px-2 py-1 rounded-md text-xs
@@ -89,6 +89,13 @@
                         @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
                     {{ ucfirst($trip->trip_status) }}
                 </span>
+                
+                @if ($trip->type === 'normal' && $currentPeople >= 3 && !$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
+                    <span class="px-2 py-1 rounded-md text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                        <span class="material-icons text-xs">savings</span>
+                        {{ __('4th person discount available - see pricing details') }}
+                    </span>
+                @endif
             </div>
             <!-- 路線顯示 - 響應式佈局：手機垂直，桌面水平 -->
             <div class="mb-4">
@@ -386,6 +393,62 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+        @endif
+
+        <!-- 邀請同行成員功能 - 只對已加入且為群組預訂的用戶顯示 -->
+        @php
+            $userPayment = \App\Models\Payment::where('trip_id', $trip->id)
+                ->where('user_phone', $userPhone)
+                ->first();
+            $isGroupBooking = $userPayment && $userPayment->type === 'group';
+        @endphp
+        @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking)
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mt-4">
+                <!-- 標題 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-icons text-blue-600 dark:text-blue-400 text-xl">group_add</span>
+                    <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
+                        {{ __('Invite Trip Members') }}
+                    </h3>
+                </div>
+
+                <!-- 邀請代碼卡片 -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-3">
+                    <div class="text-center">
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ __('Invitation Code') }}</div>
+                        <div class="font-mono text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-widest mb-3">
+                            {{ $trip->invitation_code }}
+                        </div>
+                        <button 
+                            id="copy-invitation-code"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                            data-code="{{ $trip->invitation_code }}">
+                            <span class="material-icons text-sm">content_copy</span>
+                            <span class="copy-text">{{ __('Copy Code') }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- 行程滿員提示 -->
+        @if ($availableSlots <= 0 && !$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
+            <div
+                class="bg-red-50 dark:bg-red-900/20 rounded-xl p-6 shadow-md border border-red-200 dark:border-red-700 mt-4">
+                <div class="flex items-center gap-4 text-center justify-center">
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                        <span class="material-icons text-red-600 dark:text-red-400">event_busy</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+                            {{ __('Trip is Full') }}
+                        </h3>
+                        <p class="text-red-600 dark:text-red-300">
+                            {{ __('This trip has reached its maximum capacity. Please check other available trips.') }}
+                        </p>
+                    </div>
+                </div>
             </div>
         @endif
 
@@ -797,7 +860,7 @@
             @endif
         @endif
         <!-- 預訂功能 -->
-        @if (!$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
+        @if (!$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed) && $availableSlots > 0)
             <!-- 預訂功能（支援個人或多人預訂） -->
             <div
                 class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
@@ -810,7 +873,6 @@
                 <form id="group-booking-form" method="POST" action="{{ route('payment.create') }}">
                     @csrf
                     <input type="hidden" name="trip_id" value="{{ $trip->id }}">
-                    <input type="hidden" name="is_group_booking" value="1">
 
                     <!-- 預訂人數選擇 -->
                     <div class="mb-6">
@@ -1001,6 +1063,24 @@
                                             • 4+ {{ __('people') }}: HK$225/{{ __('person') }}
                                             ({{ __('HK$50 discount') }})
                                         </div>
+                                        
+                                        @if ($currentPeople >= 3)
+                                        <!-- 四人優惠退款政策提醒 -->
+                                        <div class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                            <div class="flex items-start gap-2">
+                                                <span class="material-icons text-amber-600 dark:text-amber-400 text-sm mt-0.5">info</span>
+                                                <div class="text-xs text-amber-800 dark:text-amber-200">
+                                                    <div class="font-medium mb-1">{{ __('4-Person Discount Policy') }}</div>
+                                                    <div class="leading-relaxed space-y-1">
+                                                        <div>• {{ __('All passengers must pay full price (HK$275) initially') }}</div>
+                                                        <div>• {{ __('HK$50 refund per person processed after trip deadline') }}</div>
+                                                        <div>• {{ __('Refunds only if 4+ people confirmed and no cancellations') }}</div>
+                                                        <div>• {{ __('Admin will handle refunds offline within 48 hours post-deadline') }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -1288,6 +1368,31 @@
     .passenger-location-btn.has-location:hover {
         background-color: rgba(34, 197, 94, 0.1);
     }
+
+    /* 滾動行為優化 */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* 地址選擇成功時的動畫 */
+    .location-selected-animation {
+        animation: locationSelectedPulse 0.6s ease-in-out;
+    }
+
+    @keyframes locationSelectedPulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(34, 197, 94, 0.1);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+        }
+    }
 </style>
 
 <script type="module">
@@ -1338,6 +1443,32 @@
             console.log('📝 表單狀態已保存');
         }
 
+        // 保存當前滾動位置
+        function saveScrollPosition() {
+            const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+            localStorage.setItem('tripShowScrollPosition', scrollY.toString());
+            console.log('📍 滾動位置已保存:', scrollY);
+        }
+
+        // 恢復滾動位置
+        function restoreScrollPosition() {
+            const savedScrollY = localStorage.getItem('tripShowScrollPosition');
+            if (savedScrollY !== null) {
+                const scrollPosition = parseInt(savedScrollY, 10);
+                
+                // 使用平滑滾動效果
+                window.scrollTo({
+                    top: scrollPosition,
+                    behavior: 'smooth'
+                });
+                
+                console.log('📍 滾動位置已恢復:', scrollPosition);
+                
+                // 清除保存的滾動位置，避免影響其他頁面導航
+                localStorage.removeItem('tripShowScrollPosition');
+            }
+        }
+
         // 更新指定乘客的位置信息
         window.updatePassengerLocation = function(passengerIndex, location) {
             console.log(`🎯 updatePassengerLocation 被調用:`, {
@@ -1373,6 +1504,12 @@
                         icon.classList.remove('text-gray-400', 'dark:text-gray-500');
                         icon.classList.add('text-green-600', 'dark:text-green-400');
                     }
+                    
+                    // 添加成功動畫效果
+                    locationBtn.classList.add('location-selected-animation');
+                    setTimeout(() => {
+                        locationBtn.classList.remove('location-selected-animation');
+                    }, 600);
                 }
 
                 // 更新localStorage中的表單狀態
@@ -2259,6 +2396,9 @@
             // 保存當前表單狀態
             saveFormState();
 
+            // 保存當前滾動位置
+            saveScrollPosition();
+
             // 設置當前選擇的乘客索引
             localStorage.setItem('currentSelectingPassenger', passengerIndex);
 
@@ -2293,10 +2433,32 @@
                     const location = JSON.parse(decodeURIComponent(returnedLocation));
                     console.log('📍 解析位置數據成功:', location);
 
+                    // 標記這是從地圖返回的
+                    window.isReturningFromMap = true;
+
                     // 先恢復表單狀態，然後更新地址
                     setTimeout(() => {
                         console.log('📍 為乘客設置地址:', passengerIndex, location);
                         updatePassengerLocation(parseInt(passengerIndex), location);
+                        
+                        // 地址更新後，滾動到對應的乘客表單位置
+                        setTimeout(() => {
+                            const passengerForm = document.querySelector(`[data-passenger="${passengerIndex}"]`);
+                            if (passengerForm) {
+                                const formRect = passengerForm.getBoundingClientRect();
+                                const windowHeight = window.innerHeight;
+                                
+                                // 計算滾動位置，讓表單顯示在螢幕中央
+                                const scrollToPosition = window.scrollY + formRect.top - (windowHeight / 2) + (formRect.height / 2);
+                                
+                                window.scrollTo({
+                                    top: Math.max(0, scrollToPosition),
+                                    behavior: 'smooth'
+                                });
+                                
+                                console.log('📍 滾動到乘客表單位置:', passengerIndex);
+                            }
+                        }, 100);
                     }, 200);
 
                     // 清理URL參數
@@ -2318,6 +2480,26 @@
                     saveFormState();
                 }, 500);
             });
+
+            // 監聽滾動事件，定期更新滾動位置（節流處理）
+            let scrollTimer = null;
+            $(window).on('scroll', function() {
+                if (scrollTimer) {
+                    clearTimeout(scrollTimer);
+                }
+                scrollTimer = setTimeout(() => {
+                    // 只有在預訂表單可見時才保存滾動位置
+                    const bookingForm = document.getElementById('group-booking-form');
+                    if (bookingForm) {
+                        const rect = bookingForm.getBoundingClientRect();
+                        const isFormVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                        
+                        if (isFormVisible) {
+                            saveScrollPosition();
+                        }
+                    }
+                }, 200);
+            });
         }
 
         // 頁面載入時的初始化
@@ -2327,6 +2509,13 @@
 
             // 然後檢查是否從地圖返回
             checkMapReturnWithLocation();
+
+            // 恢復滾動位置（只有在不是從地圖返回時才執行）
+            setTimeout(() => {
+                if (!window.isReturningFromMap) {
+                    restoreScrollPosition();
+                }
+            }, 300);
 
             // 設置自動保存
             setupAutoSave();
@@ -2363,6 +2552,205 @@
 
         // 頁面載入時初始化
         initializeGroupBooking();
+
+        // 調試函數：查看當前保存的滾動位置
+        window.debugScrollPosition = function() {
+            const saved = localStorage.getItem('tripShowScrollPosition');
+            const current = window.scrollY;
+            console.log('🔍 滾動位置調試信息:', {
+                current: current,
+                saved: saved ? parseInt(saved) : null,
+                isReturningFromMap: window.isReturningFromMap || false
+            });
+        };
+
+        // 邀請代碼功能
+        function initializeInvitationCodeFeatures() {
+            // 複製邀請代碼
+            $('#copy-invitation-code').on('click', function() {
+                const invitationCode = $(this).data('code');
+                const button = $(this);
+                const copyText = button.find('.copy-text');
+                const originalText = copyText.text();
+
+                // 嘗試使用現代 Clipboard API
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(invitationCode)
+                        .then(() => {
+                            // 成功複製
+                            copyText.text('{{ __('Copied!') }}');
+                            button.removeClass('text-blue-600 dark:text-blue-400')
+                                  .addClass('text-green-600 dark:text-green-400');
+
+                            setTimeout(() => {
+                                copyText.text(originalText);
+                                button.removeClass('text-green-600 dark:text-green-400')
+                                      .addClass('text-blue-600 dark:text-blue-400');
+                            }, 2000);
+                        })
+                        .catch(() => {
+                            // 失敗時使用備用方法
+                            fallbackCopyCode(invitationCode, button, copyText, originalText);
+                        });
+                } else {
+                    // 使用備用複製方法
+                    fallbackCopyCode(invitationCode, button, copyText, originalText);
+                }
+            });
+
+            // WhatsApp 分享邀請代碼
+            $('#share-invitation-whatsapp').on('click', function() {
+                const invitationCode = '{{ $trip->invitation_code }}';
+                const tripTitle = '{{ $trip->title }}';
+                const loginUrl = '{{ route('login') }}';
+                
+                const message = `{{ __('Join my carpool trip!') }}\n\n` +
+                               `{{ __('Trip') }}: ${tripTitle}\n` +
+                               `{{ __('Invitation Code') }}: ${invitationCode}\n\n` +
+                               `{{ __('How to join') }}:\n` +
+                               `1. {{ __('Visit') }}: ${loginUrl}\n` +
+                               `2. {{ __('Click "Join Trip" tab') }}\n` +
+                               `3. {{ __('Enter invitation code and your phone number') }}\n\n` +
+                               `{{ __('No registration required!') }}`;
+
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+            });
+
+            // 複製登錄連結
+            $('#copy-invitation-link').on('click', function() {
+                const loginUrl = '{{ route('login') }}';
+                const button = $(this);
+                const originalText = button.find('span:last-child').text();
+
+                // 嘗試使用現代 Clipboard API
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(loginUrl)
+                        .then(() => {
+                            // 成功複製
+                            button.find('span:last-child').text('{{ __('Copied!') }}');
+                            button.removeClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
+                                  .addClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600');
+
+                            setTimeout(() => {
+                                button.find('span:last-child').text(originalText);
+                                button.removeClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600')
+                                      .addClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
+                            }, 2000);
+                        })
+                        .catch(() => {
+                            // 失敗時使用備用方法
+                            fallbackCopyLink(loginUrl, button, originalText);
+                        });
+                } else {
+                    // 使用備用複製方法
+                    fallbackCopyLink(loginUrl, button, originalText);
+                }
+            });
+        }
+
+        // 備用複製邀請代碼方法
+        function fallbackCopyCode(code, button, copyText, originalText) {
+            const textArea = document.createElement('textarea');
+            textArea.value = code;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    copyText.text('{{ __('Copied!') }}');
+                    button.removeClass('text-blue-600 dark:text-blue-400')
+                          .addClass('text-green-600 dark:text-green-400');
+
+                    setTimeout(() => {
+                        copyText.text(originalText);
+                        button.removeClass('text-green-600 dark:text-green-400')
+                              .addClass('text-blue-600 dark:text-blue-400');
+                    }, 2000);
+                } else {
+                    copyText.text('{{ __('Copy Failed') }}');
+                    button.removeClass('text-blue-600 dark:text-blue-400')
+                          .addClass('text-red-600 dark:text-red-400');
+
+                    setTimeout(() => {
+                        copyText.text(originalText);
+                        button.removeClass('text-red-600 dark:text-red-400')
+                              .addClass('text-blue-600 dark:text-blue-400');
+                    }, 2000);
+                }
+            } catch (err) {
+                copyText.text('{{ __('Copy Failed') }}');
+                button.removeClass('text-blue-600 dark:text-blue-400')
+                      .addClass('text-red-600 dark:text-red-400');
+
+                setTimeout(() => {
+                    copyText.text(originalText);
+                    button.removeClass('text-red-600 dark:text-red-400')
+                          .addClass('text-blue-600 dark:text-blue-400');
+                }, 2000);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        // 備用複製連結方法
+        function fallbackCopyLink(url, button, originalText) {
+            const textArea = document.createElement('textarea');
+            textArea.value = url;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    button.find('span:last-child').text('{{ __('Copied!') }}');
+                    button.removeClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
+                          .addClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600');
+
+                    setTimeout(() => {
+                        button.find('span:last-child').text(originalText);
+                        button.removeClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600')
+                              .addClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
+                    }, 2000);
+                } else {
+                    button.find('span:last-child').text('{{ __('Copy Failed') }}');
+                    button.removeClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
+                          .addClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600');
+
+                    setTimeout(() => {
+                        button.find('span:last-child').text(originalText);
+                        button.removeClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600')
+                              .addClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
+                    }, 2000);
+                }
+            } catch (err) {
+                button.find('span:last-child').text('{{ __('Copy Failed') }}');
+                button.removeClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
+                      .addClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600');
+
+                setTimeout(() => {
+                    button.find('span:last-child').text(originalText);
+                    button.removeClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600')
+                          .addClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
+                }, 2000);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        // 初始化邀請代碼功能 - 只在群組預訂時執行
+        @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking)
+        initializeInvitationCodeFeatures();
+        @endif
     });
 </script>
 

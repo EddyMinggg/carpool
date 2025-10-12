@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
+use App\Services\TripNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -41,10 +42,10 @@ class PaymentConfirmationController extends Controller
         // Calculate trip statistics
         $tripStats = [
             'total_members' => TripJoin::where('trip_id', $trip->id)->count(),
-            'pending_deposits' => $pendingPayments->where('type', 'deposit')->count(),
-            'confirmed_deposits' => $confirmedPayments->where('type', 'deposit')->count(),
-            'pending_remaining' => $pendingPayments->where('type', 'remaining')->count(),
-            'confirmed_remaining' => $confirmedPayments->where('type', 'remaining')->count(),
+            'pending_individual' => $pendingPayments->where('type', 'individual')->count(),
+            'confirmed_individual' => $confirmedPayments->where('type', 'individual')->count(),
+            'pending_group' => $pendingPayments->where('type', 'group')->count(),
+            'confirmed_group' => $confirmedPayments->where('type', 'group')->count(),
             'total_confirmed_amount' => $confirmedPayments->sum('amount'),
             'total_pending_amount' => $pendingPayments->sum('amount'),
         ];
@@ -125,6 +126,18 @@ class PaymentConfirmationController extends Controller
 
             // Send email notification
             $this->sendPaymentConfirmationEmail($payment, $isAutoConfirm ? null : $request->notes);
+
+            // Send WhatsApp notifications to existing confirmed members
+            try {
+                $notificationService = new TripNotificationService();
+                $notificationService->notifyNewMemberJoined($payment);
+            } catch (\Exception $e) {
+                Log::error('WhatsApp notification failed', [
+                    'payment_id' => $payment->id,
+                    'error' => $e->getMessage()
+                ]);
+                // Don't fail the entire confirmation if notification fails
+            }
 
             Log::info('Payment(s) confirmed', [
                 'main_payment_id' => $payment->id,
@@ -306,8 +319,8 @@ class PaymentConfirmationController extends Controller
             'confirmed_payments' => Payment::where('paid', true)->count(),
             'pending_payments' => Payment::where('paid', false)->count(),
             'total_amount_confirmed' => Payment::where('paid', true)->sum('amount'),
-            'deposits_confirmed' => Payment::where('paid', true)->where('type', 'deposit')->count(),
-            'remaining_confirmed' => Payment::where('paid', true)->where('type', 'remaining')->count(),
+            'individual_confirmed' => Payment::where('paid', true)->where('type', 'individual')->count(),
+            'group_confirmed' => Payment::where('paid', true)->where('type', 'group')->count(),
         ];
 
         return response()->json($stats);
@@ -340,7 +353,7 @@ class PaymentConfirmationController extends Controller
     private function updateTripJoinPaymentStatus(Payment $payment)
     {
         try {
-            if ($payment->type === 'group_full_payment' && $payment->group_size > 1) {
+            if ($payment->type === 'group' && $payment->group_size > 1) {
                 // For group bookings, update all trip_joins for this trip that match the payment criteria
                 // Since we only have one payment for the whole group, we need to find all related trip_joins
                 $updated = TripJoin::where('trip_id', $payment->trip_id)

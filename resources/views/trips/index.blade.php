@@ -47,6 +47,19 @@
                     class="block w-full pl-10 pr-3 py-2 text-sm border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark rounded-md shadow-sm"
                     placeholder="{{ __('Search trips by destination or pickup location...') }}">
             </div>
+            
+            <!-- 四人優惠政策說明 -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <span class="material-icons text-blue-600 dark:text-blue-400 text-lg mt-0.5">info</span>
+                    <div class="text-sm">
+                        <div class="font-medium text-blue-800 dark:text-blue-200 mb-2">{{ __('4-Person Discount Policy') }}</div>
+                        <div class="text-blue-700 dark:text-blue-300 leading-relaxed">
+                            {{ __('All passengers pay HK$275 initially. HK$50 refund per person processed after trip deadline if 4+ people confirmed with no cancellations. Refunds handled by admin within 48 hours post-deadline.') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 行程卡片 -->

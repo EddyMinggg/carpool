@@ -17,10 +17,12 @@ class OtpService
     private $resendCooldownMinutes = 0.5; // 10 seconds for development
 
     private $isSandbox;
+    private $twilioService;
 
     public function __construct(readonly private User $user)
     {
         $this->isSandbox = config('sms.mode') === 'SANDBOX';
+        $this->twilioService = new TwilioService();
     }
 
     /**
@@ -57,39 +59,34 @@ class OtpService
                 'ip_address' => request()->ip()
             ]);
 
-            if (!$this->isSandbox) {
-                $this->user->notify(new OtpNotification($otpCode));
+            // Send OTP via Twilio (try WhatsApp first, fallback to SMS)
+            $result = $this->sendViaTwilio($otpCode);
+            
+            if (!$result['success']) {
+                Log::error('Failed to send OTP via Twilio', [
+                    'phone' => $this->user->phone,
+                    'error' => $result['error'] ?? 'Unknown error'
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Failed to send OTP code. Please try again.',
+                    'error' => $result['error'] ?? 'SMS service error'
+                ];
             }
 
-            // // Send SMS via Vonage using professional template
-            // $message = SmsTemplateService::otpVerification($otpCode, $this->otpExpireMinutes);
+            Log::info('OTP sent successfully via Twilio', [
+                'phone' => $this->user->phone,
+                'method' => $result['method'] ?? 'unknown',
+                'message_id' => $result['message_id'] ?? null,
+                'otp_code' => $otpCode // Log OTP for development
+            ]);
 
-            // $smsResult = $this->vonageSmsService->sendSms($phone, $message);
-
-            // if (!$smsResult['success']) {
-            //     Log::error('Failed to send OTP via Vonage', [
-            //         'phone' => $phone,
-            //         'error' => $smsResult['error'] ?? 'Unknown error'
-            //     ]);
-
-            //     return [
-            //         'success' => false,
-            //         'message' => 'Failed to send OTP code. Please try again.',
-            //         'error' => $smsResult['error'] ?? 'SMS service error'
-            //     ];
-            // }
-
-            // Log::info('OTP sent successfully via Vonage', [
-            //     'phone' => $phone,
-            //     'message_id' => $smsResult['message_id'] ?? null,
-            //     'otp_code' => $otpCode // Log OTP for development
-            // ]);
-
-            // // In development mode, also write OTP to a file for easy access
-            // if (app()->environment('local')) {
-            //     $otpFile = storage_path('logs/current_otp.txt');
-            //     file_put_contents($otpFile, "Phone: {$phone}\nOTP Code: {$otpCode}\nTime: " . now()->format('Y-m-d H:i:s') . "\n");
-            // }
+            // In development mode, also write OTP to a file for easy access
+            if (app()->environment('local')) {
+                $otpFile = storage_path('logs/current_otp.txt');
+                file_put_contents($otpFile, "Phone: {$this->user->phone}\nOTP Code: {$otpCode}\nMethod: {$result['method']}\nTime: " . now()->format('Y-m-d H:i:s') . "\n");
+            }
 
             return [
                 'success' => true,
@@ -209,6 +206,62 @@ class OtpService
             'expires_in' => $timeLeft,
             'attempts' => $verification->attempts,
             'max_attempts' => $this->maxAttempts
+        ];
+    }
+
+    /**
+     * Send OTP via Twilio (try WhatsApp first, then SMS)
+     */
+    private function sendViaTwilio(string $otpCode): array
+    {
+        // In sandbox mode, just log the OTP
+        if ($this->isSandbox) {
+            Log::info('OTP (Sandbox Mode)', [
+                'phone' => $this->user->phone,
+                'otp_code' => $otpCode,
+                'expires_in' => $this->otpExpireMinutes
+            ]);
+
+            return [
+                'success' => true,
+                'method' => 'sandbox',
+                'message_id' => 'sandbox_' . time()
+            ];
+        }
+
+        // Try WhatsApp first
+        $whatsappResult = $this->twilioService->sendOtpWhatsApp($this->user->phone, $otpCode, $this->otpExpireMinutes);
+        
+        if ($whatsappResult['success']) {
+            return [
+                'success' => true,
+                'method' => 'whatsapp',
+                'message_id' => $whatsappResult['message_id']
+            ];
+        }
+
+        // Fallback to SMS if WhatsApp fails
+        Log::warning('WhatsApp OTP failed, falling back to SMS', [
+            'phone' => $this->user->phone,
+            'whatsapp_error' => $whatsappResult['error'] ?? 'Unknown'
+        ]);
+
+        $smsResult = $this->twilioService->sendOtpSms($this->user->phone, $otpCode, $this->otpExpireMinutes);
+        
+        if ($smsResult['success']) {
+            return [
+                'success' => true,
+                'method' => 'sms',
+                'message_id' => $smsResult['message_id']
+            ];
+        }
+
+        // Both methods failed
+        return [
+            'success' => false,
+            'error' => 'Both WhatsApp and SMS delivery failed',
+            'whatsapp_error' => $whatsappResult['error'] ?? 'Unknown',
+            'sms_error' => $smsResult['error'] ?? 'Unknown'
         ];
     }
 }
