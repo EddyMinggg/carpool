@@ -5,6 +5,8 @@ namespace App\Services;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 
+use Twilio\Rest\Client;
+
 class TwilioService
 {
     private $accountSid;
@@ -15,10 +17,10 @@ class TwilioService
 
     public function __construct()
     {
-        $this->accountSid = env('TWILIO_ACCOUNT_SID');
-        $this->authToken = env('TWILIO_AUTH_TOKEN');
-        $this->phoneNumber = env('TWILIO_PHONE_NUMBER');
-        $this->whatsappNumber = env('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+14155238886');
+        $this->accountSid = config('sms.twilio.sid');
+        $this->authToken = config('sms.twilio.token');
+        $this->phoneNumber = config('sms.twilio.phone_number');
+        $this->whatsappNumber = config('sms.twilio.whatsapp_number');
         $this->baseUrl = "https://api.twilio.com/2010-04-01/Accounts/{$this->accountSid}";
 
         if (!$this->accountSid || !$this->authToken) {
@@ -48,7 +50,7 @@ class TwilioService
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 Log::info('SMS sent successfully via Twilio', [
                     'to' => $to,
                     'message_sid' => $data['sid'],
@@ -75,7 +77,6 @@ class TwilioService
                     'code' => $error['code'] ?? $response->status()
                 ];
             }
-
         } catch (\Exception $e) {
             Log::error('Twilio SMS exception', [
                 'to' => $to,
@@ -114,7 +115,7 @@ class TwilioService
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 Log::info('WhatsApp message sent successfully via Twilio', [
                     'to' => $to,
                     'message_sid' => $data['sid'],
@@ -141,7 +142,6 @@ class TwilioService
                     'code' => $error['code'] ?? $response->status()
                 ];
             }
-
         } catch (\Exception $e) {
             Log::error('Twilio WhatsApp exception', [
                 'to' => $to,
@@ -161,7 +161,7 @@ class TwilioService
     public function sendOtpSms(string $phoneNumber, string $otpCode, int $expiryMinutes = 5): array
     {
         $message = "Your verification code is: {$otpCode}. This code will expire in {$expiryMinutes} minutes. Please do not share this code with anyone.";
-        
+
         return $this->sendSms($phoneNumber, $message);
     }
 
@@ -171,7 +171,7 @@ class TwilioService
     public function sendOtpWhatsApp(string $phoneNumber, string $otpCode, int $expiryMinutes = 5): array
     {
         $message = "🔐 Your verification code is: *{$otpCode}*\n\nThis code will expire in {$expiryMinutes} minutes.\n\nPlease do not share this code with anyone.";
-        
+
         return $this->sendWhatsApp($phoneNumber, $message);
     }
 

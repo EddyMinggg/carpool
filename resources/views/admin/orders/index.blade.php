@@ -340,8 +340,8 @@
                                 <td>
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                        {{ $order->payment_confirmation ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                        {{ $order->payment_confirmation ? 'Paid' : 'Pending' }}
+                                        {{ $order->payment_confirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                        {{ $order->payment_confirmed ? 'Paid' : 'Pending' }}
                                     </span>
                                 </td>
                                 <td>{{ $order->created_at->format('Y-m-d H:i') }}</td>
@@ -413,8 +413,8 @@
                                 Order #{{ $order->id }}
                             </span>
                             <span
-                                class="role-badge {{ $order->payment_confirmation ? 'role-passenger' : 'role-driver' }}">
-                                {{ $order->payment_confirmation ? 'Paid' : 'Pending' }}
+                                class="role-badge {{ $order->payment_confirmed ? 'role-passenger' : 'role-driver' }}">
+                                {{ $order->payment_confirmed ? 'Paid' : 'Pending' }}
                             </span>
                         </div>
                         <svg style="width: 16px; height: 16px; fill: #9ca3af;" viewBox="0 0 20 20">

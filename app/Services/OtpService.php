@@ -15,13 +15,10 @@ class OtpService
     private $maxAttempts = 3;
     private $otpExpireMinutes = 5;
     private $resendCooldownMinutes = 0.5; // 10 seconds for development
-
-    private $isSandbox;
     private $twilioService;
 
     public function __construct(readonly private User $user)
     {
-        $this->isSandbox = config('sms.mode') === 'SANDBOX';
         $this->twilioService = new TwilioService();
     }
 
@@ -45,7 +42,7 @@ class OtpService
             }
 
             // Generate 6-digit OTP
-            $otpCode = $this->isSandbox ? '000000' : str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            $otpCode = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
             $expiresAt = Carbon::now()->addMinutes($this->otpExpireMinutes);
 
             // Clean up old OTP records for this phone
@@ -59,34 +56,33 @@ class OtpService
                 'ip_address' => request()->ip()
             ]);
 
-            // Send OTP via Twilio (try WhatsApp first, fallback to SMS)
-            $result = $this->sendViaTwilio($otpCode);
-            
-            if (!$result['success']) {
-                Log::error('Failed to send OTP via Twilio', [
-                    'phone' => $this->user->phone,
-                    'error' => $result['error'] ?? 'Unknown error'
-                ]);
+            $this->user->notify(new OtpNotification($otpCode));
 
-                return [
-                    'success' => false,
-                    'message' => 'Failed to send OTP code. Please try again.',
-                    'error' => $result['error'] ?? 'SMS service error'
-                ];
-            }
+            // if (!$result['success']) {
+            //     Log::error('Failed to send OTP via Twilio', [
+            //         'phone' => $this->user->phone,
+            //         'error' => $result['error'] ?? 'Unknown error'
+            //     ]);
 
-            Log::info('OTP sent successfully via Twilio', [
-                'phone' => $this->user->phone,
-                'method' => $result['method'] ?? 'unknown',
-                'message_id' => $result['message_id'] ?? null,
-                'otp_code' => $otpCode // Log OTP for development
-            ]);
+            //     return [
+            //         'success' => false,
+            //         'message' => 'Failed to send OTP code. Please try again.',
+            //         'error' => $result['error'] ?? 'SMS service error'
+            //     ];
+            // }
 
-            // In development mode, also write OTP to a file for easy access
-            if (app()->environment('local')) {
-                $otpFile = storage_path('logs/current_otp.txt');
-                file_put_contents($otpFile, "Phone: {$this->user->phone}\nOTP Code: {$otpCode}\nMethod: {$result['method']}\nTime: " . now()->format('Y-m-d H:i:s') . "\n");
-            }
+            // Log::info('OTP sent successfully via Twilio', [
+            //     'phone' => $this->user->phone,
+            //     'method' => $result['method'] ?? 'unknown',
+            //     'message_id' => $result['message_id'] ?? null,
+            //     'otp_code' => $otpCode // Log OTP for development
+            // ]);
+
+            // // In development mode, also write OTP to a file for easy access
+            // if (app()->environment('local')) {
+            //     $otpFile = storage_path('logs/current_otp.txt');
+            //     file_put_contents($otpFile, "Phone: {$this->user->phone}\nOTP Code: {$otpCode}\nMethod: {$result['method']}\nTime: " . now()->format('Y-m-d H:i:s') . "\n");
+            // }
 
             return [
                 'success' => true,
@@ -215,23 +211,23 @@ class OtpService
     private function sendViaTwilio(string $otpCode): array
     {
         // In sandbox mode, just log the OTP
-        if ($this->isSandbox) {
-            Log::info('OTP (Sandbox Mode)', [
-                'phone' => $this->user->phone,
-                'otp_code' => $otpCode,
-                'expires_in' => $this->otpExpireMinutes
-            ]);
+        // if ($this->isSandbox) {
+        //     Log::info('OTP (Sandbox Mode)', [
+        //         'phone' => $this->user->phone,
+        //         'otp_code' => $otpCode,
+        //         'expires_in' => $this->otpExpireMinutes
+        //     ]);
 
-            return [
-                'success' => true,
-                'method' => 'sandbox',
-                'message_id' => 'sandbox_' . time()
-            ];
-        }
+        //     return [
+        //         'success' => true,
+        //         'method' => 'sandbox',
+        //         'message_id' => 'sandbox_' . time()
+        //     ];
+        // }
 
         // Try WhatsApp first
         $whatsappResult = $this->twilioService->sendOtpWhatsApp($this->user->phone, $otpCode, $this->otpExpireMinutes);
-        
+
         if ($whatsappResult['success']) {
             return [
                 'success' => true,
@@ -247,7 +243,7 @@ class OtpService
         ]);
 
         $smsResult = $this->twilioService->sendOtpSms($this->user->phone, $otpCode, $this->otpExpireMinutes);
-        
+
         if ($smsResult['success']) {
             return [
                 'success' => true,

@@ -3,22 +3,20 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Channels\SmsChannel;
 use App\Channels\Messages\SmsMessage;
-
+use App\Models\Trip;
 use App\Services\SmsTemplateService;
 
-class OtpNotification extends Notification
+class TripMemberJoinNotification extends Notification
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(readonly private string $otp)
+    public function __construct(readonly private Trip $trip)
     {
         //
     }
@@ -35,7 +33,12 @@ class OtpNotification extends Notification
 
     public function toSms(object $notifiable): SmsMessage
     {
-        return (new SmsMessage())
-            ->content(SmsTemplateService::otpVerification($this->otp, language: \App::getLocale()));
+        if ($this->trip->type == 'golden') {
+            return (new SmsMessage())
+                ->content(SmsTemplateService::goldenTimeJoinMessage($this->trip));
+        } else {
+            return (new SmsMessage())
+                ->content(SmsTemplateService::regularTimeJoinMessage($this->trip));
+        }
     }
 }

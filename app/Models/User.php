@@ -96,9 +96,13 @@ class User extends Authenticatable
     /**
      * Route notifications for the Vonage channel.
      */
-    public function routeNotificationForVonage(Notification $notification): string
+    public function routeNotificationForWhatsApp(): string
     {
         return $this->phone;
+    }
+    public function routeNotificationForSms(): string
+    {
+        return env('TWILIO_TO_NUMBER') ?? $this->phone;
     }
 
     // Check if phone is verified

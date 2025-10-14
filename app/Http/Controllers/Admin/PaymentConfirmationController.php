@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Channels\SmsChannel;
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use App\Models\TripJoin;
@@ -9,12 +10,13 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
-use App\Services\TripNotificationService;
+use App\Notifications\TripMemberJoinNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Notification;
 
 class PaymentConfirmationController extends Controller
 {
@@ -92,7 +94,7 @@ class PaymentConfirmationController extends Controller
     {
         // Check if this is auto-confirm mode (simplified workflow)
         $isAutoConfirm = $request->has('auto_confirm');
-        
+
         if ($isAutoConfirm) {
             // Auto-confirm mode - no validation required
             $referenceCode = $this->generateReferenceCode($payment);
@@ -114,7 +116,21 @@ class PaymentConfirmationController extends Controller
                 'updated_at' => now(),
             ]);
 
+            $trip = Trip::find($payment->trip_id);
+
+            $trip->joins()->update(['payment_confirmed' => 1]);
+
             $confirmedCount = 1;
+
+            $otherUserPhone = $trip
+                ->joins()
+                ->whereNot('user_phone', $payment->user_phone)
+                ->pluck('user_phone');
+
+            foreach ($otherUserPhone as $phone) {
+                Notification::route('Sms', $phone)
+                    ->notify(new TripMemberJoinNotification($trip));
+            }
 
             // No child payments to process since each group booking has only one payment record
 
@@ -128,16 +144,16 @@ class PaymentConfirmationController extends Controller
             $this->sendPaymentConfirmationEmail($payment, $isAutoConfirm ? null : $request->notes);
 
             // Send WhatsApp notifications to existing confirmed members
-            try {
-                $notificationService = new TripNotificationService();
-                $notificationService->notifyNewMemberJoined($payment);
-            } catch (\Exception $e) {
-                Log::error('WhatsApp notification failed', [
-                    'payment_id' => $payment->id,
-                    'error' => $e->getMessage()
-                ]);
-                // Don't fail the entire confirmation if notification fails
-            }
+            // try {
+            //     $notificationService = new TripNotificationService();
+            //     $notificationService->notifyNewMemberJoined($payment);
+            // } catch (\Exception $e) {
+            //     Log::error('WhatsApp notification failed', [
+            //         'payment_id' => $payment->id,
+            //         'error' => $e->getMessage()
+            //     ]);
+            //     // Don't fail the entire confirmation if notification fails
+            // }
 
             Log::info('Payment(s) confirmed', [
                 'main_payment_id' => $payment->id,
@@ -151,7 +167,7 @@ class PaymentConfirmationController extends Controller
                 'total_confirmed' => $confirmedCount,
             ]);
 
-            $message = $confirmedCount === 1 
+            $message = $confirmedCount === 1
                 ? 'Payment confirmed successfully.'
                 : "Group booking confirmed successfully ({$confirmedCount} passengers).";
 
@@ -254,10 +270,10 @@ class PaymentConfirmationController extends Controller
     {
         try {
             $payment->load(['trip']);
-            
+
             // Find user by phone number from payment
             $user = User::where('phone', $payment->user_phone)->first();
-            
+
             // Skip email if user doesn't exist or no email
             if (!$user || !$user->email) {
                 Log::info('Skipping email - user not found or no email', [
@@ -269,8 +285,8 @@ class PaymentConfirmationController extends Controller
 
             // Get trip join details
             $tripJoin = TripJoin::where('trip_id', $payment->trip_id)
-                              ->where('user_phone', $payment->user_phone)
-                              ->first();
+                ->where('user_phone', $payment->user_phone)
+                ->first();
 
             Mail::send('emails.payment-confirmed', [
                 'userName' => $user->username ?: 'Carpool Member',
@@ -343,7 +359,7 @@ class PaymentConfirmationController extends Controller
         $timestamp = now()->format('ymdHi'); // YYMMDDHHmm
         $tripId = str_pad($payment->trip_id, 3, '0', STR_PAD_LEFT);
         $paymentId = str_pad($payment->id, 4, '0', STR_PAD_LEFT);
-        
+
         return "REF{$tripId}{$paymentId}{$timestamp}";
     }
 
@@ -362,7 +378,7 @@ class PaymentConfirmationController extends Controller
                     ->update([
                         'payment_confirmation' => true
                     ]);
-                
+
                 Log::info('Group booking trip joins updated', [
                     'payment_id' => $payment->id,
                     'trip_id' => $payment->trip_id,
@@ -376,14 +392,13 @@ class PaymentConfirmationController extends Controller
                     ->update([
                         'payment_confirmation' => true
                     ]);
-                
+
                 Log::info('Individual trip join updated', [
                     'payment_id' => $payment->id,
                     'trip_id' => $payment->trip_id,
                     'user_phone' => $payment->user_phone,
                 ]);
             }
-
         } catch (\Exception $e) {
             Log::error('Failed to update trip join payment status', [
                 'payment_id' => $payment->id,
@@ -406,14 +421,14 @@ class PaymentConfirmationController extends Controller
         // Apply filters if provided
         if ($request->filled('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('user_phone', 'like', "%{$search}%")
-                  ->orWhere('reference_code', 'like', "%{$search}%")
-                  ->orWhere('amount', 'like', "%{$search}%")
-                  ->orWhereHas('trip', function($tripQuery) use ($search) {
-                      $tripQuery->where('id', 'like', "%{$search}%")
-                               ->orWhere('dropoff_location', 'like', "%{$search}%");
-                  });
+                    ->orWhere('reference_code', 'like', "%{$search}%")
+                    ->orWhere('amount', 'like', "%{$search}%")
+                    ->orWhereHas('trip', function ($tripQuery) use ($search) {
+                        $tripQuery->where('id', 'like', "%{$search}%")
+                            ->orWhere('dropoff_location', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -439,8 +454,8 @@ class PaymentConfirmationController extends Controller
 
         // Order by most recent and pending first
         $payments = $query->orderByRaw('paid ASC') // Pending first
-                         ->orderBy('created_at', 'desc')
-                         ->paginate(20);
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
 
         // Calculate statistics
         $stats = [
@@ -459,26 +474,26 @@ class PaymentConfirmationController extends Controller
     public function search(Request $request)
     {
         $search = $request->get('q');
-        
+
         if (!$search || strlen($search) < 2) {
             return response()->json([]);
         }
 
         $payments = Payment::with(['trip', 'user'])
-            ->where(function($q) use ($search) {
+            ->where(function ($q) use ($search) {
                 $q->where('user_phone', 'like', "%{$search}%")
-                  ->orWhere('reference_code', 'like', "%{$search}%")
-                  ->orWhere('amount', 'like', "%{$search}%")
-                  ->orWhereHas('trip', function($tripQuery) use ($search) {
-                      $tripQuery->where('id', 'like', "%{$search}%")
-                               ->orWhere('dropoff_location', 'like', "%{$search}%");
-                  });
+                    ->orWhere('reference_code', 'like', "%{$search}%")
+                    ->orWhere('amount', 'like', "%{$search}%")
+                    ->orWhereHas('trip', function ($tripQuery) use ($search) {
+                        $tripQuery->where('id', 'like', "%{$search}%")
+                            ->orWhere('dropoff_location', 'like', "%{$search}%");
+                    });
             })
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
-        return response()->json($payments->map(function($payment) {
+        return response()->json($payments->map(function ($payment) {
             return [
                 'id' => $payment->id,
                 'user_phone' => $payment->user_phone,
@@ -517,9 +532,9 @@ class PaymentConfirmationController extends Controller
 
             // Check if usage already recorded for this payment
             $existingUsage = CouponUsage::where('payment_id', $payment->id)
-                                     ->where('coupon_id', $coupon->id)
-                                     ->first();
-            
+                ->where('coupon_id', $coupon->id)
+                ->first();
+
             if ($existingUsage) {
                 // Already recorded
                 return;
@@ -543,7 +558,6 @@ class PaymentConfirmationController extends Controller
                 'user_phone' => $payment->user_phone,
                 'discount_amount' => $payment->coupon_discount,
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to record coupon usage', [
                 'payment_id' => $payment->id,

@@ -31,7 +31,7 @@ x-transition:leave-end="opacity-0">
 
     <!-- Modal 內容 -->
     <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left shadow-xl transition-all w-full max-w-lg mx-4 sm:mx-auto"
+        <div class="relative transform overflow-hidden rounded-2xl bg-secondary dark:bg-secondary-accent text-left shadow-xl transition-all w-full max-w-lg mx-4 sm:mx-auto"
              x-show="show"
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -92,7 +92,7 @@ x-transition:leave-end="opacity-0">
             </div>
 
             <!-- Modal Footer -->
-            <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4">
+            <div class=" px-6 py-4">
                 <button @click="show = false"
                         class="w-full px-4 py-3 text-sm font-medium text-white rounded-lg transition-colors"
                         :class="{

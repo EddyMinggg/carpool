@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Services\OtpService;
 use Auth;
 
 class PhoneVerificationMiddleware
@@ -17,8 +18,10 @@ class PhoneVerificationMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check() && !Auth::user()->hasVerifiedPhone()) {
-            // Customize your redirection or other logic here
-            return redirect()->route('verification.notice');
+            $res = (new OtpService(Auth::user()))->sendOtp();
+            if ($res['success']) {
+                return redirect()->route('verification.notice');
+            }
         }
 
         return $next($request);

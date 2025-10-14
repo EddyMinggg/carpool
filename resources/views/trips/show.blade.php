@@ -1,39 +1,41 @@
 @section('Title', $trip->dropoff_location)
 <x-app-layout>
 
-    <x-slot name="header">
+    <x-slot name="header" class="transition">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
                 {{ __('Trip Details') }}
             </h2>
-            <!-- Web Share API 分享按鈕 - 所有用戶都可以分享 -->
-        <div >
-            <!-- 主要分享按鈕 -->
-            <button id="share-btn"
-                class="w-24 -my-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-3 transition shadow-md text-gray-100 dark:text-gray-300 bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary">
-                <span class="material-icons text-sm">share</span>
-                <span>{{ __('Share') }}</span>
-            </button>
-
-            <!-- 降級方案按鈕組 (僅在不支援 Web Share API 時顯示) -->
-            <div id="fallback-share-buttons" class="hidden space-y-2">
-                <button id="whatsapp-share-btn"
-                    class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-white"
-                    style="background-color: #25D366;">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787" />
-                    </svg>
-                    {{ __('Share via WhatsApp') }}
+            <div>
+                <button id="share-btn"
+                    class="w-8 -my-4 py-1 rounded-lg text-sm font-semibold flex items-center justify-center gap-3 transition shadow-md text-gray-100 dark:text-gray-300 bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary"
+                    x-data="" x-on:click.prevent="$dispatch('open-modal', 'share-method')">
+                    <span class="material-icons text-sm">share</span>
                 </button>
 
-                <button id="copy-link-btn"
-                    class="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition shadow-sm text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <span class="material-icons text-lg">content_copy</span>
-                    <span id="copy-text">{{ __('Copy Link') }}</span>
-                </button>
+                <x-modal name="share-method" focusable>
+                    <div class="p-6 w-full">
+                        <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
+                            {{ __('Share Via') }}
+                        </h2>
+                        <button id="whatsapp-share-btn"
+                            class="w-full mt-4 py-2 px-4 rounded-lg text-sm font-semibold flex items-center justify-center gap-3 transition text-gray-100 dark:text-gray-300 bg-green-600 hover:bg-green-500">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787" />
+                            </svg>
+                            {{ __('WhatsApp') }}
+                        </button>
+
+                        <button id="copy-link-btn"
+                            class="w-full mt-4 py-1 px-4 rounded-lg text-sm font-semibold flex items-center justify-center gap-3 transition text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+                            <span class="material-icons text-lg">content_copy</span>
+                            <span id="copy-text">{{ __('Copy Text') }}</span>
+                        </button>
+                    </div>
+                </x-modal>
+
             </div>
-        </div>
         </div>
     </x-slot>
 
@@ -89,9 +91,14 @@
                         @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
                     {{ ucfirst($trip->trip_status) }}
                 </span>
-                
-                @if ($trip->type === 'normal' && $currentPeople >= 3 && !$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
-                    <span class="px-2 py-1 rounded-md text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 flex items-center gap-1">
+
+                @if (
+                    $trip->type === 'normal' &&
+                        $currentPeople >= 3 &&
+                        !$hasJoined &&
+                        (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed))
+                    <span
+                        class="px-2 py-1 rounded-md text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 flex items-center gap-1">
                         <span class="material-icons text-xs">savings</span>
                         {{ __('4th person discount available - see pricing details') }}
                     </span>
@@ -203,7 +210,7 @@
                 </div>
                 <div class="text-right">
                     <div class="text-2xl font-bold text-primary-accent dark:text-primary">
-                        HK$ {{ number_format($price, 0) }}
+                        HK$ {{ number_format($userFee, 0) }}
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         {{ __('Per person') }}
@@ -235,15 +242,24 @@
                         </svg>
                         {{ __('Driver Information') }}
                     </h3>
-                    <span
-                        class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
-                        {{ __('Assigned') }}
-                    </span>
+
+                    @if ($trip->trip_status == 'departed')
+                        <span
+                            class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full animate-pulse">
+                            {{ __('Trip Started') }}
+                        </span>
+                    @elseif($trip->trip_status == 'awaiting')
+                        <span
+                            class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
+                            {{ __('Assigned') }}
+                        </span>
+                    @endif
                 </div>
 
                 <div class="flex items-center gap-4 mb-4">
                     <!-- 司機頭像 -->
-                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                    <div
+                        class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
                         <span class="text-blue-600 dark:text-blue-300 font-semibold text-xl">
                             {{ strtoupper(substr($assignedDriver->username, 0, 1)) }}
                         </span>
@@ -254,7 +270,7 @@
                         <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-xl">
                             {{ $assignedDriver->username }}
                         </h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 my-2">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 mb-2">
                             <span class="inline-flex items-center gap-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -278,23 +294,22 @@
 
                     <!-- 聯絡司機按鈕 -->
                     @if ($assignedDriver->phone)
-                        <div class="flex flex-col gap-4">
-                            <!-- 撥打電話 -->
+                        <div class="flex gap-2">
                             <a href="tel:{{ $assignedDriver->phone }}"
-                                class="inline-flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors shadow-lg">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="p-2 bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                    </path>
                                 </svg>
                             </a>
-
-                            <!-- WhatsApp -->
                             <a href="https://wa.me/{{ str_replace(['+', '-', ' '], '', $assignedDriver->phone) }}"
-                                target="_blank"
-                                class="inline-flex items-center justify-center w-12 h-12 text-white rounded-full transition-colors shadow-lg bg-green-500 hover:bg-green-600 ">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                class="p-2 text-white rounded-lg hover:opacity-80 transition"
+                                style="background-color: #25D366;">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                     <path
-                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787" />
+                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.787">
+                                    </path>
                                 </svg>
                             </a>
                         </div>
@@ -302,7 +317,8 @@
                 </div>
 
                 <!-- 司機狀態和提醒 -->
-                <div class="bg-primary-opaque dark:bg-primary-opaque-dark rounded-lg p-4 mt-6 border border-primary dark:border-primary-dark">
+                <div
+                    class="bg-primary-opaque dark:bg-primary-opaque-dark rounded-lg p-4 mt-6 border border-primary dark:border-primary-dark">
                     <div class="flex items-start gap-3">
                         <div class="w-5 h-5 text-primary mt-0.5">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,13 +336,29 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-600 pt-4 mt-6">
+                    <div class="text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            {{ __('Your pickup location') }}
+                        </div>
+                        @php
+                            // 等待司機時顯示確定的接送地址（trip_join 表中的記錄）
+                            $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
+                            $confirmedLocation = $userJoin ? $userJoin->pickup_location : null;
+                        @endphp
+                        <div class="font-medium text-gray-900 dark:text-gray-100 location-display">
+                            <span>{{ $confirmedLocation ?: __('Location not set') }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         @elseif ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed))
             <div
-                class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-800 mt-4">
+                class="bg-yellow-50 dark:bg-yellow-900/50 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-800 mt-4">
                 <div class="flex items-center gap-3">
                     <div
-                        class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center">
+                        class="w-12 h-12 flex items-center justify-center">
                         <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -338,7 +370,7 @@
                             {{ __('Driver Assignment Pending') }}
                         </h3>
                         <p class="text-yellow-700 dark:text-yellow-300 text-sm">
-                            {{ __('A driver will be assigned to this trip closer to the departure time.') }}
+                            {{ __('A driver will be assigned to this trip anytime before its departure.') }}
                         </p>
                     </div>
                 </div>
@@ -380,9 +412,9 @@
                             </div>
                         </div>
                         <div class="text-sm">
-                            @if ($join->user_id === auth()->id())
+                            @if ($join->user_phone === Auth::user()->phone)
                                 <span
-                                    class="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded text-xs">
+                                    class="px-2 py-1 bg-primary-opaque dark:bg-primary-opaque-dark text-gray-500 dark:text-gray-300 rounded text-xs">
                                     {{ __('You') }}
                                 </span>
                             @else
@@ -398,13 +430,12 @@
 
         <!-- 邀請同行成員功能 - 只對已加入且為群組預訂的用戶顯示 -->
         @php
-            $userPayment = \App\Models\Payment::where('trip_id', $trip->id)
-                ->where('user_phone', $userPhone)
-                ->first();
+            $userPayment = \App\Models\Payment::where('trip_id', $trip->id)->where('user_phone', $userPhone)->first();
             $isGroupBooking = $userPayment && $userPayment->type === 'group';
         @endphp
         @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking)
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mt-4">
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mt-4">
                 <!-- 標題 -->
                 <div class="flex items-center gap-2 mb-3">
                     <span class="material-icons text-blue-600 dark:text-blue-400 text-xl">group_add</span>
@@ -417,11 +448,11 @@
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-3">
                     <div class="text-center">
                         <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ __('Invitation Code') }}</div>
-                        <div class="font-mono text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-widest mb-3">
+                        <div
+                            class="font-mono text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-widest mb-3">
                             {{ $trip->invitation_code }}
                         </div>
-                        <button 
-                            id="copy-invitation-code"
+                        <button id="copy-invitation-code"
                             class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                             data-code="{{ $trip->invitation_code }}">
                             <span class="material-icons text-sm">content_copy</span>
@@ -465,7 +496,7 @@
         <!-- 等待司機區域 (時間到了後顯示) -->
         <div id="waiting-driver" class="hidden space-y-4 mt-6">
             <!-- 司機信息卡片 -->
-            <div
+            {{-- <div
                 class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Driver Information') }}
@@ -543,16 +574,16 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             <!-- 安全和聯絡功能 -->
             <div
-                class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+                class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">
                     {{ __('Emergency Contact') }}</h3>
                 <div class="space-y-3">
                     <!-- 香港緊急電話 -->
-                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
                         <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Hong Kong') }}
                         </div>
                         <a href="tel:999"
@@ -567,7 +598,7 @@
                     </div>
 
                     <!-- 內地緊急電話 -->
-                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
                         <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             {{ __('Mainland China') }}</div>
                         <div class="grid grid-cols-1 gap-2">
@@ -586,19 +617,20 @@
             </div>
 
             <!-- 簡單提醒 -->
-            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+            <div
+                class="bg-primary-opaque dark:bg-primary-opaque-dark rounded-xl p-4 border border-primary dark:border-primary-dark">
                 <div class="flex items-start gap-3">
-                    <div class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5">
+                    <div class="w-5 h-5 text-primary dark:text-primary-dark mt-0.5">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <div class="font-medium text-blue-900 dark:text-blue-100 text-sm">
+                        <div class="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                             {{ __('Trip Started') }}
                         </div>
-                        <div class="text-blue-700 dark:text-blue-300 text-sm mt-1">
+                        <div class="text-gray-700 dark:text-gray-400 text-sm mt-1">
                             {{ __('Please wait for the driver to contact you. Make sure your phone is accessible.') }}
                         </div>
                     </div>
@@ -606,7 +638,7 @@
             </div>
         </div>
 
-        @if ($hasJoined)
+        {{-- @if ($hasJoined)
             <div
                 class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <div class="flex flex-col items-center gap-3">
@@ -621,7 +653,7 @@
                             {{ __('Complete your payment to secure your spot! Payment confirmation required before departure.') }}
                         </div>
                         <div class="text-gray-700 dark:text-gray-200 text-md mt-4 font-bold">
-                            {{ __('Full Amount:') . " HK$" . number_format($price, 0) }}
+                            {{ __('Full Amount:') . " HK$" . number_format($userFee, 0) }}
                         </div>
                     </div>
                     <div class="w-full mt-6">
@@ -662,10 +694,10 @@
                     </div>
                 </div>
             </div>
-        @endif
+        @endif --}}
 
         <!-- 已付款等待管理員確認狀態 -->
-        @if (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)
+        {{-- @if (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)
             <!-- 主要狀態卡片 -->
             <div
                 class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-700 mt-4">
@@ -858,7 +890,7 @@
                     </div>
                 </div>
             @endif
-        @endif
+        @endif --}}
         <!-- 預訂功能 -->
         @if (!$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed) && $availableSlots > 0)
             <!-- 預訂功能（支援個人或多人預訂） -->
@@ -940,15 +972,26 @@
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         {{ __('Phone Number') }} <span class="text-red-500">*</span>
                                     </label>
+                                    @php
+                                        $prefixes = ['+852', '+86']; // Prefixes to remove
+                                        $_userPhone = str_replace($prefixes, '', $userPhone);
+                                        if ($_userPhone == $userPhone) {
+                                            $_userPhone = $userPhone;
+                                        }
+                                        $code = strpos($userPhone, '+852') !== false ? '+852' : '+86';
+                                    @endphp
                                     <div class="flex">
                                         <select name="passengers[0][phone_country_code]"
                                             class="rounded-l-md border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm">
-                                            <option value="+852">+852 (HK)</option>
-                                            <option value="+86">+86 (CN)</option>
+                                            <option value="+852"
+                                                {{ $code == '+852' || $userPhone == null ? 'selected' : '' }}>+852 (HK)
+                                            </option>
+                                            <option value="+86" {{ $code == '+86' ? 'selected' : '' }}>+86 (CN)
+                                            </option>
                                         </select>
                                         <x-text-input type="tel" name="passengers[0][phone]" required
                                             class="border-gray-300 dark:border-gray-700 block w-full rounded-l-none border-l-0"
-                                            placeholder="12345678"/>
+                                            placeholder="12345678" value="{{ $_userPhone }}" />
                                     </div>
                                 </div>
                                 <div class="md:col-span-2">
@@ -989,8 +1032,9 @@
                         <div class="flex gap-3">
                             <div class="flex-1">
                                 <input type="text" id="coupon-code" name="coupon_code"
+                                    oninput="let p = this.selectionStart; this.value = this.value.toUpperCase();this.setSelectionRange(p, p);"
                                     placeholder="{{ __('Enter coupon code') }}"
-                                    class="w-full rounded-md border-gray-400 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-amber-500 dark:focus:border-amber-600 focus:ring-amber-500 dark:focus:ring-amber-600 text-sm uppercase">
+                                    class="w-full rounded-md border-gray-400 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-amber-500 dark:focus:border-amber-600 focus:ring-amber-500 dark:focus:ring-amber-600 text-sm">
                             </div>
                             <button type="button" id="apply-coupon"
                                 class="px-4 py-2 bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white rounded-lg font-medium text-sm transition">
@@ -1024,17 +1068,19 @@
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-700 dark:text-gray-300">{{ __('Price per person') }}:</span>
-                                <span class="font-semibold text-gray-900 dark:text-gray-200" id="price-per-person-display">HK$
-                                    {{ number_format($price, 0) }}</span>
+                                <span class="font-semibold text-gray-900 dark:text-gray-200"
+                                    id="price-per-person-display">HK$
+                                    {{ number_format($userFee, 0) }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-700 dark:text-gray-300">{{ __('Number of people') }}:</span>
-                                <span class="font-semibold text-gray-900 dark:text-gray-200" id="people-display">1</span>
+                                <span class="font-semibold text-gray-900 dark:text-gray-200"
+                                    id="people-display">1</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-700 dark:text-gray-300">{{ __('Subtotal') }}:</span>
                                 <span class="font-semibold text-gray-900 dark:text-gray-200" id="subtotal-amount">HK$
-                                    {{ number_format($price, 0) }}</span>
+                                    {{ number_format($userFee, 0) }}</span>
                             </div>
                             <!-- 優惠券折扣行 (僅在套用優惠券時顯示) -->
                             <div id="coupon-discount-row" class="hidden flex justify-between text-sm">
@@ -1045,8 +1091,9 @@
                             <div class="border-t border-gray-300 dark:border-gray-500 pt-2">
                                 <div class="flex justify-between font-bold text-gray-900 dark:text-gray-200">
                                     <span>{{ __('Total Amount') }}:</span>
-                                    <span class="font-bold text-primary-accent dark:text-primary" id="total-amount">HK$
-                                        {{ number_format($price, 0) }}</span>
+                                    <span class="font-bold text-primary-accent dark:text-primary"
+                                        id="total-amount">HK$
+                                        {{ number_format($userFee, 0) }}</span>
                                 </div>
                             </div>
 
@@ -1063,23 +1110,34 @@
                                             • 4+ {{ __('people') }}: HK$225/{{ __('person') }}
                                             ({{ __('HK$50 discount') }})
                                         </div>
-                                        
+
                                         @if ($currentPeople >= 3)
-                                        <!-- 四人優惠退款政策提醒 -->
-                                        <div class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                            <div class="flex items-start gap-2">
-                                                <span class="material-icons text-amber-600 dark:text-amber-400 text-sm mt-0.5">info</span>
-                                                <div class="text-xs text-amber-800 dark:text-amber-200">
-                                                    <div class="font-medium mb-1">{{ __('4-Person Discount Policy') }}</div>
-                                                    <div class="leading-relaxed space-y-1">
-                                                        <div>• {{ __('All passengers must pay full price (HK$275) initially') }}</div>
-                                                        <div>• {{ __('HK$50 refund per person processed after trip deadline') }}</div>
-                                                        <div>• {{ __('Refunds only if 4+ people confirmed and no cancellations') }}</div>
-                                                        <div>• {{ __('Admin will handle refunds offline within 48 hours post-deadline') }}</div>
+                                            <!-- 四人優惠退款政策提醒 -->
+                                            <div
+                                                class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                                <div class="flex items-start gap-2">
+                                                    <span
+                                                        class="material-icons text-amber-600 dark:text-amber-400 text-sm mt-0.5">info</span>
+                                                    <div class="text-xs text-amber-800 dark:text-amber-200">
+                                                        <div class="font-medium mb-1">
+                                                            {{ __('4-Person Discount Policy') }}</div>
+                                                        <div class="leading-relaxed space-y-1">
+                                                            <div>•
+                                                                {{ __('All passengers must pay full price (HK$275) initially') }}
+                                                            </div>
+                                                            <div>•
+                                                                {{ __('HK$50 refund per person processed after trip deadline') }}
+                                                            </div>
+                                                            <div>•
+                                                                {{ __('Refunds only if 4+ people confirmed and no cancellations') }}
+                                                            </div>
+                                                            <div>•
+                                                                {{ __('Admin will handle refunds offline within 48 hours post-deadline') }}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
                                         @endif
                                     @endif
                                 </div>
@@ -1092,7 +1150,7 @@
                             <input type="checkbox" id="group-booking-terms" required
                                 class="rounded bg-secondary dark:bg-secondary-dark border-gray-300 dark:border-gray-700 text-primary shadow-sm focus:ring-primary dark:focus:ring-primary-dark dark:focus:ring-offset-secondary-dark">
                             <label for="group-booking-terms" class="text-sm text-gray-700 dark:text-gray-300">
-                                {{ __('I confirm that I have the consent of all passengers listed above to book this trip on their behalf. I understand the pricing rules and refund policies are managed by administrators.') }}
+                                {{ __('I confirm that I have the consent of all passengers listed above to book this trip on their behalves.') }}
                             </label>
                         </div>
                     </div>
@@ -1102,7 +1160,7 @@
                         <button type="button" id="submit-group-booking"
                             class="w-full bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary text-gray-100 dark:text-gray-300 py-4 rounded-lg font-semibold text-lg transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
                             {{ __('Book Now') }} - <span id="total-amount-btn">HK$
-                                {{ number_format($price, 0) }}</span>
+                                {{ number_format($userFee, 0) }}</span>
                         </button>
                     @else
                         <div class="w-full bg-gray-400 text-white py-4 rounded-xl font-semibold text-lg text-center">
@@ -1123,16 +1181,15 @@
                 </button>
 
                 <x-modal name="confirm-leave-trip" focusable>
-                    <form action="{{ route('trips.leave', $trip) }}" method="POST">
+                    <form action="{{ route('trips.leave', $trip) }}">
                         @csrf
-                        @method('DELETE')
                         <div class="p-8 items-start">
-                            <h2 class="text-lg text-gray-900 dark:text-gray-300 font-black">
+                            <h2 class="text-xl text-gray-900 dark:text-gray-300 font-black">
                                 {{ __('Are you sure you want to leave the trip?') }}
                             </h2>
 
                             <div
-                                class="mt-8 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
+                                class="mt-6 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
                                 <span class="text-red-500 dark:text-red-400 font-black">
                                     {{ __('The payment WILL NOT be refunded if you decided to leave the carpool.') }}
                                 </span>
@@ -1145,19 +1202,22 @@
                                 </span>
                             </div>
 
-                            <div
-                                class="mt-3 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
-                                <span class="font-normal">
-                                    {{ __('Payment Amount: ') }}
-                                </span>
-                                <span class="font-black underline">
-                                    {{ 'HK$' . number_format($price, 0) }}
-                                </span>
-                            </div>
+                            @if ($price != null)
+                                <div
+                                    class="mt-3 flow-root sm:mx-0 overflow-x-auto text-md text-gray-900 dark:text-gray-300">
+                                    <span class="font-normal">
+                                        {{ __('Payment Amount: ') }}
+                                    </span>
+                                    <span class="font-black underline">
+                                        {{ 'HK$' . number_format($price, 0) }}
+                                    </span>
+                                </div>
+                            @endif
+
                             <div class="flex mt-6">
                                 <div class="flex items-center h-5">
                                     <input id="confirm-leave" type="checkbox" value=""
-                                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                        class="w-4 h-4 rounded bg-secondary dark:bg-secondary-dark border-gray-300 dark:border-gray-700 text-primary shadow-sm focus:ring-primary dark:focus:ring-primary-dark dark:focus:ring-offset-secondary-dark">
                                 </div>
                                 <div class="text-sm ms-2">
                                     <label for="confirm" class="font-normal text-gray-900 dark:text-gray-300">
@@ -1384,10 +1444,12 @@
             transform: scale(1);
             box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
         }
+
         50% {
             transform: scale(1.05);
             box-shadow: 0 0 0 10px rgba(34, 197, 94, 0.1);
         }
+
         100% {
             transform: scale(1);
             box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
@@ -1455,15 +1517,15 @@
             const savedScrollY = localStorage.getItem('tripShowScrollPosition');
             if (savedScrollY !== null) {
                 const scrollPosition = parseInt(savedScrollY, 10);
-                
+
                 // 使用平滑滾動效果
                 window.scrollTo({
                     top: scrollPosition,
                     behavior: 'smooth'
                 });
-                
+
                 console.log('📍 滾動位置已恢復:', scrollPosition);
-                
+
                 // 清除保存的滾動位置，避免影響其他頁面導航
                 localStorage.removeItem('tripShowScrollPosition');
             }
@@ -1504,7 +1566,7 @@
                         icon.classList.remove('text-gray-400', 'dark:text-gray-500');
                         icon.classList.add('text-green-600', 'dark:text-green-400');
                     }
-                    
+
                     // 添加成功動畫效果
                     locationBtn.classList.add('location-selected-animation');
                     setTimeout(() => {
@@ -1623,12 +1685,12 @@
         function getShareData() {
             const tripTitle = '{{ $trip->dropoff_location }}';
             const departureTime = '{{ $departureTime->format('Y-m-d H:i') }}';
-            const price = 'HK$ {{ number_format($price, 0) }}';
+            const price = 'HK$ {{ number_format($userFee, 0) }}';
             const currentPeople = '{{ $currentPeople }}';
             const maxPeople = '{{ $trip->max_people }}';
 
             // Get current URL, replace localhost with online domain if needed
-            let shareUrl = window.location.href;
+            let shareUrl = '{{ $hasJoined ? config('app.url') : route('trips.show', ['id' => $trip->id]) }}';
             if (shareUrl.includes('localhost') || shareUrl.includes('127.0.0.1')) {
                 const appUrl = '{{ config('app.url') }}';
                 if (appUrl && !appUrl.includes('localhost')) {
@@ -1645,8 +1707,9 @@
 🕐 出發時間: ${departureTime}
 💰 價格: ${price}/人
 👥 目前人數: ${currentPeople}/${maxPeople}
-
-點擊連結查看詳情並加入:
+` +
+                "{{ $hasJoined ? '🔁 邀請碼: ' . $trip->invitation_code . '\n\n點擊連結使用邀請碼登入查看詳情:' : '\n點擊連結查看詳情並加入:' }}" +
+                `
 #拼車 #香港 #出行`;
 
             return {
@@ -1656,97 +1719,6 @@
             };
         }
 
-        // 檢查 Web Share API 支援並初始化
-        function initializeShare() {
-            if (navigator.share) {
-                // 支援 Web Share API，隱藏降級按鈕
-                $('#fallback-share-buttons').addClass('hidden');
-                console.log('✅ Web Share API 支援');
-            } else {
-                // 不支援 Web Share API，顯示降級按鈕
-                $('#fallback-share-buttons').removeClass('hidden');
-                console.log('❌ Web Share API 不支援，使用降級方案');
-            }
-        }
-
-        // Web Share API 分享功能
-        async function shareViaWebAPI() {
-            const shareData = getShareData();
-
-            try {
-                // 檢查是否可以分享
-                if (navigator.canShare && !navigator.canShare(shareData)) {
-                    throw new Error('無法分享此內容');
-                }
-
-                await navigator.share(shareData);
-                console.log('✅ 分享成功');
-
-                // 顯示成功反饋
-                // showShareFeedback('success', '{{ __('Shared successfully!') }}');
-
-            } catch (error) {
-                console.log('❌ 分享失敗或取消:', error);
-
-                if (error.name !== 'AbortError') {
-                    // 不是用戶取消，顯示降級選項
-                    showFallbackOptions();
-                }
-            }
-        }
-
-        // 顯示分享反饋
-        function showShareFeedback(type, message) {
-            const button = $('#share-btn');
-            const originalContent = button.html();
-
-            if (type === 'success') {
-                button.html(`
-                    <span class="material-icons text-lg">check_circle</span>
-                    <span>${message}</span>
-                `).removeClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800')
-                    .addClass('bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800');
-            } else {
-                button.html(`
-                    <span class="material-icons text-lg">error</span>
-                    <span>${message}</span>
-                `).removeClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800')
-                    .addClass('bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800');
-            }
-
-            // 2秒後恢復
-            setTimeout(() => {
-                button.html(originalContent)
-                    .removeClass(
-                        'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800'
-                    )
-                    .addClass('bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800');
-            }, 2000);
-        }
-
-        // 顯示降級選項
-        function showFallbackOptions() {
-            $('#fallback-share-buttons').removeClass('hidden');
-            showShareFeedback('error', '{{ __('Choose sharing method') }}');
-
-            // 3秒後隱藏降級選項
-            setTimeout(() => {
-                if (navigator.share) {
-                    $('#fallback-share-buttons').addClass('hidden');
-                }
-            }, 5000);
-        }
-
-        // 主要分享按鈕功能
-        $('#share-btn').on('click', function() {
-            if (navigator.share) {
-                shareViaWebAPI();
-            } else {
-                // 直接顯示降級選項
-                $('#fallback-share-buttons').toggleClass('hidden');
-            }
-        });
-
         // Copy link functionality (降級方案)
         $('#copy-link-btn').on('click', function() {
             const shareData = getShareData();
@@ -1754,9 +1726,25 @@
             const copyText = $('#copy-text');
             const originalText = copyText.text();
 
+            const tripTitle = '{{ $trip->dropoff_location }}';
+            const departureTime = '{{ $departureTime->format('Y-m-d H:i') }}';
+            const price = 'HK$ {{ number_format($userFee, 0) }}';
+            const currentPeople = '{{ $currentPeople }}';
+            const maxPeople = '{{ $trip->max_people }}';
+            const shareText = `🚗 ${tripTitle} 拼車邀請！
+
+📍 目的地: ${tripTitle}
+🕐 出發時間: ${departureTime}
+💰 價格: ${price}/人
+👥 目前人數: ${currentPeople}/${maxPeople}
+` +
+                "{{ $hasJoined ? '🔁 邀請碼: ' . $trip->invitation_code . '\n\n點擊連結使用邀請碼登入查看詳情:' : '\n點擊連結查看詳情並加入:' }}" +
+                `
+#拼車 #香港 #出行`;
+
             // Use modern Clipboard API
             if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(currentUrl).then(function() {
+                navigator.clipboard.writeText(shareText).then(function() {
                     // Successfully copied
                     copyText.text('{{ __('Copied!') }}');
 
@@ -1768,13 +1756,6 @@
                         .addClass(
                             'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200'
                         );
-
-                    // 隱藏降級按鈕
-                    setTimeout(() => {
-                        if (navigator.share) {
-                            $('#fallback-share-buttons').addClass('hidden');
-                        }
-                    }, 1000);
 
                     // Restore after 2 seconds
                     setTimeout(function() {
@@ -1908,7 +1889,7 @@
 
         // 頁面加載時初始化
         $(document).ready(function() {
-            initializeShare();
+            // initializeShare();
         });
 
         // === 多人預訂功能 ===
@@ -2440,22 +2421,24 @@
                     setTimeout(() => {
                         console.log('📍 為乘客設置地址:', passengerIndex, location);
                         updatePassengerLocation(parseInt(passengerIndex), location);
-                        
+
                         // 地址更新後，滾動到對應的乘客表單位置
                         setTimeout(() => {
-                            const passengerForm = document.querySelector(`[data-passenger="${passengerIndex}"]`);
+                            const passengerForm = document.querySelector(
+                                `[data-passenger="${passengerIndex}"]`);
                             if (passengerForm) {
                                 const formRect = passengerForm.getBoundingClientRect();
                                 const windowHeight = window.innerHeight;
-                                
+
                                 // 計算滾動位置，讓表單顯示在螢幕中央
-                                const scrollToPosition = window.scrollY + formRect.top - (windowHeight / 2) + (formRect.height / 2);
-                                
+                                const scrollToPosition = window.scrollY + formRect.top - (
+                                    windowHeight / 2) + (formRect.height / 2);
+
                                 window.scrollTo({
                                     top: Math.max(0, scrollToPosition),
                                     behavior: 'smooth'
                                 });
-                                
+
                                 console.log('📍 滾動到乘客表單位置:', passengerIndex);
                             }
                         }, 100);
@@ -2493,7 +2476,7 @@
                     if (bookingForm) {
                         const rect = bookingForm.getBoundingClientRect();
                         const isFormVisible = rect.top < window.innerHeight && rect.bottom > 0;
-                        
+
                         if (isFormVisible) {
                             saveScrollPosition();
                         }
@@ -2580,12 +2563,12 @@
                             // 成功複製
                             copyText.text('{{ __('Copied!') }}');
                             button.removeClass('text-blue-600 dark:text-blue-400')
-                                  .addClass('text-green-600 dark:text-green-400');
+                                .addClass('text-green-600 dark:text-green-400');
 
                             setTimeout(() => {
                                 copyText.text(originalText);
                                 button.removeClass('text-green-600 dark:text-green-400')
-                                      .addClass('text-blue-600 dark:text-blue-400');
+                                    .addClass('text-blue-600 dark:text-blue-400');
                             }, 2000);
                         })
                         .catch(() => {
@@ -2603,15 +2586,15 @@
                 const invitationCode = '{{ $trip->invitation_code }}';
                 const tripTitle = '{{ $trip->title }}';
                 const loginUrl = '{{ route('login') }}';
-                
+
                 const message = `{{ __('Join my carpool trip!') }}\n\n` +
-                               `{{ __('Trip') }}: ${tripTitle}\n` +
-                               `{{ __('Invitation Code') }}: ${invitationCode}\n\n` +
-                               `{{ __('How to join') }}:\n` +
-                               `1. {{ __('Visit') }}: ${loginUrl}\n` +
-                               `2. {{ __('Click "Join Trip" tab') }}\n` +
-                               `3. {{ __('Enter invitation code and your phone number') }}\n\n` +
-                               `{{ __('No registration required!') }}`;
+                    `{{ __('Trip') }}: ${tripTitle}\n` +
+                    `{{ __('Invitation Code') }}: ${invitationCode}\n\n` +
+                    `{{ __('How to join') }}:\n` +
+                    `1. {{ __('Visit') }}: ${loginUrl}\n` +
+                    `2. {{ __('Click "Join Trip" tab') }}\n` +
+                    `3. {{ __('Enter invitation code and your phone number') }}\n\n` +
+                    `{{ __('No registration required!') }}`;
 
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, '_blank');
@@ -2629,13 +2612,21 @@
                         .then(() => {
                             // 成功複製
                             button.find('span:last-child').text('{{ __('Copied!') }}');
-                            button.removeClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
-                                  .addClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600');
+                            button.removeClass(
+                                    'bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600'
+                                )
+                                .addClass(
+                                    'bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600'
+                                );
 
                             setTimeout(() => {
                                 button.find('span:last-child').text(originalText);
-                                button.removeClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600')
-                                      .addClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
+                                button.removeClass(
+                                        'bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600'
+                                    )
+                                    .addClass(
+                                        'bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600'
+                                    );
                             }, 2000);
                         })
                         .catch(() => {
@@ -2665,33 +2656,33 @@
                 if (successful) {
                     copyText.text('{{ __('Copied!') }}');
                     button.removeClass('text-blue-600 dark:text-blue-400')
-                          .addClass('text-green-600 dark:text-green-400');
+                        .addClass('text-green-600 dark:text-green-400');
 
                     setTimeout(() => {
                         copyText.text(originalText);
                         button.removeClass('text-green-600 dark:text-green-400')
-                              .addClass('text-blue-600 dark:text-blue-400');
+                            .addClass('text-blue-600 dark:text-blue-400');
                     }, 2000);
                 } else {
                     copyText.text('{{ __('Copy Failed') }}');
                     button.removeClass('text-blue-600 dark:text-blue-400')
-                          .addClass('text-red-600 dark:text-red-400');
+                        .addClass('text-red-600 dark:text-red-400');
 
                     setTimeout(() => {
                         copyText.text(originalText);
                         button.removeClass('text-red-600 dark:text-red-400')
-                              .addClass('text-blue-600 dark:text-blue-400');
+                            .addClass('text-blue-600 dark:text-blue-400');
                     }, 2000);
                 }
             } catch (err) {
                 copyText.text('{{ __('Copy Failed') }}');
                 button.removeClass('text-blue-600 dark:text-blue-400')
-                      .addClass('text-red-600 dark:text-red-400');
+                    .addClass('text-red-600 dark:text-red-400');
 
                 setTimeout(() => {
                     copyText.text(originalText);
                     button.removeClass('text-red-600 dark:text-red-400')
-                          .addClass('text-blue-600 dark:text-blue-400');
+                        .addClass('text-blue-600 dark:text-blue-400');
                 }, 2000);
             }
 
@@ -2714,33 +2705,42 @@
                 if (successful) {
                     button.find('span:last-child').text('{{ __('Copied!') }}');
                     button.removeClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
-                          .addClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600');
+                        .addClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600');
 
                     setTimeout(() => {
                         button.find('span:last-child').text(originalText);
-                        button.removeClass('bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600')
-                              .addClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
+                        button.removeClass(
+                                'bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600'
+                            )
+                            .addClass(
+                                'bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600'
+                            );
                     }, 2000);
                 } else {
                     button.find('span:last-child').text('{{ __('Copy Failed') }}');
                     button.removeClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
-                          .addClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600');
+                        .addClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600');
 
                     setTimeout(() => {
                         button.find('span:last-child').text(originalText);
-                        button.removeClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600')
-                              .addClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
+                        button.removeClass(
+                                'bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600')
+                            .addClass(
+                                'bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600'
+                            );
                     }, 2000);
                 }
             } catch (err) {
                 button.find('span:last-child').text('{{ __('Copy Failed') }}');
                 button.removeClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
-                      .addClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600');
+                    .addClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600');
 
                 setTimeout(() => {
                     button.find('span:last-child').text(originalText);
-                    button.removeClass('bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600')
-                          .addClass('bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
+                    button.removeClass(
+                            'bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600')
+                        .addClass(
+                            'bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600');
                 }, 2000);
             }
 
@@ -2749,7 +2749,7 @@
 
         // 初始化邀請代碼功能 - 只在群組預訂時執行
         @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking)
-        initializeInvitationCodeFeatures();
+            initializeInvitationCodeFeatures();
         @endif
     });
 </script>

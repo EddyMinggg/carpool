@@ -151,8 +151,8 @@
                     <p class="text-sm text-gray-500">Payment Status</p>
                     <p class="text-gray-900">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                            {{ $order->payment_confirmation ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                            {{ $order->payment_confirmation ? 'Paid' : 'Pending' }}
+                            {{ $order->payment_confirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                            {{ $order->payment_confirmed ? 'Paid' : 'Pending' }}
                         </span>
                     </p>
                 </div>
@@ -182,8 +182,8 @@
             {{-- 狀態圖標 --}}
                             {{-- 狀態圖標 --}}
             <div style="text-align: center; margin-bottom: 20px;">
-                <div class="status-icon {{ $order->payment_confirmation ? 'status-passenger' : 'status-driver' }}">
-                    @if($order->payment_confirmation)
+                <div class="status-icon {{ $order->payment_confirmed ? 'status-passenger' : 'status-driver' }}">
+                    @if($order->payment_confirmed)
                         <i class="fas fa-check"></i>
                     @else
                         <i class="fas fa-clock"></i>
@@ -195,8 +195,8 @@
                     <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0; max-width: 100%; word-wrap: break-word;">
                         Order #{{ $order->id }}
                     </h2>
-                    <span class="role-badge {{ $order->payment_confirmation ? 'role-passenger' : 'role-driver' }}">
-                        {{ $order->payment_confirmation ? 'Paid' : 'Pending' }}
+                    <span class="role-badge {{ $order->payment_confirmed ? 'role-passenger' : 'role-driver' }}">
+                        {{ $order->payment_confirmed ? 'Paid' : 'Pending' }}
                     </span>
                 </div>
             </div>
@@ -258,8 +258,8 @@
             {{-- 付款狀態 --}}
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Payment Status</div>
-                <span class="role-badge {{ $order->payment_confirmation ? 'role-passenger' : 'role-driver' }}">
-                    {{ $order->payment_confirmation ? 'Paid' : 'Pending' }}
+                <span class="role-badge {{ $order->payment_confirmed ? 'role-passenger' : 'role-driver' }}">
+                    {{ $order->payment_confirmed ? 'Paid' : 'Pending' }}
                 </span>
             </div>
             

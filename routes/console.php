@@ -2,11 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use App\Console\Commands\KickUsers;
+use App\Console\Commands\TripUpdates;
 use Illuminate\Support\Facades\Schedule;
 
-// Artisan::command('inspire', function () {
-//     $this->comment(Inspiring::quote());
-// })->purpose('Display an inspiring quote');
-
-Schedule::command('app:kick-users')->everyFiveMinutes();
+Schedule::command('app:trip-updates')->everyFiveMinutes();

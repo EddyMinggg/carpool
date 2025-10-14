@@ -19,10 +19,10 @@ Route::get('/', [TripController::class, 'dashboard'])->name('dashboard');
 
 Route::prefix('trips')->middleware(['auth', 'verified', 'prevent.driver.trips'])->group(function () {
     Route::get('/', [TripController::class, 'index'])->name('trips');
-    Route::get('/{id}', [TripController::class, 'show'])->name('trips.show');
-    Route::delete('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
+    Route::get('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
 });
 
+Route::prefix('trips')->get('/{id}', [TripController::class, 'show'])->name('trips.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('payment')->middleware('prevent.driver.trips')->group(function () {
@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-Route::get('/otp', [SmsController::class, 'sendOtp'])->name('sms.otp');
+Route::get('/sms/test', [SmsController::class, 'send'])->name('sms.test');
 
 Route::get('lang', [LanguageController::class, 'change'])->name("change.lang");
 Route::post('/set-session', [SessionController::class, 'setSession'])->name('session.set');

@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\Trip;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use Notification;
+use App\Notifications\TripMemberLeaveNotification;
 
 class TripController extends Controller
 {
@@ -19,12 +19,12 @@ class TripController extends Controller
     public function index()
     {
         // Get payments for the current user
-        $payments = Payment::with(['trip', 'user'])
+        $tripJoins = TripJoin::with(['trip', 'user'])
             ->where('user_phone', Auth::user()->phone)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('trips.index', compact('payments'));
+        return view('trips.index', compact('tripJoins'));
     }
 
     /**
@@ -52,20 +52,28 @@ class TripController extends Controller
 
         $userPhone = $currentUser->phone ?? $request->user_phone;
 
-        $payment = Payment::where('trip_id', $id)->where('user_phone', $userPhone)->first();
+        $payment = Payment::where('trip_id', $id)
+            ->where('user_phone', $userPhone)
+            ->first();
 
-        $hasLeft = !(TripJoin::where('trip_id', $id)->where('user_phone', $userPhone)->exists()) && $payment != null;
+        $tripJoin = TripJoin::where('trip_id', $id)
+            ->where('user_phone', $userPhone)
+            ->first();
+        $hasLeft = $tripJoin?->has_left ?? false;
 
-        $madeDepositPayment = null;
+        $madePayment = null;
+
+        $price = null;
         if ($payment) {
-            $madeDepositPayment = $payment->paid;
+            $madePayment = $payment->paid;
+            $price = $payment->amount;
         }
+
         // 只有當付款未完成且用戶未離開且行程仍在進行中時才跳轉到付款頁面
-        if ($madeDepositPayment !== null && !$madeDepositPayment && !$hasLeft) {
+        if ($madePayment !== null && !$madePayment && !$hasLeft) {
             $trip = Trip::findOrFail($id);
             // 檢查行程是否已過期或已完成
-            $now = Carbon::now();
-            $isExpired = $trip->planned_departure_time < $now;
+            $isExpired = $trip->planned_departure_time < Carbon::now();
             $isCompleted = in_array($trip->trip_status, ['departed', 'completed']);
 
             // 只有未過期且未完成的行程才跳轉到付款頁面
@@ -86,24 +94,18 @@ class TripController extends Controller
         // 計算價格（使用雙層定價系統）
         $currentPeople = $trip->joins->count();
 
-        // 使用新的定價系統計算每人費用
-        if ($trip->type === 'fixed') {
-            // 固定價格類型：顯示每人價格
-            $price = $trip->price_per_person;
-        } else {
-            // Golden 或 Normal 類型：根據人數和類型計算價格
-            $peopleCount = max(1, $currentPeople); // 至少1人
+        // Golden 或 Normal 類型：根據人數和類型計算價格
+        $peopleCount = max(1, $currentPeople); // 至少1人
 
-            if ($trip->type === 'golden') {
-                // 黃金時段：固定每人250，最少1人
-                $price = $trip->price_per_person; // 250
+        if ($trip->type === 'golden') {
+            // 黃金時段：固定每人250，最少1人
+            $userFee = $trip->price_per_person; // 250
+        } else {
+            // 普通時段：每人275，4人有折扣
+            if ($peopleCount >= 4 && $trip->four_person_discount > 0) {
+                $userFee = $trip->price_per_person - $trip->four_person_discount;
             } else {
-                // 普通時段：每人275，4人有折扣
-                if ($peopleCount >= 4 && $trip->four_person_discount > 0) {
-                    $price = $trip->price_per_person - $trip->four_person_discount;
-                } else {
-                    $price = $trip->price_per_person; // 275
-                }
+                $userFee = $trip->price_per_person; // 275
             }
         }
 
@@ -127,6 +129,7 @@ class TripController extends Controller
             'hasPaidButNotConfirmed',
             'currentPeople',
             'availableSlots',
+            'userFee',
             'price',
             'departureTime',
             'assignedDriver'
@@ -332,22 +335,36 @@ class TripController extends Controller
     {
         $user = Auth::user();
 
-        $deleted = $trip->joins()->where('user_id', $user->id)->delete();
+        $trip
+            ->joins()
+            ->where('user_phone', $user->phone)
+            ->first()
+            ->update(['has_left' => 1]);
 
-        if (!$deleted) {
-            return redirect()->back()->with('error', __('You are not a member of this trip.'));
+        $otherUserPhone = $trip
+            ->joins()
+            ->whereNot('user_phone', Auth::user()->phone)
+            ->pluck('user_phone');
+
+        foreach ($otherUserPhone as $phone) {
+            Notification::route('Sms', $phone)
+                ->notify(new TripMemberLeaveNotification($trip));
         }
 
-        // 重新計算剩餘成員的費用
-        $remainingPeople = $trip->joins()->count();
-        if ($remainingPeople > 0) {
-            $totalCost = $trip->base_price;
-            $updatedUserFee = $totalCost / $remainingPeople;
+        // if (!$deleted) {
+        //     return redirect()->back()->with('error', __('You are not a member of this trip.'));
+        // }
 
-            DB::table('trip_joins')
-                ->where('trip_id', $trip->id)
-                ->update(['user_fee' => round($updatedUserFee, 2)]);
-        }
+        // // 重新計算剩餘成員的費用
+        // $remainingPeople = $trip->joins()->count();
+        // if ($remainingPeople > 0) {
+        //     $totalCost = $trip->base_price;
+        //     $updatedUserFee = $totalCost / $remainingPeople;
+
+        //     DB::table('trip_joins')
+        //         ->where('trip_id', $trip->id)
+        //         ->update(['user_fee' => round($updatedUserFee, 2)]);
+        // }
 
         return redirect()->back()->with('success', __('Successfully left the trip.'));
     }

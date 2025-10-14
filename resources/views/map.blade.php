@@ -1,10 +1,10 @@
 @section('Title', __('Map'))
 <x-app-layout>
     <div id="map" style="height: 100vh; width: 100%;"></div>
-    <div class="fixed bottom-24 w-full">
+    <div class="fixed bottom-28 w-full">
         <div class="flex justify-center w-full">
             <button id="select-button"
-                class="w-1/2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-3 rounded-xl font-semibold text-md transition shadow-md hidden">
+                class="w-1/2 bg-primary hover:bg-primary-accent dark:bg-primary-dark dark:hover:bg-primary text-gray-100 dark:text-gray-200 py-3 rounded-xl font-semibold text-md transition shadow-md hidden">
                 {{ __('Select') }}
             </button>
         </div>
