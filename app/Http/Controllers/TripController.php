@@ -121,6 +121,12 @@ class TripController extends Controller
             $assignedDriver = $trip->getDriver();
         }
 
+        $isGroupBooking = $payment && $payment->type === 'group';
+        $showInvitationCode = ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking;
+        // if (!$showInvitationCode) {
+        //     $showInvitationCode = false;
+        // }
+
         return view('trips.show', compact(
             'trip',
             'userPhone',
@@ -130,6 +136,8 @@ class TripController extends Controller
             'currentPeople',
             'availableSlots',
             'userFee',
+            'showInvitationCode',
+            'isGroupBooking',
             'price',
             'departureTime',
             'assignedDriver'

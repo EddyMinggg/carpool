@@ -1,14 +1,22 @@
 @section('Title', $trip->dropoff_location)
 <x-app-layout>
-
     <x-slot name="header" class="transition">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
                 {{ __('Trip Details') }}
             </h2>
-            <div>
+            <div class="flex">
+                @if (session('guest_mode'))
+                    <form action="{{ route('login') }}">
+                        <button id="share-btn"
+                            class="w-full -my-4 py-2 px-4 rounded-lg text-sm font-semibold flex items-center justify-center gap-3 transition shadow-md text-gray-100 dark:text-gray-300 bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary">
+                            <span class="material-icons text-sm">person</span>
+                            <span class="text-sm">{{ __('Sign In') }}</span>
+                        </button>
+                    </form>
+                @endif
                 <button id="share-btn"
-                    class="w-8 -my-4 py-1 rounded-lg text-sm font-semibold flex items-center justify-center gap-3 transition shadow-md text-gray-100 dark:text-gray-300 bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary"
+                    class="w-8 -my-4 py-1 ms-4 rounded-lg text-sm font-semibold flex items-center justify-center gap-3 transition shadow-md text-gray-100 dark:text-gray-300 bg-primary dark:bg-primary-dark hover:bg-primary-accent dark:hover:bg-primary"
                     x-data="" x-on:click.prevent="$dispatch('open-modal', 'share-method')">
                     <span class="material-icons text-sm">share</span>
                 </button>
@@ -109,7 +117,7 @@
                 @php
                     // 如果用戶已有預訂記錄，優先顯示數據庫中的實際地址
                     // 如果沒有預訂記錄，則顯示session中的臨時選擇
-                    $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
+                    $userJoin = $trip->joins()->where('user_phone', $userPhone)->first();
                     $confirmedLocation = $userJoin ? $userJoin->pickup_location : null;
                     $sessionLocation = session('location');
 
@@ -235,7 +243,7 @@
                 class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                        <svg class="w-5 h-5 text-primary dark:text-primary-dark" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -357,8 +365,7 @@
             <div
                 class="bg-yellow-50 dark:bg-yellow-900/50 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-800 mt-4">
                 <div class="flex items-center gap-3">
-                    <div
-                        class="w-12 h-12 flex items-center justify-center">
+                    <div class="w-12 h-12 flex items-center justify-center">
                         <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -412,7 +419,7 @@
                             </div>
                         </div>
                         <div class="text-sm">
-                            @if ($join->user_phone === Auth::user()->phone)
+                            @if ($join->user_phone === $userPhone)
                                 <span
                                     class="px-2 py-1 bg-primary-opaque dark:bg-primary-opaque-dark text-gray-500 dark:text-gray-300 rounded text-xs">
                                     {{ __('You') }}
@@ -429,31 +436,32 @@
         @endif
 
         <!-- 邀請同行成員功能 - 只對已加入且為群組預訂的用戶顯示 -->
-        @php
+        {{-- @php
             $userPayment = \App\Models\Payment::where('trip_id', $trip->id)->where('user_phone', $userPhone)->first();
             $isGroupBooking = $userPayment && $userPayment->type === 'group';
-        @endphp
-        @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking)
+        @endphp --}}
+        @if ($showInvitationCode)
             <div
-                class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mt-4">
+                class="bg-secondary dark:bg-secondary-accent rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mt-4">
                 <!-- 標題 -->
                 <div class="flex items-center gap-2 mb-3">
-                    <span class="material-icons text-blue-600 dark:text-blue-400 text-xl">group_add</span>
+                    <span class="material-icons text-primary dark:text-primary-dark text-xl">group_add</span>
                     <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
                         {{ __('Invite Trip Members') }}
                     </h3>
                 </div>
 
                 <!-- 邀請代碼卡片 -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-3">
+                <div
+                    class="bg-primary-opaque dark:bg-primary-opaque-dark rounded-lg p-4 my-6 border border-primary dark:border-primary-dark">
                     <div class="text-center">
                         <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ __('Invitation Code') }}</div>
                         <div
-                            class="font-mono text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-widest mb-3">
+                            class="font-mono text-2xl font-bold text-gray-900 dark:text-gray-200 tracking-widest mb-3">
                             {{ $trip->invitation_code }}
                         </div>
                         <button id="copy-invitation-code"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                            class="w-full bg-primary dark:bg-primary-dark text-gray-100 dark:text-gray-200 py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                             data-code="{{ $trip->invitation_code }}">
                             <span class="material-icons text-sm">content_copy</span>
                             <span class="copy-text">{{ __('Copy Code') }}</span>
@@ -1689,6 +1697,16 @@
             const currentPeople = '{{ $currentPeople }}';
             const maxPeople = '{{ $trip->max_people }}';
 
+            var showInviteCode = {!! $showInvitationCode ? 'true' : 'false' !!};
+
+            var inviteMessage = '';
+
+            if (showInviteCode) {
+                inviteMessage = '🔁 邀請碼: ' + "{{ $trip->invitation_code }}" + '\n\n點擊連結使用邀請碼登入查看詳情:';
+            } else {
+                inviteMessage = '\n點擊連結查看詳情並加入:';
+            }
+
             // Get current URL, replace localhost with online domain if needed
             let shareUrl = '{{ $hasJoined ? config('app.url') : route('trips.show', ['id' => $trip->id]) }}';
             if (shareUrl.includes('localhost') || shareUrl.includes('127.0.0.1')) {
@@ -1708,7 +1726,7 @@
 💰 價格: ${price}/人
 👥 目前人數: ${currentPeople}/${maxPeople}
 ` +
-                "{{ $hasJoined ? '🔁 邀請碼: ' . $trip->invitation_code . '\n\n點擊連結使用邀請碼登入查看詳情:' : '\n點擊連結查看詳情並加入:' }}" +
+                `${inviteMessage}` +
                 `
 #拼車 #香港 #出行`;
 
@@ -1731,6 +1749,16 @@
             const price = 'HK$ {{ number_format($userFee, 0) }}';
             const currentPeople = '{{ $currentPeople }}';
             const maxPeople = '{{ $trip->max_people }}';
+
+            var showInviteCode = {!! $showInvitationCode ? 'true' : 'false' !!};
+
+            var inviteMessage = '';
+
+            if (showInviteCode) {
+                inviteMessage = '🔁 邀請碼: ' + "{{ $trip->invitation_code }}" + '\n\n點擊連結使用邀請碼登入查看詳情:';
+            } else {
+                inviteMessage = '\n點擊連結查看詳情並加入:';
+            }
             const shareText = `🚗 ${tripTitle} 拼車邀請！
 
 📍 目的地: ${tripTitle}
@@ -1738,7 +1766,7 @@
 💰 價格: ${price}/人
 👥 目前人數: ${currentPeople}/${maxPeople}
 ` +
-                "{{ $hasJoined ? '🔁 邀請碼: ' . $trip->invitation_code . '\n\n點擊連結使用邀請碼登入查看詳情:' : '\n點擊連結查看詳情並加入:' }}" +
+                `${inviteMessage}` +
                 `
 #拼車 #香港 #出行`;
 
