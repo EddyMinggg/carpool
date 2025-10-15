@@ -77,7 +77,7 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         $res = (new OtpService($user))->sendOtp();
-
+        dd($res);
         if ($res['success']) {
             return redirect(route('verification.notice'))->with(
                 'success',

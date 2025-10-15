@@ -40,7 +40,7 @@ return new class extends Migration
             // 新增：上車地點（文字地址）
             $table->string('pickup_location', 100)->nullable();
             // Payment confirmation
-            $table->boolean('payment_confirmation')->default(false);
+            $table->boolean('payment_confirmed')->default(false);
 
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate();

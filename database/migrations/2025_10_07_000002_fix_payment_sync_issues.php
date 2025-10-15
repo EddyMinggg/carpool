@@ -15,7 +15,7 @@ return new class extends Migration
         // 2. 同步已付款的payments与trip_joins
         DB::statement("
             UPDATE trip_joins 
-            SET payment_confirmation = 1 
+            SET payment_confirmed = 1 
             WHERE EXISTS (
                 SELECT 1 FROM payments 
                 WHERE payments.trip_id = trip_joins.trip_id 

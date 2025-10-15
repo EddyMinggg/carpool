@@ -17,7 +17,7 @@ return new class extends Migration
         
         DB::statement("
             UPDATE trip_joins 
-            SET payment_confirmation = true 
+            SET payment_confirmed = true 
             WHERE EXISTS (
                 SELECT 1 FROM payments 
                 WHERE payments.trip_id = trip_joins.trip_id 
