@@ -15,12 +15,9 @@ class OtpService
     private $maxAttempts = 3;
     private $otpExpireMinutes = 5;
     private $resendCooldownMinutes = 0.5; // 10 seconds for development
-    private $twilioService;
 
-    public function __construct(readonly private User $user)
-    {
-        $this->twilioService = new TwilioService();
-    }
+
+    public function __construct(readonly private User $user) {}
 
     /**
      * Generate and send OTP code
