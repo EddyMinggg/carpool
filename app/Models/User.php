@@ -102,7 +102,7 @@ class User extends Authenticatable
     }
     public function routeNotificationForSms(): string
     {
-        return env('TWILIO_TO_NUMBER') ?? $this->phone;
+        return $this->phone;
     }
 
     // Check if phone is verified

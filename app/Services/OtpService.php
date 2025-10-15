@@ -16,8 +16,8 @@ class OtpService
     private $otpExpireMinutes = 5;
     private $resendCooldownMinutes = 0.5; // 10 seconds for development
 
-    public function __construct(readonly private User $user)
-    {}
+
+    public function __construct(readonly private User $user) {}
 
     /**
      * Generate and send OTP code

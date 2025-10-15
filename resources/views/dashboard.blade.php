@@ -374,7 +374,7 @@
                     </template>
 
                     <!-- 4人折扣提示 -->
-                    <div class="flex flex-col gap-2 mb-3">
+                    <div class="flex flex-col gap-2 mb-1">
                         <template x-if="trip.type === 'normal' && trip.four_person_discount > 0 && !trip.is_expired">
                             <div class="flex flex-col gap-1">
                                 <span
@@ -383,7 +383,7 @@
                                 </span>
                                 <!-- 當已有3人時顯示退款政策提醒 -->
                                 <template x-if="trip.current_people >= 3">
-                                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
+                                    <div class="my-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
                                         <div class="flex items-start gap-1">
                                             <span class="material-icons text-amber-600 dark:text-amber-400 text-sm mt-0.5">info</span>
                                             <div class="text-xs text-amber-800 dark:text-amber-200">
