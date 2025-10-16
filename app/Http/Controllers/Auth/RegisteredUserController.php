@@ -64,21 +64,27 @@ class RegisteredUserController extends Controller
             'user_role' => User::ROLE_USER,
         ];
 
-        // Temporarily skip phone verification and create user directly
-        // Create user account with phone marked as verified for now
-        $user = User::create([
+        $tempUser = new User([
             'username' => $userData['username'],
             'email' => $userData['email'],
             'phone' => $userData['phone'],
-            'password' => $userData['password'], // Already hashed
+            'password' => $userData['password'],
             'user_role' => $userData['user_role'],
         ]);
 
-        Auth::login($user);
+        $res = (new OtpService($tempUser))->sendOtp();
 
-        $res = (new OtpService($user))->sendOtp();
-        
         if ($res['success']) {
+            $user = User::create([
+                'username' => $userData['username'],
+                'email' => $userData['email'],
+                'phone' => $userData['phone'],
+                'password' => $userData['password'],
+                'user_role' => $userData['user_role'],
+            ]);
+
+            Auth::login($user);
+
             return redirect(route('verification.notice'))->with(
                 'success',
                 'Registration completed! Please check your SMS to verify your phone number.'

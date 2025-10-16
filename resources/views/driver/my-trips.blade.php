@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="min-h-screen">
 
         <x-slot name="header">
             <!-- Header Section -->
@@ -9,9 +9,9 @@
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ __('My Trips') }}</h1>
                         <p class="text-gray-600 dark:text-gray-400 mt-1">{{ __('Manage your accepted trips') }}</p>
                     </div>
-                    
+
                     <!-- Driver Info Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 min-w-64">
+                    {{-- <div class="bg-secondary dark:bg-secondary-accent rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 min-w-64">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                                 <span class="text-white font-semibold">{{ strtoupper(substr(Auth::user()->username, 0, 1)) }}</span>
@@ -19,7 +19,7 @@
                             <div>
                                 <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ Auth::user()->username }}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</p>
-                                @if(Auth::user()->phone)
+                                @if (Auth::user()->phone)
                                     <p class="text-xs text-gray-400 dark:text-gray-500">📞 {{ Auth::user()->phone }}</p>
                                 @endif
                             </div>
@@ -32,7 +32,7 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
 
                 <!-- Statistics Summary -->
@@ -73,16 +73,17 @@
                             $assignment = $trip->tripDriver;
                             // 簡化狀態流程：awaiting -> departed -> completed
                             $tripStatusClasses = [
-                                'awaiting' => 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200',
+                                'awaiting' =>
+                                    'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200',
                                 'departed' => 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200',
                                 'completed' => 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200',
                                 'cancelled' => 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200',
                             ];
-                            
+
                             // 直接使用 trip_status，不再考慮司機 status
                             $displayStatus = $trip->trip_status;
                             $statusClass = $tripStatusClasses[$displayStatus] ?? $tripStatusClasses['awaiting'];
-                            
+
                             // 司機分配狀態說明
                             $assignmentStatusText = [
                                 'assigned' => '已分配（待確認）',
@@ -100,7 +101,7 @@
                         @endif
 
                         <div
-                            class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 transition-all hover:shadow-lg">
+                            class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 transition-all hover:shadow-lg">
                             <!-- 上方：時間和狀態 -->
                             <div class="flex justify-between items-start mb-4">
                                 <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -117,11 +118,18 @@
                                 {{ $trip->dropoff_location }}
                             </span>
 
-                            <div class="flex justify-between items-center mt-1 mb-4">
-                                <div>
-                                    <span class="text-lg -m-1">👤</span>
-                                    <span class="ps-1 text-sm text-gray-500 dark:text-gray-400">
-                                        {{ __('Created by') }}: {{ $trip->creator->username }}
+                            <div class="flex items-center mt-1">
+                                <span class="text-lg -m-1">👤</span>
+                                <span class="ms-2 text-sm text-gray-500 dark:text-gray-400">
+                                    {{ __('Created by') }}: {{ $trip->creator->username }}
+                                </span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center mt-1">
+                                <div class="flex items-center">
+                                    <span class="material-icons text-gray-400 dark:text-gray-500 text-lg">schedule</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400 ms-2">
+                                        {{ $trip->planned_departure_time->format('Y-m-d') }}
                                     </span>
                                 </div>
                                 <div>
@@ -133,45 +141,42 @@
                                 </div>
                             </div>
 
-                            <!-- 下方：日期和操作 -->
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        class="material-icons text-gray-400 dark:text-gray-500 text-lg">schedule</span>
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">
-                                        {{ $trip->planned_departure_time->format('Y-m-d') }}
-                                    </span>
-                                </div>
+                            
+                            <div class="flex items-center justify-between mt-4">
                                 <div class="flex gap-2">
                                     @if ($assignment->status === 'confirmed')
                                         @if ($trip->trip_status === 'awaiting')
                                             <!-- 開始接客：標記出發 -->
-                                            <form id="depart-form-{{ $assignment->id }}" action="{{ route('driver.depart-trip', $assignment) }}" method="POST" class="inline">
+                                            <form id="depart-form-{{ $assignment->id }}"
+                                                action="{{ route('driver.depart-trip', $assignment) }}" method="POST"
+                                                class="inline">
                                                 @csrf
                                                 <button type="button"
                                                     onclick="showConfirmModal({
-                                                        title: '🚀 {{ __('Start Pickup') }}',
-                                                        message: '{{ __('Start picking up passengers?') }}<br><small class=\'text-gray-500\'>{{ __('Please ensure you have arrived at the first pickup point') }}</small>',
-                                                        confirmText: '{{ __('Start Pickup') }}',
-                                                        cancelText: '{{ __('Cancel') }}',
-                                                        onConfirm: () => document.getElementById('depart-form-{{ $assignment->id }}').submit()
-                                                    })"
+                                                            title: '🚀 {{ __('Start Pickup') }}',
+                                                            message: '{{ __('Start picking up passengers?') }}<br><small class=\'text-gray-500\'>{{ __('Please ensure you have arrived at the first pickup point') }}</small>',
+                                                            confirmText: '{{ __('Start Pickup') }}',
+                                                            cancelText: '{{ __('Cancel') }}',
+                                                            onConfirm: () => document.getElementById('depart-form-{{ $assignment->id }}').submit()
+                                                        })"
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
                                                     🚀 {{ __('Start Pickup') }}
                                                 </button>
                                             </form>
                                         @elseif ($trip->trip_status === 'departed')
                                             <!-- 到達目的地：完成行程 -->
-                                            <form id="complete-form-{{ $assignment->id }}" action="{{ route('driver.complete-trip', $assignment) }}" method="POST" class="inline">
+                                            <form id="complete-form-{{ $assignment->id }}"
+                                                action="{{ route('driver.complete-trip', $assignment) }}"
+                                                method="POST" class="inline">
                                                 @csrf
                                                 <button type="button"
                                                     onclick="showConfirmModal({
-                                                        title: '🏁 {{ __('Complete Trip') }}',
-                                                        message: '{{ __('Confirm you have arrived at the destination?') }}<br><small class=\'text-gray-500\'>{{ __('This will mark the trip as completed') }}</small>',
-                                                        confirmText: '{{ __('Complete Trip') }}',
-                                                        cancelText: '{{ __('Cancel') }}',
-                                                        onConfirm: () => document.getElementById('complete-form-{{ $assignment->id }}').submit()
-                                                    })"
+                                                            title: '🏁 {{ __('Complete Trip') }}',
+                                                            message: '{{ __('Confirm you have arrived at the destination?') }}<br><small class=\'text-gray-500\'>{{ __('This will mark the trip as completed') }}</small>',
+                                                            confirmText: '{{ __('Complete Trip') }}',
+                                                            cancelText: '{{ __('Cancel') }}',
+                                                            onConfirm: () => document.getElementById('complete-form-{{ $assignment->id }}').submit()
+                                                        })"
                                                     class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
                                                     🏁 {{ __('Arrive Destination') }}
                                                 </button>
@@ -180,26 +185,28 @@
 
                                         <!-- 取消按鈕：只有 awaiting 狀態才能取消，一旦 departed 就不能取消 -->
                                         @if ($trip->trip_status === 'awaiting')
-                                            <form id="cancel-form-{{ $assignment->id }}" action="{{ route('driver.cancel-trip', $assignment) }}" method="POST" class="inline">
+                                            <form id="cancel-form-{{ $assignment->id }}"
+                                                action="{{ route('driver.cancel-trip', $assignment) }}" method="POST"
+                                                class="inline">
                                                 @csrf
                                                 <button type="button"
                                                     onclick="showConfirmModal({
-                                                        title: '❌ {{ __('Cancel Assignment') }}',
-                                                        message: '{{ __('Cancel your assignment to this trip?') }}<br><small class=\'text-gray-500\'>{{ __('The trip will become available for other drivers.') }}</small>',
-                                                        confirmText: '{{ __('Cancel Assignment') }}',
-                                                        cancelText: '{{ __('Keep Assignment') }}',
-                                                        onConfirm: () => document.getElementById('cancel-form-{{ $assignment->id }}').submit()
-                                                    })"
+                                                            title: '❌ {{ __('Cancel Assignment') }}',
+                                                            message: '{{ __('Cancel your assignment to this trip?') }}<br><small class=\'text-gray-500\'>{{ __('The trip will become available for other drivers.') }}</small>',
+                                                            confirmText: '{{ __('Cancel Assignment') }}',
+                                                            cancelText: '{{ __('Keep Assignment') }}',
+                                                            onConfirm: () => document.getElementById('cancel-form-{{ $assignment->id }}').submit()
+                                                        })"
                                                     class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
                                                     ❌ {{ __('Cancel Assignment') }}
                                                 </button>
                                             </form>
                                         @endif
-
                                     @else
                                         <!-- 顯示司機分配狀態 -->
                                         <div class="flex items-center gap-2">
-                                            <span class="text-sm font-medium {{ $assignment->status === 'confirmed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400' }}">
+                                            <span
+                                                class="text-sm font-medium {{ $assignment->status === 'confirmed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400' }}">
                                                 {{ $assignmentStatusText[$assignment->status] ?? ucfirst($assignment->status) }}
                                             </span>
                                         </div>
@@ -215,7 +222,7 @@
                     </div>
                 @else
                     <div
-                        class="bg-white dark:bg-gray-800 rounded-xl p-12 shadow-md border border-gray-100 dark:border-gray-700 text-center">
+                        class="bg-secondary dark:bg-secondary-accent rounded-xl p-12 shadow-md border border-gray-100 dark:border-gray-700 text-center">
                         <div class="text-6xl mb-4">📋</div>
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                             {{ __('No Assigned Trips') }}</h3>
@@ -245,7 +252,4 @@
             {{ session('error') }}
         </div>
     @endif
-
-    <!-- 確認 Modal -->
-    <x-confirm-modal />
 </x-app-layout>
