@@ -126,8 +126,20 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', __('Not enough spaces available for this group booking.'));
         }
         
-        // 檢查行程狀態
-        if ($trip->trip_status !== 'awaiting' || $trip->planned_departure_time <= Carbon::now()->addHours(9)) {
+        // 檢查行程狀態和預訂截止時間
+        $now = Carbon::now('Asia/Hong_Kong');
+        $departureTime = Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
+        
+        // 根據 trip 類型計算預訂截止時間
+        if ($trip->type === 'golden') {
+            // Golden hour: departure time 前 1 小時截止預訂
+            $bookingDeadline = $departureTime->copy()->subHour();
+        } else {
+            // Normal trip: departure time 前 48 小時截止預訂
+            $bookingDeadline = $departureTime->copy()->subHours(48);
+        }
+        
+        if ($trip->trip_status !== 'awaiting' || $now->gte($bookingDeadline)) {
             return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
         }
         
@@ -217,8 +229,20 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', __('This trip is full.'));
         }
 
-        // 檢查行程狀態
-        if ($trip->trip_status !== 'awaiting' || $trip->planned_departure_time <= Carbon::now()->addHours(9)) {
+        // 檢查行程狀態和預訂截止時間
+        $now = Carbon::now('Asia/Hong_Kong');
+        $departureTime = Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
+        
+        // 根據 trip 類型計算預訂截止時間
+        if ($trip->type === 'golden') {
+            // Golden hour: departure time 前 1 小時截止預訂
+            $bookingDeadline = $departureTime->copy()->subHour();
+        } else {
+            // Normal trip: departure time 前 48 小時截止預訂
+            $bookingDeadline = $departureTime->copy()->subHours(48);
+        }
+        
+        if ($trip->trip_status !== 'awaiting' || $now->gte($bookingDeadline)) {
             return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
         }
 
