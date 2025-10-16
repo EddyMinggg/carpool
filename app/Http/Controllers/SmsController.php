@@ -6,13 +6,14 @@ use Illuminate\Http\Request;
 use Notification;
 use App\Notifications\TripMemberJoinNotification;
 use App\Models\Trip;
+use App\Models\User;
+use App\Services\OtpService;
 
 class SmsController extends Controller
 {
-    // TODO: add remaining SMS templates
     public function send(Request $request)
     {
-        Notification::route('Sms', '+85255421867')
-            ->notify(new TripMemberJoinNotification(Trip::find(8)));
+        $res = (new OtpService(User::find(9)))->sendOtp();
+        dd($res, $res['success']);
     }
 }
