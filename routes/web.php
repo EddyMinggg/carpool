@@ -8,6 +8,7 @@ use App\Http\Controllers\SessionController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\SmsController;
+use App\Http\Controllers\AboutController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -57,5 +58,13 @@ Route::post('/set-session', [SessionController::class, 'setSession'])->name('ses
 Route::get('/map', function () {
     return view('map');
 })->name('map');
+
+// About Us routes
+Route::prefix('about')->name('about.')->group(function () {
+    Route::get('/', [AboutController::class, 'index'])->name('index');
+    Route::get('/contact', [AboutController::class, 'contact'])->name('contact');
+    Route::get('/privacy', [AboutController::class, 'privacy'])->name('privacy');
+    Route::get('/terms', [AboutController::class, 'terms'])->name('terms');
+});
 
 require __DIR__ . '/auth.php';
