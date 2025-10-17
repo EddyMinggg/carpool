@@ -17,20 +17,6 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
-    // OTP Verification routes
-    Route::get('verify-otp', [RegisteredUserController::class, 'showOtpForm'])
-        ->name('otp.verify');
-
-    Route::post('verify-otp', [RegisteredUserController::class, 'verifyOtp']);
-
-    Route::post('resend-otp', [RegisteredUserController::class, 'resendOtp'])
-        ->name('otp.resend');
-
-    Route::post('resend-otp-form', [RegisteredUserController::class, 'resendOtpForm'])
-        ->name('otp.resend.form');
-
-
-
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
@@ -52,20 +38,24 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
-Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-    ->middleware(['signed', 'throttle:6,1'])
-    ->name('verification.verify');
+// Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+//     ->middleware(['signed', 'throttle:6,1'])
+//     ->name('verification.verify');
 
 Route::middleware('auth')->group(function () {
-    Route::get('verify-email', EmailVerificationPromptController::class)
+    Route::get('verify-otp', [RegisteredUserController::class, 'showOtpForm'])
         ->name('verification.notice');
+
+    Route::post('verify-otp', [RegisteredUserController::class, 'verifyOtp'])
+        ->name('otp.verify');
+
+    Route::post('resend-otp', [RegisteredUserController::class, 'resendOtp'])
+        ->name('otp.resend');
 
 
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
-
-
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');

@@ -247,10 +247,10 @@
                             <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Account Status</h3>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-500">Email Verified</label>
+                                <label class="block text-sm font-medium text-gray-500">Phone Verified</label>
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                    {{ $admin->email_verified_at ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ $admin->email_verified_at ? 'Verified' : 'Not Verified' }}
+                                    {{ $admin->phone_verified_at ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ $admin->phone_verified_at ? 'Verified' : 'Not Verified' }}
                                 </span>
                             </div>
                             
@@ -311,10 +311,10 @@
                 <h3 style="font-size: 18px; font-weight: 700; color: #374151; margin-bottom: 16px; border-bottom: 2px solid #f3f4f6; padding-bottom: 8px;">Account Status</h3>
                 
                 <div class="mobile-info-item">
-                    <span class="mobile-info-label">Email Verified</span>
+                    <span class="mobile-info-label">Phone Verified</span>
                     <div class="mobile-info-value">
-                        <span class="role-badge {{ $admin->email_verified_at ? 'status-verified' : 'status-unverified' }}">
-                            {{ $admin->email_verified_at ? 'Verified' : 'Not Verified' }}
+                        <span class="role-badge {{ $admin->phone_verified_at ? 'status-verified' : 'status-unverified' }}">
+                            {{ $admin->phone_verified_at ? 'Verified' : 'Not Verified' }}
                         </span>
                     </div>
                 </div>

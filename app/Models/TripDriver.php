@@ -48,7 +48,7 @@ class TripDriver extends Model
         return $query->where('driver_id', $driverId);
     }
 
-    // Helper methods
+    // Helper methods - 簡化後的狀態判斷
     public function isConfirmed(): bool
     {
         return $this->status === 'confirmed';
@@ -56,6 +56,13 @@ class TripDriver extends Model
 
     public function canCancel(): bool
     {
-        return in_array($this->status, ['assigned', 'confirmed']);
+        // 可以取消，除非 trip 已經完成
+        return $this->trip->trip_status !== 'completed';
+    }
+
+    // 獲取 trip 真實狀態的便利方法
+    public function getTripStatus(): string
+    {
+        return $this->trip->trip_status;
     }
 }

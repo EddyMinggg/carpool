@@ -291,11 +291,7 @@
     @if (!$isMobile)
         <div class="flex justify-between mb-6">
             <h2 class="text-2xl font-bold text-gray-800">Order Management</h2>
-            <button
-                class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white p-3 rounded-xl transition shadow-md"
-                x-data="" x-on:click.prevent="$dispatch('open-modal', 'approve-payment')">
-                {{ __('Approve Payments') }}
-            </button>
+            
             <x-modal name="approve-payment" focusable>
                 <form action="{{ route('admin.payment.approve') }}" method="POST">
                     @csrf
@@ -325,10 +321,10 @@
                         <tr>
                             <th>Order ID</th>
                             <th>User</th>
-                            <th>Trip</th>
-                            <th>Role</th>
-                            <th>Pickup Location</th>
-                            <th>Fee (¥)</th>
+                            <th>Route</th>
+                            <th>Phone</th>
+                            <th>Fee (HK$)</th>
+                            <th>Payment Status</th>
                             <th>Created At</th>
                             <th>Actions</th>
                         </tr>
@@ -337,21 +333,20 @@
                         @foreach ($orders as $order)
                             <tr>
                                 <td>{{ $order->id }}</td>
-                                <td>{{ $order->user->username ?? 'Deleted User' }}</td>
-                                <td>{{ $order->trip->pickup_location ?? '-' }} →
-                                    {{ $order->trip->dropoff_location ?? '-' }}</td>
+                                <td>{{ $order->user->username ?? 'Guest' }}</td>
+                                <td>{{ $order->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}</td>
+                                <td>{{ $order->user_phone }}</td>
+                                <td>{{ number_format($order->user_fee, 2) }}</td>
                                 <td>
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                        {{ $order->join_role === 'driver' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
-                                        {{ ucfirst($order->join_role) }}
+                                        {{ $order->payment_confirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                        {{ $order->payment_confirmed ? 'Paid' : 'Pending' }}
                                     </span>
                                 </td>
-                                <td>{{ $order->pickup_location ?? '-' }}</td>
-                                <td>{{ number_format($order->user_fee, 2) }}</td>
                                 <td>{{ $order->created_at->format('Y-m-d H:i') }}</td>
                                 <td>
-                                    <a href="{{ route('admin.orders.show', ['order' => $order->trip_id . '-' . $order->user_id]) }}"
+                                    <a href="{{ route('admin.orders.show', ['order' => $order->trip_id . '-' . $order->user_phone]) }}"
                                         class="action-btn action-btn-blue" title="View Order">
                                         <i class="fas fa-eye"></i>
                                     </a>
@@ -367,11 +362,6 @@
     {{-- ============ 移動版內容 ============ --}}
     @if ($isMobile)
         <div class="mt-3 px-4 w-full flex flex-col">
-            <button
-                class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white p-3 rounded-xl transition shadow-md"
-                x-data="" x-on:click.prevent="$dispatch('open-modal', 'approve-payment')">
-                {{ __('Approve Payments') }}
-            </button>
             <x-modal name="approve-payment" focusable>
                 <form action="{{ route('admin.payment.approve') }}" method="POST">
                     @csrf
@@ -412,19 +402,19 @@
         {{-- 訂單列表 --}}
         <div id="mobileOrdersList">
             @foreach ($orders as $order)
-                <a href="{{ route('admin.orders.show', ['order' => $order->trip_id . '-' . $order->user_id]) }}"
+                <a href="{{ route('admin.orders.show', ['order' => $order->trip_id . '-' . $order->user_phone]) }}"
                     class="mobile-order-card"
-                    data-search-text="{{ strtolower($order->user->username ?? 'deleted user') }} {{ strtolower($order->trip->pickup_location ?? '') }} {{ strtolower($order->trip->dropoff_location ?? '') }} {{ strtolower($order->join_role) }} {{ strtolower($order->pickup_location ?? '') }}">
+                    data-search-text="{{ strtolower($order->user->username ?? 'guest') }} {{ strtolower($order->pickup_location ?? '') }} {{ strtolower($order->trip->dropoff_location ?? '') }} {{ strtolower($order->user_phone ?? '') }}">
 
-                    {{-- 訂單ID和日期 --}}
+                    {{-- 訂單ID和付款狀態 --}}
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px; font-weight: 700; color: #1f2937;">
                                 Order #{{ $order->id }}
                             </span>
                             <span
-                                class="role-badge {{ $order->join_role === 'driver' ? 'role-driver' : 'role-passenger' }}">
-                                {{ ucfirst($order->join_role) }}
+                                class="role-badge {{ $order->payment_confirmed ? 'role-passenger' : 'role-driver' }}">
+                                {{ $order->payment_confirmed ? 'Paid' : 'Pending' }}
                             </span>
                         </div>
                         <svg style="width: 16px; height: 16px; fill: #9ca3af;" viewBox="0 0 20 20">
@@ -438,30 +428,30 @@
                     <div style="margin-bottom: 12px;">
                         <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">User</div>
                         <div style="font-size: 16px; color: #1f2937; font-weight: 600;">
-                            {{ $order->user->username ?? 'Deleted User' }}
+                            {{ $order->user->username ?? 'Guest' }}
                         </div>
                     </div>
 
                     {{-- 行程路線 --}}
                     <div style="margin-bottom: 12px;">
-                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Trip Route</div>
+                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Route</div>
                         <div style="font-size: 14px; color: #1f2937; word-wrap: break-word;">
-                            {{ $order->trip->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}
+                            {{ $order->pickup_location ?? '-' }} → {{ $order->trip->dropoff_location ?? '-' }}
                         </div>
                     </div>
 
-                    {{-- 接送地點和費用 --}}
+                    {{-- 電話和費用 --}}
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div style="flex: 1;">
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Pickup Location</div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Phone</div>
                             <div style="font-size: 14px; color: #1f2937; word-wrap: break-word;">
-                                {{ $order->pickup_location ?? '-' }}
+                                {{ $order->user_phone }}
                             </div>
                         </div>
                         <div style="text-align: right; margin-left: 12px;">
                             <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Fee</div>
                             <div style="font-size: 16px; color: #059669; font-weight: 700;">
-                                ¥{{ number_format($order->user_fee, 2) }}
+                                HK$ {{ number_format($order->user_fee, 2) }}
                             </div>
                         </div>
                     </div>

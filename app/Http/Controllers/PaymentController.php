@@ -24,7 +24,33 @@ class PaymentController extends Controller
                 ->with('success', __('Payment confirmed! You have successfully joined the trip.'));
         }
 
-        return view('payment.code', ['payment' => $payment]);
+        // 檢查是否為 group booking
+        $isGroupBooking = $payment->group_size && $payment->group_size > 1;
+        
+        // 獲取相關的TripJoin記錄（僅用於備用，主要使用payment中的group_size）
+        $groupTripJoins = [];
+        if ($isGroupBooking) {
+            // 簡化查詢，只取最近的記錄作為備用
+            $groupTripJoins = TripJoin::where('trip_id', $payment->trip_id)
+                ->orderBy('created_at', 'desc')
+                ->limit($payment->group_size ?? 2)
+                ->get();
+        }
+
+        // 為單人預訂也獲取 TripJoin 數據（用於顯示 pickup_location）
+        $userTripJoin = null;
+        if (!$isGroupBooking) {
+            $userTripJoin = TripJoin::where('trip_id', $payment->trip_id)
+                ->where('user_phone', $payment->user_phone)
+                ->first();
+        }
+
+        return view('payment.code', [
+            'payment' => $payment,
+            'isGroupBooking' => $isGroupBooking,
+            'groupTripJoins' => $groupTripJoins,
+            'userTripJoin' => $userTripJoin
+        ]);
     }
 
     /**
@@ -34,8 +60,16 @@ class PaymentController extends Controller
     {
         $user = $request->user();
         
-        // 檢查是否為多人預訂
-        $isGroupBooking = $request->has('is_group_booking') && $request->input('is_group_booking') == '1';
+        // 檢查是否為多人預訂 - 優先使用 people_count，其次檢查 passengers 數組長度
+        $peopleCount = $request->input('people_count');
+        $passengers = $request->input('passengers', []);
+        
+        // 如果有 people_count，則以此為準；否則使用 passengers 數組長度
+        if ($peopleCount !== null) {
+            $isGroupBooking = (int)$peopleCount > 1;
+        } else {
+            $isGroupBooking = count($passengers) > 1;
+        }
         
         if ($isGroupBooking) {
             // 多人預訂驗證
@@ -48,13 +82,24 @@ class PaymentController extends Controller
                 'passengers.*.phone_country_code' => 'required|in:+852,+86',
                 'passengers.*.pickup_location' => 'required|string|max:255',
                 'total_amount' => 'required|numeric|min:0',
+                'coupon_code' => 'nullable|string|max:50',
+                'coupon_discount' => 'nullable|numeric|min:0',
+                'subtotal_amount' => 'nullable|numeric|min:0',
             ]);
         } else {
-            // 單人預訂驗證
+            // 單人預訂驗證 - 使用和多人預訂相同的結構
             $request->validate([
                 'trip_id' => 'required|exists:trips,id',
-                'amount' => 'required|decimal:0,2',
-                'pickup_location' => 'required|string|max:255',
+                'people_count' => 'required|integer|min:1|max:1',
+                'passengers' => 'required|array',
+                'passengers.*.name' => 'required|string|max:100',
+                'passengers.*.phone' => 'required|string|max:20',
+                'passengers.*.phone_country_code' => 'required|in:+852,+86',
+                'passengers.*.pickup_location' => 'required|string|max:255',
+                'total_amount' => 'required|numeric|min:0',
+                'coupon_code' => 'nullable|string|max:50',
+                'coupon_discount' => 'nullable|numeric|min:0',
+                'subtotal_amount' => 'nullable|numeric|min:0',
             ]);
         }
 
@@ -81,8 +126,20 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', __('Not enough spaces available for this group booking.'));
         }
         
-        // 檢查行程狀態
-        if ($trip->trip_status !== 'awaiting' || $trip->planned_departure_time <= Carbon::now()->addHours(9)) {
+        // 檢查行程狀態和預訂截止時間
+        $now = Carbon::now('Asia/Hong_Kong');
+        $departureTime = Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
+        
+        // 根據 trip 類型計算預訂截止時間
+        if ($trip->type === 'golden') {
+            // Golden hour: departure time 前 1 小時截止預訂
+            $bookingDeadline = $departureTime->copy()->subHour();
+        } else {
+            // Normal trip: departure time 前 48 小時截止預訂
+            $bookingDeadline = $departureTime->copy()->subHours(48);
+        }
+        
+        if ($trip->trip_status !== 'awaiting' || $now->gte($bookingDeadline)) {
             return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
         }
         
@@ -102,9 +159,24 @@ class PaymentController extends Controller
             }
         }
         
-        // 計算定價（新邏輯：全額付款）
+        // 計算定價（包含優惠券折扣）
         $pricePerPerson = $request->input('price_per_person', $this->calculatePriceForTrip($trip, $peopleCount));
-        $totalAmount = $pricePerPerson * $peopleCount;
+        $subtotalAmount = $request->input('subtotal_amount', $pricePerPerson * $peopleCount);
+        $totalAmount = $request->input('total_amount', $subtotalAmount);
+        $couponDiscount = $request->input('coupon_discount', 0);
+        
+        // 處理優惠券（如果有）
+        $couponCode = $request->input('coupon_code');
+        if ($couponCode && $couponDiscount > 0) {
+            // 驗證並更新優惠券使用次數
+            $coupon = \App\Models\Coupon::where('code', strtoupper($couponCode))
+                ->where('enabled', true)
+                ->first();
+            
+            if ($coupon) {
+                $coupon->increment('used_count');
+            }
+        }
         
         // 創建主要付款記錄（代表整個團體）
         $mainPayment = Payment::create([
@@ -112,9 +184,10 @@ class PaymentController extends Controller
             'trip_id' => $trip->id,
             'user_phone' => $passengers[0]['phone_country_code'] . $passengers[0]['phone'], // 主預訂人
             'amount' => $totalAmount,
-            'pickup_location' => $passengers[0]['pickup_location'],
-            'type' => 'group_full_payment',
+            'type' => 'group',
             'group_size' => $peopleCount,
+            'coupon_code' => $couponCode,
+            'coupon_discount' => $couponDiscount,
         ]);
         
         // 為每個乘客創建 TripJoin 記錄
@@ -126,22 +199,11 @@ class PaymentController extends Controller
                 'user_fee' => $pricePerPerson,
                 'pickup_location' => $passenger['pickup_location'],
                 'payment_confirmation' => false,
-                // 可以添加額外字段來標記這是團體預訂的一部分
             ]);
-            
-            // 為每個乘客創建個別的付款記錄（方便追蹤）
-            if ($index > 0) { // 第一個已經是主要付款記錄
-                Payment::create([
-                    'reference_code' => $mainPayment->reference_code . '-' . ($index + 1),
-                    'trip_id' => $trip->id,
-                    'user_phone' => $fullPhone,
-                    'amount' => $pricePerPerson,
-                    'pickup_location' => $passenger['pickup_location'],
-                    'type' => 'group_member_payment',
-                    'parent_payment_id' => $mainPayment->id,
-                ]);
-            }
         }
+
+        // NOTE: WhatsApp 通知已移到 Admin 確認付款後才發送
+        // 不在此處發送通知，因為團體成員還未確認付款 (payment_confirmation = false)
         
         return redirect()->route('payment.code', ['id' => $mainPayment->id])
             ->with('success', __('Group booking created successfully for :count people!', ['count' => $peopleCount]));
@@ -152,8 +214,12 @@ class PaymentController extends Controller
      */
     private function handleSingleBooking(Request $request, Trip $trip, $user)
     {
+        $passengers = $request->input('passengers');
+        $passenger = $passengers[0]; // 單人預訂只有一個乘客
+        $userPhone = $passenger['phone_country_code'] . $passenger['phone'];
+        
         // 檢查用戶是否已經加入
-        $existingJoin = $trip->joins()->where('user_phone', $user->phone ?? $request->user_phone)->first();
+        $existingJoin = $trip->joins()->where('user_phone', $userPhone)->first();
         if ($existingJoin) {
             return redirect()->back()->with('error', __('You have already joined this trip.'));
         }
@@ -163,37 +229,72 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', __('This trip is full.'));
         }
 
-        // 檢查行程狀態
-        if ($trip->trip_status !== 'awaiting' || $trip->planned_departure_time <= Carbon::now()->addHours(9)) {
+        // 檢查行程狀態和預訂截止時間
+        $now = Carbon::now('Asia/Hong_Kong');
+        $departureTime = Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
+        
+        // 根據 trip 類型計算預訂截止時間
+        if ($trip->type === 'golden') {
+            // Golden hour: departure time 前 1 小時截止預訂
+            $bookingDeadline = $departureTime->copy()->subHour();
+        } else {
+            // Normal trip: departure time 前 48 小時截止預訂
+            $bookingDeadline = $departureTime->copy()->subHours(48);
+        }
+        
+        if ($trip->trip_status !== 'awaiting' || $now->gte($bookingDeadline)) {
             return redirect()->back()->with('error', __('This trip is no longer available for joining.'));
         }
 
-        // 計算價格
-        $currentPeople = $trip->joins()->count();
-        $newPeopleCount = $currentPeople + 1;
-        $pricePerPerson = $this->calculatePriceForTrip($trip, $newPeopleCount);
+        // 計算價格並處理優惠券
+        $totalAmount = $request->input('total_amount');
+        $couponDiscount = $request->input('coupon_discount', 0);
+        $couponCode = $request->input('coupon_code');
+        
+        // 處理優惠券（如果有）
+        if ($couponCode && $couponDiscount > 0) {
+            $coupon = \App\Models\Coupon::where('code', strtoupper($couponCode))
+                ->where('enabled', true)
+                ->first();
+            
+            if ($coupon) {
+                $coupon->increment('used_count');
+            }
+        }
 
         $payment = Payment::create([
             'reference_code' => strtoupper(bin2hex(random_bytes(5))),
             'trip_id' => $request->input('trip_id'),
-            'user_phone' => $user->phone ?? $request->user_phone,
-            'amount' => $pricePerPerson,
-            'pickup_location' => $request->input('pickup_location'),
-            'type' => 'full_payment',
+            'user_phone' => $userPhone,
+            'amount' => $totalAmount,
+            'type' => 'individual',
+            'group_size' => 1,
+            'coupon_code' => $couponCode,
+            'coupon_discount' => $couponDiscount,
         ]);
+
+        // 獲取當前隊伍成員（在創建新成員之前）
+        $existingMembers = $trip->joins()->with('user')->get()->filter(function($join) {
+            return $join->user !== null; // 只包含有用戶記錄的成員
+        })->pluck('user')->toArray();
 
         // 創建加入記錄
         $trip->joins()->create([
-            'user_phone' => $user->phone ?? $request->user_phone,
-            'user_fee' => $pricePerPerson,
-            'pickup_location' => $request->input('pickup_location'),
+            'user_phone' => $userPhone,
+            'user_fee' => $totalAmount,
+            'pickup_location' => $passenger['pickup_location'],
         ]);
 
-        // 更新所有現有成員的費用
+        // 重新計算所有成員的費用
+        $currentPeople = $trip->joins()->count();
+        $newPricePerPerson = $this->calculatePriceForTrip($trip, $currentPeople);
         TripJoin::where('trip_id', $trip->id)
             ->update([
-                'user_fee' => $pricePerPerson,
+                'user_fee' => $newPricePerPerson,
             ]);
+
+        // NOTE: WhatsApp 通知已移到 Admin 確認付款後才發送
+        // 不在此處發送通知，因為用戶還未確認付款 (payment_confirmation = false)
 
         return redirect()->route('payment.code', ['id' => $payment->id]);
     }

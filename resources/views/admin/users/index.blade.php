@@ -464,7 +464,7 @@
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             Active Users</p>
                         <p style="font-size: 1.875rem; font-weight: bold;" id="active-users">
-                            {{ $users->whereNotNull('email_verified_at')->count() }}
+                            {{ $users->whereNotNull('phone_verified_at')->count() }}
                         </p>
                     </div>
                     <div class="stats-icon-bg">
@@ -490,15 +490,14 @@
             </div>
         </div>
 
+        <div class="mb-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">User Management</h2>
+            </div>
+        </div>
+
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-6">
-                <!-- Search only (Role filter removed since we only show regular users) -->
-                <div class="mb-4">
-                    <label for="search-input" class="block text-sm font-medium text-gray-700 mb-2">Search Users:</label>
-                    <input type="text" id="search-input" placeholder="Search by username or email..."
-                        class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-sm">
-                </div>
-
                 <table id="usersTable" class="display" style="width:100%">
                     <thead>
                         <tr>
@@ -602,7 +601,7 @@
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     Active</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-active-users">
-                                    {{ $users->whereNotNull('email_verified_at')->count() }}</p>
+                                    {{ $users->whereNotNull('phone_verified_at')->count() }}</p>
                             </div>
                         </div>
 

@@ -16,10 +16,10 @@ class Payment extends Model
         'user_phone',
         'amount',
         'type',
-        'pickup_location',
         'paid',
         'group_size',
-        'parent_payment_id'
+        'coupon_code',
+        'coupon_discount'
     ];
 
     public function trip()
@@ -29,7 +29,22 @@ class Payment extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_phone', 'phone');
+    }
+
+    // Get all trip joins for this payment's group booking
+    public function tripJoins()
+    {
+        if ($this->type === 'group' && $this->group_size > 1) {
+            // For group bookings, return multiple trip joins for the same trip
+            return $this->hasMany(TripJoin::class, 'trip_id', 'trip_id')
+                       ->where('payment_confirmation', true)
+                       ->limit($this->group_size);
+        } else {
+            // For individual bookings, return the specific user's trip join
+            return $this->hasOne(TripJoin::class, 'trip_id', 'trip_id')
+                       ->where('user_phone', $this->user_phone);
+        }
     }
 
     // Scopes
@@ -43,13 +58,13 @@ class Payment extends Model
         return $query->where('paid', true);
     }
 
-    public function scopeDeposits($query)
+    public function scopeIndividual($query)
     {
-        return $query->where('type', 'deposit');
+        return $query->where('type', 'individual');
     }
 
-    public function scopeRemaining($query)
+    public function scopeGroup($query)
     {
-        return $query->where('type', 'remaining');
+        return $query->where('type', 'group');
     }
 }

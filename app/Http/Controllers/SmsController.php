@@ -2,26 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Aws\Laravel\AwsFacade as AWS;
 use Illuminate\Http\Request;
+use Notification;
+use App\Notifications\TripMemberJoinNotification;
+use App\Models\Trip;
+use App\Models\User;
+use App\Services\OtpService;
 
 class SmsController extends Controller
 {
-    public function send($phone_number)
+    public function send(Request $request)
     {
-        $sms = AWS::createClient('sns');
-
-        $sms->publish([
-            'Message' => 'Hello, This is just a test Message',
-            'PhoneNumber' => $phone_number,
-            'MessageAttributes' => [
-                'AWS.SNS.SMS.SMSType' => [
-                    'DataType' => 'String',
-                    'StringValue' => 'Transactional',
-                ],
-            ],
-        ]);
-        
-        return;
+        $res = (new OtpService(User::find(9)))->sendOtp();
+        dd($res, $res['success']);
     }
 }

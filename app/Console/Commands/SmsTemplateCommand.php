@@ -73,7 +73,11 @@ class SmsTemplateCommand extends Command
             'trip_completed' => 'Trip Completion Notification',
             'emergency_alert' => 'Emergency Alert for Safety',
             'password_reset' => 'Password Reset Code',
-            'ride_share_invitation' => 'Ride Share Invitation'
+            'ride_share_invitation' => 'Ride Share Invitation',
+            'team_join_golden' => 'Team Join Notification (Golden Hour)',
+            'team_join_regular' => 'Team Join Notification (Regular Hour)',
+            'team_full' => 'Team Full Notification',
+            'team_near_full' => 'Team Near Full Notification'
         ];
 
         foreach ($templates as $key => $description) {
@@ -112,6 +116,10 @@ class SmsTemplateCommand extends Command
             'trip_completed' => SmsTemplateService::tripCompleted('T12345', '5'),
             'trip_cancellation' => SmsTemplateService::tripCancellation('T12345', 'Weather conditions'),
             'password_reset' => SmsTemplateService::passwordReset('654321'),
+            'team_join_golden' => SmsTemplateService::teamJoinGoldenHour('****1234', 3, 4, 'Central Station', '250'),
+            'team_join_regular' => SmsTemplateService::teamJoinRegularHour('****1234', 3, 4, 'Central Station', '275', '225'),
+            'team_full' => SmsTemplateService::teamFull('Central Station', 4, '225'),
+            'team_near_full' => SmsTemplateService::teamNearFull('Central Station', '275', '225'),
             default => 'Template not found'
         };
 

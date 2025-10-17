@@ -146,6 +146,19 @@
                         @enderror
                     </div>
 
+                    <!-- Phone -->
+                    <div class="mb-4">
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <input type="tel" name="phone" id="phone" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value="{{ old('phone') }}" 
+                            placeholder="e.g., +852 1234 5678">
+                        <p class="mt-1 text-xs text-gray-500">Optional: Include country code for international numbers</p>
+                        @error('phone')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Password -->
                     <div class="mb-4">
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
@@ -214,6 +227,19 @@
                             class="mobile-input"
                             value="{{ old('email') }}" required>
                         @error('email')
+                            <p style="margin-top: 4px; font-size: 14px; color: #dc2626;">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Phone -->
+                    <div style="margin-bottom: 16px;">
+                        <label for="mobile-phone" style="display: block; font-weight: 600; color: #374151; margin-bottom: 6px;">Phone Number</label>
+                        <input type="tel" name="phone" id="mobile-phone" 
+                            class="mobile-input"
+                            value="{{ old('phone') }}" 
+                            placeholder="e.g., +852 1234 5678">
+                        <p style="margin-top: 4px; font-size: 12px; color: #6b7280;">Optional: Include country code for international numbers</p>
+                        @error('phone')
                             <p style="margin-top: 4px; font-size: 14px; color: #dc2626;">{{ $message }}</p>
                         @enderror
                     </div>

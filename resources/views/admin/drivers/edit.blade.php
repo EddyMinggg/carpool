@@ -163,33 +163,24 @@
                     @enderror
                 </div>
                 <div class="mb-4">
-                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <input type="text" name="phone" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('phone', $driver->phone) }}">
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" name="phone" id="phone" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        value="{{ old('phone', $driver->phone) }}"
+                        placeholder="e.g., +852 1234 5678">
+                    <p class="mt-1 text-xs text-gray-500">Optional: Include country code for international numbers</p>
                     @error('phone')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="mb-4">
-                    @if(Auth::user()->user_role === 'super_admin')
-                        <!-- Super Admin 可以設定任何角色 -->
-                        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                        <select name="user_role" id="role" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="user" {{ old('user_role', $driver->user_role) == 'user' ? 'selected' : '' }}>Driver</option>
-                            <option value="driver" {{ old('user_role', $driver->user_role) == 'driver' ? 'selected' : '' }}>Driver</option>
-                            <option value="admin" {{ old('user_role', $driver->user_role) == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="super_admin" {{ old('user_role', $driver->user_role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                        </select>
-                    @else
-                        <!-- 普通 Admin 只能設定 Driver/Admin (不能設定 Super Admin) -->
-                        <label class="flex items-center">
-                            <input type="checkbox" name="user_role" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {{ old('user_role', $driver->user_role) == 'admin' ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-700">Admin</span>
-                        </label>
-                        @if($driver->user_role === 'super_admin')
-                            <p class="mt-2 text-sm text-gray-500">This user is a Super Admin and cannot be modified by regular admins.</p>
-                            <input type="hidden" name="user_role" value="{{ $driver->user_role }}">
-                        @endif
-                    @endif
+                    <!-- Driver 角色固定，無需修改 -->
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+                        Driver (Fixed)
+                    </div>
+                    <input type="hidden" name="user_role" value="driver">
+                    <p class="mt-1 text-sm text-gray-500">Driver role cannot be changed in this management section.</p>
                 </div>
                 <div class="flex space-x-4">
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Update Driver</button>
@@ -237,13 +228,14 @@
                 
                 {{-- 電話 --}}
                 <div style="margin-bottom: 20px;">
-                    <label for="phone" class="mobile-label">Phone</label>
-                    <input type="text" 
+                    <label for="phone" class="mobile-label">Phone Number</label>
+                    <input type="tel" 
                            name="phone" 
                            id="phone" 
                            class="mobile-input"
                            value="{{ old('phone', $driver->phone) }}"
-                           placeholder="Enter phone number">
+                           placeholder="e.g., +852 1234 5678">
+                    <p style="margin-top: 4px; font-size: 12px; color: #6b7280;">Optional: Include country code for international numbers</p>
                     @error('phone')
                         <div class="error-text">{{ $message }}</div>
                     @enderror
@@ -251,34 +243,12 @@
                 
                 {{-- 角色設定 --}}
                 <div style="margin-bottom: 24px;">
-                    <label class="mobile-label">Role Permission</label>
-                    
-                    @if(Auth::user()->user_role === 'super_admin')
-                        {{-- Super Admin 可以設定任何角色 --}}
-                        <select name="user_role" class="mobile-select">
-                            <option value="user" {{ old('user_role', $driver->user_role) == 'user' ? 'selected' : '' }}>Driver</option>
-                            <option value="driver" {{ old('user_role', $driver->user_role) == 'driver' ? 'selected' : '' }}>Driver</option>
-                            <option value="admin" {{ old('user_role', $driver->user_role) == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="super_admin" {{ old('user_role', $driver->user_role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                        </select>
-                    @else
-                        {{-- 普通 Admin 只能設定 Driver/Admin --}}
-                        @if($driver->user_role === 'admin')
-                            <div style="padding: 16px; background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; color: #92400e; font-size: 14px;">
-                                This user is a Super Admin and can only be modified by another Super Admin
-                            </div>
-                            <input type="hidden" name="user_role" value="{{ $driver->user_role }}">
-                        @else
-                            <div class="mobile-checkbox-wrapper">
-                                <input type="checkbox" 
-                                       name="user_role" 
-                                       value="admin" 
-                                       class="mobile-checkbox"
-                                       {{ old('user_role', $driver->user_role) == 'admin' ? 'checked' : '' }}>
-                                <span style="font-size: 16px; color: #374151;">Set as Admin</span>
-                            </div>
-                        @endif
-                    @endif
+                    <label class="mobile-label">Role</label>
+                    <div style="padding: 16px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px; color: #374151; font-size: 14px;">
+                        Driver (Fixed)
+                    </div>
+                    <input type="hidden" name="user_role" value="driver">
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">Driver role cannot be changed in this management section.</p>
                 </div>
                 
                 {{-- 提交按鈕 --}}

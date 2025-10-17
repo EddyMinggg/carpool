@@ -168,6 +168,9 @@
             {{ $slot }}
         </main>
 
+        <!-- Footer -->
+        @include('layouts.footer')
+
         @if (!session('guest_mode'))
             @include('layouts.bottom-navigation')
         @endif

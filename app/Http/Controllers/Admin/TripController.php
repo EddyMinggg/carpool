@@ -77,11 +77,11 @@ class TripController extends Controller
             'price_per_person' => 'required|numeric|min:0',
             'type' => 'required|in:golden,normal,fixed',
             'four_person_discount' => 'nullable|numeric|min:0',
-            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled'
+            'trip_status' => 'required|in:awaiting,departed,charging,completed,cancelled'
         ]);
 
         $trip = $this->createSingleTrip($validated);
-        
+
         return redirect()->route('admin.trips.index')->with('success', 'Trip created successfully!');
     }
 
@@ -89,7 +89,7 @@ class TripController extends Controller
     {
         $validated = $request->validate([
             'dropoff_location' => 'required|string|max:255',
-            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled',
+            'trip_status' => 'required|in:awaiting,departed,charging,completed,cancelled',
             'batch_trips' => 'required|array|min:1',
             'batch_trips.*.departure_time' => 'required|date|after:now',
             'batch_trips.*.type' => 'required|in:golden,normal',
@@ -116,14 +116,14 @@ class TripController extends Controller
         }
 
         return redirect()->route('admin.trips.index')
-                        ->with('success', "Successfully created {$createdTrips} trips!");
+            ->with('success', "Successfully created {$createdTrips} trips!");
     }
 
     private function createSingleTrip($data)
     {
         // 根據時段類型自動設置業務邏輯參數
         $isGoldenHour = ($data['type'] === 'golden');
-        
+
         if ($isGoldenHour) {
             // 黃金時段：1人即可出發，無優惠
             $minPassengers = 1;
@@ -153,7 +153,7 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
-        $trip->load(['creator', 'joins.user']);
+        $trip->load(['creator', 'joins.user', 'payments.user']);
 
         // Mobile device detection
         $userAgent = request()->header('User-Agent');
@@ -181,14 +181,20 @@ class TripController extends Controller
      */
     public function update(Request $request, Trip $trip)
     {
+        dd('$bruh');
+
         $validated = $request->validate([
+            'creator_id' => 'required|exists:users,id',
             'dropoff_location' => 'required|string|max:255',
             'planned_departure_time' => 'required|date',
-            'max_people' => 'required|integer|min:1|max:8',
-            'base_price' => 'required|numeric|min:0',
-            'type' => 'required|in:normal,fixed',
-            'trip_status' => 'required|in:awaiting,voting,departed,completed,cancelled'
+            'max_people' => 'required|integer|min:1|max:10',
+            'min_passengers' => 'required|integer|min:1|max:10',
+            'price_per_person' => 'required|numeric|min:0',
+            'four_person_discount' => 'nullable|numeric|min:0',
+            'type' => 'required|in:normal,golden',
+            'trip_status' => 'required|in:awaiting,departed,charging,completed,cancelled'
         ]);
+
 
         $trip->update($validated);
 
@@ -277,8 +283,7 @@ class TripController extends Controller
             'user_id' => $user->id,
             'pickup_location' => $request->pickup_location,
             'join_role' => 'normal',
-            'user_fee' => $userFee,
-            'vote_info' => null
+            'user_fee' => $userFee
         ]);
 
         $this->updateAllUserFees($trip);

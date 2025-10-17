@@ -47,13 +47,33 @@
                     class="block w-full pl-10 pr-3 py-2 text-sm border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark rounded-md shadow-sm"
                     placeholder="{{ __('Search trips by destination or pickup location...') }}">
             </div>
+
+            <!-- 四人優惠政策說明 -->
+            <div
+                class="bg-primary-opaque dark:bg-primary-opaque-dark border border-primary dark:border-primary-dark rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-5 h-5 text-primary mt-0.5">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 text-sm">
+                        <div class="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            {{ __('4-Person Discount Policy') }}</div>
+                        <div class="text-gray-700 dark:text-gray-400 leading-relaxed">
+                            {{ __('All passengers pay HK$275 initially. HK$50 refund per person processed after trip deadline if 4+ people confirmed with no cancellations. Refunds handled by admin within 48 hours post-deadline.') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 行程卡片 -->
         <div class="space-y-4" id="trips-container">
-            @forelse ($payments as $payment)
+            @forelse ($tripJoins as $tripJoin)
                 @php
-                    $trip = $payment->trip;
+                    $trip = $tripJoin->trip;
                     $departureTime = \Carbon\Carbon::parse($trip->planned_departure_time);
                     $now = \Carbon\Carbon::now();
                     $isExpired = $departureTime < $now;
@@ -61,11 +81,18 @@
                     $isUpcoming = $departureTime > $now && $departureTime->diffInDays($now) <= 1;
                 @endphp
 
+                @php
+                    // Safely get trip join using direct query
+                    $userTripJoin = \App\Models\TripJoin::where('trip_id', $tripJoin->trip_id)
+                        ->where('user_phone', $tripJoin->user_phone)
+                        ->first();
+                    $pickupLocation = $userTripJoin ? $userTripJoin->pickup_location : __('Not specified');
+                @endphp
                 <a href="{{ route('trips.show', ['id' => $trip->id]) }}"
-                    class="block bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 trip-card {{ $payment->paid ? 'paid-trip' : 'unpaid-trip' }}"
-                    data-search-text="{{ strtolower($trip->dropoff_location . ' ' . $payment->pickup_location) }}"
-                    data-paid="{{ $payment->paid ? 'true' : 'false' }}"
-                    style="{{ $payment->paid ? '' : 'display: none;' }}">
+                    class="block bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 trip-card {{ $tripJoin->paid ? 'paid-trip' : 'unpaid-trip' }}"
+                    data-search-text="{{ strtolower($trip->dropoff_location . ' ' . $pickupLocation) }}"
+                    data-paid="{{ $tripJoin->payment_confirmed == 1 ? 'true' : 'false' }}"
+                    style="{{ $tripJoin->payment_confirmed == 1 ? '' : 'display: none;' }}">
 
                     <!-- 頂部狀態指示器 -->
                     <div class="flex items-center justify-between mb-4">
@@ -88,17 +115,17 @@
                             @endif
 
                             <span
-                                class="px-3 py-1 text-xs font-semibold rounded-full {{ $payment->paid ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200' }}">
-                                {{ __($payment->paid ? 'Paid' : 'Unpaid') }}
+                                class="px-3 py-1 text-xs font-semibold rounded-full {{ $tripJoin->payment_confirmed == 1 ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200' }}">
+                                {{ __($tripJoin->payment_confirmed == 1 ? 'Paid' : 'Unpaid') }}
                             </span>
                         </div>
 
                         <div class="text-right">
                             <div class="text-lg font-bold text-primary-accent">
-                                HK$ {{ number_format($payment->amount, 0) }}
+                                HK$ {{ number_format($tripJoin->user_fee, 0) }}
                             </div>
                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ ucfirst($payment->type) }}
+                                {{ ucfirst($tripJoin->type) }}
                             </div>
                         </div>
                     </div>
@@ -116,7 +143,7 @@
                                     <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                         {{ __('Pickup') }}</div>
                                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
-                                        {{ $payment->pickup_location }}
+                                        {{ $pickupLocation }}
                                     </div>
                                 </div>
                                 <div>
@@ -166,7 +193,8 @@
                     <div class="mt-6">
                         <a href="{{ route('dashboard') }}"
                             class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -178,9 +206,9 @@
         </div>
 
         <!-- 分頁 -->
-        @if ($payments->hasPages())
+        @if ($tripJoins->hasPages())
             <div class="mt-8">
-                {{ $payments->links() }}
+                {{ $tripJoins->links() }}
             </div>
         @endif
     </div>
@@ -204,7 +232,7 @@
                 filterUnpaidBtn.addClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300');
                 applyFilters();
             });
-            
+
             filterUnpaidBtn.on('click', function() {
                 currentFilter = 'unpaid';
                 filterUnpaidBtn.removeClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300');
@@ -220,6 +248,8 @@
 
                 tripCards.each(function() {
                     const card = $(this);
+                    console.log(card.data);
+
                     const searchText = card.data('search-text');
                     const isPaid = card.data('paid') === true;
 

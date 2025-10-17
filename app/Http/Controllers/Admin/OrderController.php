@@ -41,11 +41,11 @@ class OrderController extends Controller
         }
         
         $tripId = $keys[0];
-        $userId = $keys[1];
+        $userPhone = $keys[1];
         
         $order = TripJoin::with(['user', 'trip'])
             ->where('trip_id', $tripId)
-            ->where('user_id', $userId)
+            ->where('user_phone', $userPhone)
             ->firstOrFail();
             
         return view('admin.orders.show', compact('order', 'isMobile'));

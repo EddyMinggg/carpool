@@ -12,7 +12,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Bind OtpService
+        $this->app->singleton(\App\Services\OtpService::class);
     }
 
     /**

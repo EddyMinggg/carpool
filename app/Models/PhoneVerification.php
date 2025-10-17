@@ -7,6 +7,7 @@ use Carbon\Carbon;
 
 class PhoneVerification extends Model
 {
+    public $timestamps = true;
     protected $fillable = [
         'phone',
         'otp_code',
@@ -63,7 +64,7 @@ class PhoneVerification extends Model
     public function scopeActive($query)
     {
         return $query->where('is_verified', false)
-                    ->where('expires_at', '>', Carbon::now());
+            ->where('expires_at', '>', Carbon::now());
     }
 
     /**

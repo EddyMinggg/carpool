@@ -60,7 +60,6 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'user_role' => $request->role,
-            'email_verified_at' => now(), // Auto-verify admin emails
         ]);
 
         return redirect()->route('super-admin.admins.index')

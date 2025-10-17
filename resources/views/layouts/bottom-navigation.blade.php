@@ -32,7 +32,8 @@
                     class="text-sm text-gray-200 dark:text-gray-300 group-hover:text-primary dark:group-hover:text-primary-dark">{{ __('Home') }}</span>
             </button>
         @endif
-        @if (auth()->user())
+        @if (auth()->user() && !auth()->user()->isDriver())
+            <!-- Order button - only for non-driver users -->
             <button type="button"
                 class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-200 dark:hover:bg-primary-darkest group"
                 onclick="location.href='{{ route('trips') }}'">
@@ -42,6 +43,8 @@
                 <span
                     class="text-sm text-gray-200 dark:text-gray-300 group-hover:text-primary dark:group-hover:text-primary-dark">{{ __('Order') }}</span>
             </button>
+        @endif
+        @if (auth()->user())
             <button type="button"
                 class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-200 dark:hover:bg-primary-darkest group"
                 onclick="location.href='{{ route('profile.edit') }}'">

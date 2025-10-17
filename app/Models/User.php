@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
@@ -49,7 +49,6 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'phone_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
@@ -94,6 +93,18 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->user_role === self::ROLE_DRIVER;
     }
 
+    /**
+     * Route notifications for the Vonage channel.
+     */
+    public function routeNotificationForWhatsApp(): string
+    {
+        return $this->phone;
+    }
+    public function routeNotificationForSms(): string
+    {
+        return $this->phone;
+    }
+
     // Check if phone is verified
     public function hasVerifiedPhone(): bool
     {
@@ -117,8 +128,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function assignedTrips()
     {
         return $this->belongsToMany(Trip::class, 'trip_drivers', 'driver_id', 'trip_id')
-                    ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
-                    ->withTimestamps();
+            ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
+            ->withTimestamps();
     }
 
     /**

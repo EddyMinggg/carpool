@@ -445,18 +445,18 @@
                     ">Awaiting</button>
 
                     <!-- Second Row -->
-                    <button onclick="filterByStatus('voting')" class="status-filter-btn" data-status="voting" style="
+                    <button onclick="filterByStatus('charging')" class="status-filter-btn" data-status="charging" style="
                         padding: 10px 12px;
-                        border: 2px solid #fef3c7;
-                        background: #fef3c7;
-                        color: #92400e;
+                        border: 2px solid #fed7aa;
+                        background: #fed7aa;
+                        color: #c2410c;
                         border-radius: 8px;
                         font-size: 12px;
                         font-weight: 600;
                         text-transform: uppercase;
                         cursor: pointer;
                         transition: all 0.2s;
-                    ">Voting</button>
+                    ">Charging</button>
                     
                     <button onclick="filterByStatus('completed')" class="status-filter-btn" data-status="completed" style="
                         padding: 10px 12px;
@@ -481,10 +481,10 @@
                             <div class="mobile-trip-id">#{{ $trip->id }}</div>
                             <div class="mobile-trip-status" style="
                                 background-color: {{ $trip->trip_status === 'awaiting' ? '#dbeafe' : 
-                                   ($trip->trip_status === 'voting' ? '#fef3c7' : 
+                                   ($trip->trip_status === 'charging' ? '#fed7aa' : 
                                    ($trip->trip_status === 'completed' ? '#dcfce7' : '#fee2e2')) }};
                                 color: {{ $trip->trip_status === 'awaiting' ? '#1e40af' : 
-                                   ($trip->trip_status === 'voting' ? '#92400e' : 
+                                   ($trip->trip_status === 'charging' ? '#c2410c' : 
                                    ($trip->trip_status === 'completed' ? '#166534' : '#991b1b')) }};
                             ">
                                 {{ ucfirst($trip->trip_status) }}
@@ -601,7 +601,7 @@
                                     <td>
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                             {{ $trip->trip_status === 'awaiting' ? 'bg-blue-100 text-blue-800' : 
-                                               ($trip->trip_status === 'voting' ? 'bg-yellow-100 text-yellow-800' : 
+                                               ($trip->trip_status === 'charging' ? 'bg-orange-100 text-orange-800' : 
                                                ($trip->trip_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')) }}">
                                             {{ ucfirst($trip->trip_status) }}
                                         </span>
@@ -725,9 +725,9 @@ if (isMobile) {
                         btn.style.background = '#1e40af';
                         btn.style.borderColor = '#1e40af';
                         btn.style.color = 'white';
-                    } else if (status === 'voting') {
-                        btn.style.background = '#92400e';
-                        btn.style.borderColor = '#92400e';
+                    } else if (status === 'charging') {
+                        btn.style.background = '#c2410c';
+                        btn.style.borderColor = '#c2410c';
                         btn.style.color = 'white';
                     } else if (status === 'completed') {
                         btn.style.background = '#166534';
@@ -746,10 +746,10 @@ if (isMobile) {
                         btn.style.background = '#dbeafe';
                         btn.style.borderColor = '#dbeafe';
                         btn.style.color = '#1e40af';
-                    } else if (btnStatus === 'voting') {
-                        btn.style.background = '#fef3c7';
-                        btn.style.borderColor = '#fef3c7';
-                        btn.style.color = '#92400e';
+                    } else if (btnStatus === 'charging') {
+                        btn.style.background = '#fed7aa';
+                        btn.style.borderColor = '#fed7aa';
+                        btn.style.color = '#c2410c';
                     } else if (btnStatus === 'completed') {
                         btn.style.background = '#dcfce7';
                         btn.style.borderColor = '#dcfce7';

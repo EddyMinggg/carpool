@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\Trip;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use Notification;
+use App\Notifications\TripMemberLeaveNotification;
 
 class TripController extends Controller
 {
@@ -18,12 +18,13 @@ class TripController extends Controller
      */
     public function index()
     {
-        $payments = Payment::with('trip')
+        // Get payments for the current user
+        $tripJoins = TripJoin::with(['trip', 'user'])
             ->where('user_phone', Auth::user()->phone)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('trips.index', compact('payments'));
+        return view('trips.index', compact('tripJoins'));
     }
 
     /**
@@ -51,20 +52,28 @@ class TripController extends Controller
 
         $userPhone = $currentUser->phone ?? $request->user_phone;
 
-        $payment = Payment::where('trip_id', $id)->where('user_phone', $userPhone)->first();
+        $payment = Payment::where('trip_id', $id)
+            ->where('user_phone', $userPhone)
+            ->first();
 
-        $hasLeft = !(TripJoin::where('trip_id', $id)->where('user_phone', $userPhone)->exists()) && $payment != null;
+        $tripJoin = TripJoin::where('trip_id', $id)
+            ->where('user_phone', $userPhone)
+            ->first();
+        $hasLeft = $tripJoin?->has_left ?? false;
 
-        $madeDepositPayment = null;
+        $madePayment = null;
+
+        $price = null;
         if ($payment) {
-            $madeDepositPayment = $payment->paid;
+            $madePayment = $payment->paid;
+            $price = $payment->amount;
         }
+
         // 只有當付款未完成且用戶未離開且行程仍在進行中時才跳轉到付款頁面
-        if ($madeDepositPayment !== null && !$madeDepositPayment && !$hasLeft) {
+        if ($madePayment !== null && !$madePayment && !$hasLeft) {
             $trip = Trip::findOrFail($id);
             // 檢查行程是否已過期或已完成
-            $now = Carbon::now();
-            $isExpired = $trip->planned_departure_time < $now;
+            $isExpired = $trip->planned_departure_time < Carbon::now();
             $isCompleted = in_array($trip->trip_status, ['departed', 'completed']);
 
             // 只有未過期且未完成的行程才跳轉到付款頁面
@@ -75,31 +84,28 @@ class TripController extends Controller
 
         $trip = Trip::with(['joins.user', 'creator'])->findOrFail($id);
 
-        // 計算當前用戶是否已加入
-        $userJoin = $trip->joins->where('phone', $userPhone)->first();
-        $hasJoined = $userJoin !== null;
+        // 計算當前用戶是否已加入且payment已確認
+        $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
+        $hasJoined = $userJoin !== null && $userJoin->payment_confirmed;
+
+        // 如果有payment記錄且已付款，但TripJoin記錄未確認，說明管理員還未處理
+        $hasPaidButNotConfirmed = $payment && $payment->paid && $userJoin && !$userJoin->payment_confirmed;
 
         // 計算價格（使用雙層定價系統）
         $currentPeople = $trip->joins->count();
 
-        // 使用新的定價系統計算每人費用
-        if ($trip->type === 'fixed') {
-            // 固定價格類型：顯示每人價格
-            $price = $trip->price_per_person;
-        } else {
-            // Golden 或 Normal 類型：根據人數和類型計算價格
-            $peopleCount = max(1, $currentPeople); // 至少1人
+        // Golden 或 Normal 類型：根據人數和類型計算價格
+        $peopleCount = max(1, $currentPeople); // 至少1人
 
-            if ($trip->type === 'golden') {
-                // 黃金時段：固定每人250，最少1人
-                $price = $trip->price_per_person; // 250
+        if ($trip->type === 'golden') {
+            // 黃金時段：固定每人250，最少1人
+            $userFee = $trip->price_per_person; // 250
+        } else {
+            // 普通時段：每人275，4人有折扣
+            if ($peopleCount >= 4 && $trip->four_person_discount > 0) {
+                $userFee = $trip->price_per_person - $trip->four_person_discount;
             } else {
-                // 普通時段：每人275，4人有折扣
-                if ($peopleCount >= 4 && $trip->four_person_discount > 0) {
-                    $price = $trip->price_per_person - $trip->four_person_discount;
-                } else {
-                    $price = $trip->price_per_person; // 275
-                }
+                $userFee = $trip->price_per_person; // 275
             }
         }
 
@@ -111,17 +117,27 @@ class TripController extends Controller
 
         // 獲取分配的司機信息
         $assignedDriver = null;
-        if ($trip->tripDriver && $trip->tripDriver->status === 'confirmed') {
-            $assignedDriver = $trip->assignedDriver;
+        if ($trip->tripDriver && in_array($trip->tripDriver->status, ['assigned', 'confirmed'])) {
+            $assignedDriver = $trip->getDriver();
         }
+
+        $isGroupBooking = $payment && $payment->type === 'group';
+        $showInvitationCode = ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking;
+        // if (!$showInvitationCode) {
+        //     $showInvitationCode = false;
+        // }
 
         return view('trips.show', compact(
             'trip',
             'userPhone',
             'hasJoined',
             'hasLeft',
+            'hasPaidButNotConfirmed',
             'currentPeople',
             'availableSlots',
+            'userFee',
+            'showInvitationCode',
+            'isGroupBooking',
             'price',
             'departureTime',
             'assignedDriver'
@@ -327,22 +343,36 @@ class TripController extends Controller
     {
         $user = Auth::user();
 
-        $deleted = $trip->joins()->where('user_id', $user->id)->delete();
+        $trip
+            ->joins()
+            ->where('user_phone', $user->phone)
+            ->first()
+            ->update(['has_left' => 1]);
 
-        if (!$deleted) {
-            return redirect()->back()->with('error', __('You are not a member of this trip.'));
+        $otherUserPhone = $trip
+            ->joins()
+            ->whereNot('user_phone', Auth::user()->phone)
+            ->pluck('user_phone');
+
+        foreach ($otherUserPhone as $phone) {
+            Notification::route('Sms', $phone)
+                ->notify(new TripMemberLeaveNotification($trip));
         }
 
-        // 重新計算剩餘成員的費用
-        $remainingPeople = $trip->joins()->count();
-        if ($remainingPeople > 0) {
-            $totalCost = $trip->base_price;
-            $updatedUserFee = $totalCost / $remainingPeople;
+        // if (!$deleted) {
+        //     return redirect()->back()->with('error', __('You are not a member of this trip.'));
+        // }
 
-            DB::table('trip_joins')
-                ->where('trip_id', $trip->id)
-                ->update(['user_fee' => round($updatedUserFee, 2)]);
-        }
+        // // 重新計算剩餘成員的費用
+        // $remainingPeople = $trip->joins()->count();
+        // if ($remainingPeople > 0) {
+        //     $totalCost = $trip->base_price;
+        //     $updatedUserFee = $totalCost / $remainingPeople;
+
+        //     DB::table('trip_joins')
+        //         ->where('trip_id', $trip->id)
+        //         ->update(['user_fee' => round($updatedUserFee, 2)]);
+        // }
 
         return redirect()->back()->with('success', __('Successfully left the trip.'));
     }
@@ -360,12 +390,6 @@ class TripController extends Controller
             return redirect()->back()->with('error', __('You are not a member of this trip.'));
         }
 
-        // 檢查是否只有一個人
-        $memberCount = $trip->joins()->count();
-        if ($memberCount > 1) {
-            return redirect()->back()->with('error', __('Cannot depart immediately when there are multiple members. Please start a vote instead.'));
-        }
-
         // 更新行程狀態
         $trip->update([
             'trip_status' => 'departed',
@@ -373,161 +397,5 @@ class TripController extends Controller
         ]);
 
         return redirect()->back()->with('success', __('Trip has departed successfully!'));
-    }
-
-    /**
-     * Start a vote to depart
-     */
-    public function startVote(Trip $trip)
-    {
-        $user = Auth::user();
-
-        // 調試：記錄原始planned_departure_time
-        Log::info('Starting vote - Original planned_departure_time: ' . $trip->planned_departure_time);
-
-        // 檢查用戶是否已加入
-        $userJoin = $trip->joins()->where('user_id', $user->id)->first();
-        if (!$userJoin) {
-            return redirect()->back()->with('error', __('You must be a member to start a vote.'));
-        }
-
-        // 檢查行程狀態
-        if ($trip->trip_status !== 'awaiting') {
-            return redirect()->back()->with('error', __('Cannot start vote. Trip is not in awaiting status.'));
-        }
-
-        // 檢查是否已有投票進行中
-        if ($trip->trip_status === 'voting') {
-            return redirect()->back()->with('error', __('A vote is already in progress.'));
-        }
-
-        // 檢查成員數量 - 只有一個人時不應該能發起投票
-        $memberCount = $trip->joins->count();
-        if ($memberCount <= 1) {
-            return redirect()->back()->with('error', __('Cannot start vote with only one member. Use "Depart Now" instead.'));
-        }
-
-        // 調試：記錄更新前的planned_departure_time
-        Log::info('Before updating trip status - planned_departure_time: ' . $trip->planned_departure_time);
-
-        // 更新行程狀態為投票中（只更新trip_status）
-        $trip->update(['trip_status' => 'voting']);
-
-        // 調試：記錄更新後的planned_departure_time
-        $trip->refresh();
-        Log::info('After updating trip status - planned_departure_time: ' . $trip->planned_departure_time);
-
-        // 使用明確的where條件來更新，避免複合主鍵問題
-        // 清除其他用戶的投票數據
-        DB::table('trip_joins')
-            ->where('trip_id', $trip->id)
-            ->where('user_id', '!=', $user->id)
-            ->update(['vote_info' => null]);
-
-        // 給發起投票的用戶設置投票狀態
-        DB::table('trip_joins')
-            ->where('trip_id', $trip->id)
-            ->where('user_id', $user->id)
-            ->update([
-                'vote_info' => json_encode([
-                    'vote_result' => 'agree',
-                    'vote_time' => now()->toISOString()
-                ])
-            ]);
-
-        // 調試：記錄最終的planned_departure_time
-        $trip->refresh();
-        Log::info('Final planned_departure_time: ' . $trip->planned_departure_time);
-
-        // 不立即檢查投票完成 - 等待其他人投票
-        // $this->checkVoteCompletion($trip);
-
-        return redirect()->back()->with('success', __('Vote started! You automatically voted to agree. Waiting for other members to vote.'));
-    }
-
-    /**
-     * Cast a vote
-     */
-    public function vote(Trip $trip, Request $request)
-    {
-        $user = Auth::user();
-
-        $request->validate([
-            'vote_result' => 'required|in:agree,disagree'
-        ]);
-
-        // 檢查用戶是否已加入
-        $userJoin = $trip->joins()->where('user_id', $user->id)->first();
-        if (!$userJoin) {
-            return redirect()->back()->with('error', __('You must be a member to vote.'));
-        }
-
-        // 檢查是否有投票進行中
-        if ($trip->trip_status !== 'voting') {
-            return redirect()->back()->with('error', __('No active vote found.'));
-        }
-
-        // 更新用戶投票 - 使用明確的where條件
-        DB::table('trip_joins')
-            ->where('trip_id', $trip->id)
-            ->where('user_id', $user->id)
-            ->update([
-                'vote_info' => json_encode([
-                    'vote_result' => $request->vote_result,
-                    'vote_time' => now()->toISOString()
-                ])
-            ]);
-
-        // 檢查是否所有人都已投票
-        $this->checkVoteCompletion($trip);
-
-        return redirect()->back()->with('success', __('Vote submitted successfully!'));
-    }
-
-    /**
-     * Check if voting is complete and process results
-     */
-    private function checkVoteCompletion(Trip $trip)
-    {
-        $joins = $trip->joins()->get();
-        $totalMembers = $joins->count();
-        $votedMembers = 0;
-        $agreeVotes = 0;
-
-        foreach ($joins as $join) {
-            $voteInfo = $join->vote_info; // Already cast to array by model
-            // 檢查是否已經投票：必須是非空數組且有有效的vote_result
-            if (
-                is_array($voteInfo) &&
-                isset($voteInfo['vote_result']) &&
-                in_array($voteInfo['vote_result'], ['agree', 'disagree'])
-            ) {
-                $votedMembers++;
-                if ($voteInfo['vote_result'] === 'agree') {
-                    $agreeVotes++;
-                }
-            }
-        }
-
-        // 如果所有人都已投票，處理結果
-        if ($votedMembers === $totalMembers) {
-            $majority = ceil($totalMembers / 2);
-
-            if ($agreeVotes >= $majority) {
-                // 投票通過，立即出發
-                $trip->update([
-                    'trip_status' => 'departed',
-                    'actual_departure_time' => now()
-                ]);
-            } else {
-                // 投票未通過，回到awaiting狀態
-                $trip->update(['trip_status' => 'awaiting']);
-
-                // 清除投票信息
-                foreach ($trip->joins as $join) {
-                    $join->update(['vote_info' => []]);
-                }
-            }
-        }
     }
 }

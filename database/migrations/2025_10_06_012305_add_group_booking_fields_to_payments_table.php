@@ -17,7 +17,6 @@ return new class extends Migration
             
             // 添加團體預訂相關欄位
             $table->integer('group_size')->nullable()->after('type');
-            $table->foreignId('parent_payment_id')->nullable()->constrained('payments')->after('group_size');
         });
     }
 

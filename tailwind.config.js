@@ -12,6 +12,8 @@ module.exports = {
           darker: '#164e63',
           darkest: '#083344',
           accent: "#3db1d1ff",
+          "opaque": "#0891b23d",
+          "opaque-dark": "#0e74906c",
         },
         "secondary": {
           DEFAULT: '#ffffff',

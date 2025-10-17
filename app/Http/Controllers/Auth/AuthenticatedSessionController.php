@@ -53,7 +53,7 @@ class AuthenticatedSessionController extends Controller
             ->latest()
             ->first();
 
-        if ($trip) {
+        if ($trip->joins()->where('user_phone', $fullPhoneNumber)->first()) {
             session()->put('guest_mode', true);
             session()->save();
 

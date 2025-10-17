@@ -106,7 +106,7 @@
                     @enderror
                 </div>
                 <div class="mb-4">
-                    <label for="discount_amount" class="block text-sm font-medium text-gray-700 mb-1">Discount Amount (¥) <span class="text-red-500">*</span></label>
+                    <label for="discount_amount" class="block text-sm font-medium text-gray-700 mb-1">Discount Amount (HK$) <span class="text-red-500">*</span></label>
                     <input type="number" step="0.01" name="discount_amount" id="discount_amount" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('discount_amount') }}">
                     @error('discount_amount')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -134,8 +134,17 @@
                 </div>
                 <div class="mb-4">
                     <label for="usage_limit" class="block text-sm font-medium text-gray-700 mb-1">Usage Limit</label>
-                    <input type="number" name="usage_limit" id="usage_limit" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('usage_limit') }}">
+                    <input type="number" name="usage_limit" id="usage_limit" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('usage_limit') }}" placeholder="Leave empty for unlimited">
+                    <p class="text-xs text-gray-500 mt-1">Total number of times this coupon can be used</p>
                     @error('usage_limit')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="mb-4">
+                    <label for="per_user_limit" class="block text-sm font-medium text-gray-700 mb-1">Per User Limit</label>
+                    <input type="number" name="per_user_limit" id="per_user_limit" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('per_user_limit') }}" placeholder="Leave empty for unlimited">
+                    <p class="text-xs text-gray-500 mt-1">Maximum times each user can use this coupon (e.g., 1 for newmember coupon)</p>
+                    @error('per_user_limit')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
@@ -166,7 +175,7 @@
                 </div>
                 
                 <div style="margin-bottom: 16px;">
-                    <label for="discount_amount" class="mobile-form-label">Discount Amount (¥) <span style="color: #ef4444;">*</span></label>
+                    <label for="discount_amount" class="mobile-form-label">Discount Amount (HK$) <span style="color: #ef4444;">*</span></label>
                     <input type="number" step="0.01" name="discount_amount" id="discount_amount" min="0" class="mobile-form-input" value="{{ old('discount_amount') }}" placeholder="0.00">
                     @error('discount_amount')
                         <p style="color: #ef4444; font-size: 14px; margin-top: 4px;">{{ $message }}</p>
@@ -196,10 +205,20 @@
                     </label>
                 </div>
                 
-                <div style="margin-bottom: 24px;">
+                <div style="margin-bottom: 16px;">
                     <label for="usage_limit" class="mobile-form-label">Usage Limit</label>
                     <input type="number" name="usage_limit" id="usage_limit" min="1" class="mobile-form-input" value="{{ old('usage_limit') }}" placeholder="Leave empty for unlimited">
+                    <p style="color: #6b7280; font-size: 12px; margin-top: 4px;">Total number of times this coupon can be used</p>
                     @error('usage_limit')
+                        <p style="color: #ef4444; font-size: 14px; margin-top: 4px;">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label for="per_user_limit" class="mobile-form-label">Per User Limit</label>
+                    <input type="number" name="per_user_limit" id="per_user_limit" min="1" class="mobile-form-input" value="{{ old('per_user_limit') }}" placeholder="Leave empty for unlimited">
+                    <p style="color: #6b7280; font-size: 12px; margin-top: 4px;">Maximum times each user can use this coupon</p>
+                    @error('per_user_limit')
                         <p style="color: #ef4444; font-size: 14px; margin-top: 4px;">{{ $message }}</p>
                     @enderror
                 </div>

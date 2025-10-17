@@ -150,6 +150,36 @@
                 background: #dc2626;
             }
 
+            /* 浮動新增按鈕 */
+            .floating-add-btn {
+                position: fixed !important;
+                bottom: 80px !important;
+                right: 20px !important;
+                width: 56px !important;
+                height: 56px !important;
+                background: #3b82f6 !important;
+                border-radius: 50% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+                z-index: 1000 !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                border: none !important;
+                text-decoration: none !important;
+            }
+            
+            .floating-add-btn:hover {
+                background: #2563eb !important;
+                transform: scale(1.1) !important;
+                box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6) !important;
+            }
+            
+            .floating-add-btn i {
+                color: white !important;
+                font-size: 20px !important;
+            }
+
             /* 確保所有文字元素都不會造成溢出 */
             h1,
             h2,
@@ -446,8 +476,8 @@
                     <div>
                         <p
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
-                            Total Users</p>
-                        <p style="font-size: 1.875rem; font-weight: bold;" id="total-users">{{ $drivers->count() }}</p>
+                            Total Drivers</p>
+                        <p style="font-size: 1.875rem; font-weight: bold;" id="total-drivers">{{ $statistics['total_drivers'] }}</p>
                     </div>
                     <div class="stats-icon-bg">
                         <i class="fas fa-users" style="font-size: 1.5rem;"></i>
@@ -460,9 +490,9 @@
                     <div>
                         <p
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
-                            Active Users</p>
-                        <p style="font-size: 1.875rem; font-weight: bold;" id="active-users">
-                            {{ $drivers->whereNotNull('email_verified_at')->count() }}
+                            Active Drivers</p>
+                        <p style="font-size: 1.875rem; font-weight: bold;" id="active-drivers">
+                            {{ $statistics['active_drivers'] }}
                         </p>
                     </div>
                     <div class="stats-icon-bg">
@@ -477,8 +507,8 @@
                         <p
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             New This Month</p>
-                        <p style="font-size: 1.875rem; font-weight: bold;" id="new-users">
-                            {{ $drivers->where('created_at', '>=', now()->startOfMonth())->count() }}
+                        <p style="font-size: 1.875rem; font-weight: bold;" id="new-drivers">
+                            {{ $statistics['new_this_month'] }}
                         </p>
                     </div>
                     <div class="stats-icon-bg">
@@ -488,21 +518,19 @@
             </div>
         </div>
 
+        <div class="mb-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Driver Management</h2>
+                <a href="{{ route('admin.drivers.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Create New Driver
+                </a>
+            </div>
+        </div>
+
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-6">
                 <!-- Search only (Role filter removed since we only show regular users) -->
-                <div class="flex justify-between">
-                    <div class="mb-4">
-                        <label for="search-input" class="block text-sm font-medium text-gray-700 mb-2">Search Users:</label>
-                        <input type="text" id="search-input" placeholder="Search by username or email..."
-                            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-sm">
-                    </div>
-                    <div class="flex items-center">
-                        <a href="{{ route('admin.drivers.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-                            <i class="fas fa-plus mr-2"></i>Create New Driver
-                        </a>
-                    </div>
-                </div>
+                
 
                 <table id="driversTable" class="display" style="width:100%">
                     <thead>
@@ -540,7 +568,7 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                             <form id="delete-form-{{ $driver->id }}"
-                                                action="{{ route('admin.users.destroy', $driver->id) }}" method="POST"
+                                                action="{{ route('admin.drivers.destroy', $driver->id) }}" method="POST"
                                                 style="display: none;">
                                                 @csrf
                                                 @method('DELETE')
@@ -569,9 +597,9 @@
                                 <i class="fas fa-users" style="font-size: 18px; margin-bottom: 8px;"></i>
                                 <p
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
-                                    Total</p>
-                                <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-total-users">
-                                    {{ $drivers->count() }}</p>
+                                    Drivers</p>
+                                <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-total-drivers">
+                                    {{ $statistics['total_drivers'] }}</p>
                             </div>
                         </div>
 
@@ -582,8 +610,8 @@
                                 <p
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     Active</p>
-                                <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-active-users">
-                                    {{ $drivers->whereNotNull('email_verified_at')->count() }}</p>
+                                <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-active-drivers">
+                                    {{ $statistics['active_drivers'] }}</p>
                             </div>
                         </div>
 
@@ -594,18 +622,18 @@
                                 <p
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     New</p>
-                                <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-new-users">
-                                    {{ $drivers->where('created_at', '>=', now()->startOfMonth())->count() }}</p>
+                                <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-new-drivers">
+                                    {{ $statistics['new_this_month'] }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 搜索 (移除角色篩選，因為只顯示普通用戶) -->
+            <!-- 搜索 -->
             <div style="background: white; padding: 16px; box-sizing: border-box;">
                 <div style="margin-bottom: 16px;">
-                    <input type="text" id="mobile-search" placeholder="Search users..."
+                    <input type="text" id="mobile-search" placeholder="Search drivers..."
                         style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: white; outline: none;">
                 </div>
             </div>
@@ -615,7 +643,7 @@
                 @if ($drivers->count() > 0)
                     <div style="display: flex; flex-direction: column; gap: 12px;" id="mobile-users-container">
                         @foreach ($drivers as $driver)
-                            <a href="{{ route('admin.users.show', $driver->id) }}" class="mobile-user-card"
+                            <a href="{{ route('admin.drivers.show', $driver->id) }}" class="mobile-user-card"
                                 data-role="driver" data-username="{{ strtolower($driver->username) }}"
                                 data-email="{{ strtolower($driver->email) }}"
                                 style="text-decoration: none; display: block; transition: all 0.2s ease;">
@@ -669,6 +697,11 @@
                 @endif
             </div>
 
+            <!-- 浮動新增按鈕 -->
+            <a href="{{ route('admin.drivers.create') }}" class="floating-add-btn">
+                <i class="fas fa-plus"></i>
+            </a>
+
             <!-- 移動版分頁 -->
             @if ($drivers instanceof \Illuminate\Pagination\LengthAwarePaginator && $drivers->hasPages())
                 <div style="margin-top: 30px; padding-bottom: 20px;">
@@ -695,8 +728,8 @@
             <!-- Modal Body -->
             <div style="padding: 20px;">
                 <p style="margin: 0 0 16px 0; color: #374151; line-height: 1.5; font-size: 16px;">
-                    Are you sure you want to delete this user? This action cannot be undone and will permanently remove the
-                    user account.
+                    Are you sure you want to delete this driver? This action cannot be undone and will permanently remove the
+                    driver account from the system.
                 </p>
                 <div
                     style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
@@ -908,11 +941,11 @@
                 // 搜索功能（移除角色篩選）
                 $('#mobile-search').on('input', function() {
                     var searchTerm = $(this).val().toLowerCase();
-                    filterUsers(searchTerm);
+                    filterDrivers(searchTerm);
                 });
 
-                // 篩選用戶函數（只根據搜索詞篩選）
-                function filterUsers(searchTerm) {
+                // 篩選司機函數（只根據搜索詞篩選）
+                function filterDrivers(searchTerm) {
                     var visibleCount = 0;
 
                     $('.mobile-user-card').each(function() {

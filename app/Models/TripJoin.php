@@ -22,8 +22,7 @@ class TripJoin extends Model
         'reference_code',
         'payment_confirmed',
         'payment_confirmed_at',
-        'confirmed_by',
-        'vote_info'
+        'confirmed_by'
     ];
 
     protected $casts = [
@@ -39,23 +38,13 @@ class TripJoin extends Model
         return $this->belongsTo(Trip::class, 'trip_id', 'id');
     }
 
-    // Relationship: TripJoin belongs to a User
+    // Relationship: TripJoin belongs to a User (through phone number)
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_phone', 'phone');
     }
 
-    // Check if user has voted
-    public function hasVoted(): bool
-    {
-        return !empty($this->vote_info) && isset($this->vote_info['vote_result']);
-    }
 
-    // Get vote result (agree/disagree)
-    public function getVoteResult(): ?string
-    {
-        return $this->vote_info['vote_result'] ?? null;
-    }
 
     // Relationship: Admin who confirmed the payment
     public function confirmedBy()

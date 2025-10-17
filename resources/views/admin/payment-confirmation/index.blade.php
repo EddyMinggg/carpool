@@ -268,6 +268,10 @@
 
             <!-- Mobile Statistics Grid -->
             <div class="mobile-stats-grid">
+                <div class="mobile-stat-card sky">
+                    <div class="mobile-stat-number">{{ $tripStats['total_members'] }}</div>
+                    <div class="mobile-stat-label">Members</div>
+                </div>
                 <div class="mobile-stat-card amber">
                     <div class="mobile-stat-number">{{ $pendingPayments->count() }}</div>
                     <div class="mobile-stat-label">Pending</div>
@@ -276,43 +280,9 @@
                     <div class="mobile-stat-number">{{ $confirmedPayments->count() }}</div>
                     <div class="mobile-stat-label">Confirmed</div>
                 </div>
-                <div class="mobile-stat-card sky">
-                    <div class="mobile-stat-number">{{ $tripStats['total_members'] }}</div>
-                    <div class="mobile-stat-label">Members</div>
-                </div>
                 <div class="mobile-stat-card violet">
                     <div class="mobile-stat-number">HK$ {{ number_format($tripStats['total_confirmed_amount'], 0) }}</div>
                     <div class="mobile-stat-label">Total</div>
-                </div>
-            </div>
-
-            <!-- Payment Type Breakdown -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-                <div class="mobile-stat-card orange">
-                    <div style="font-size: 12px; margin-bottom: 8px; opacity: 0.9;">💰 Deposits</div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 16px; font-weight: 700;">{{ $tripStats['confirmed_deposits'] }}</div>
-                            <div style="font-size: 9px; opacity: 0.8;">Confirmed</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 16px; font-weight: 700;">{{ $tripStats['pending_deposits'] }}</div>
-                            <div style="font-size: 9px; opacity: 0.8;">Pending</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="mobile-stat-card indigo">
-                    <div style="font-size: 12px; margin-bottom: 8px; opacity: 0.9;">💳 Remaining</div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 16px; font-weight: 700;">{{ $tripStats['confirmed_remaining'] }}</div>
-                            <div style="font-size: 9px; opacity: 0.8;">Confirmed</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 16px; font-weight: 700;">{{ $tripStats['pending_remaining'] }}</div>
-                            <div style="font-size: 9px; opacity: 0.8;">Pending</div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -332,17 +302,34 @@
                         <div class="mobile-payment-card">
                             <div class="mobile-payment-header">
                                 <div class="mobile-user-info">
-                                    <div class="mobile-username">{{ $payment->user_phone }}</div>
+                                    <div class="mobile-username">
+                                        {{ $payment->user_phone }}
+                                        @if($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                                            <span style="font-size: 10px; background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">
+                                                GROUP ({{ $payment->group_size }} people)
+                                            </span>
+                                        @endif
+                                    </div>
                                     {{-- <div class="mobile-email">{{ $payment->user->email }}</div> --}}
                                 </div>
-                                <div class="mobile-payment-badge {{ $payment->type }}">
-                                    {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
+                                <div class="mobile-payment-badge {{ $payment->type === 'group_full_payment' ? 'deposit' : 'deposit' }}">
+                                    @if($payment->type === 'group_full_payment')
+                                        👥 GROUP
+                                    @else
+                                        💰 PAYMENT
+                                    @endif
                                 </div>
                             </div>
                             
                             <div class="mobile-payment-details">
                                 <div class="mobile-detail-item">
-                                    <div class="mobile-detail-label">Amount</div>
+                                    <div class="mobile-detail-label">
+                                        @if($payment->type === 'group_full_payment')
+                                            Total Amount
+                                        @else
+                                            Amount
+                                        @endif
+                                    </div>
                                     <div class="mobile-detail-value">HK$ {{ number_format($payment->amount, 2) }}</div>
                                 </div>
                                 <div class="mobile-detail-item">
@@ -351,11 +338,47 @@
                                 </div>
                             </div>
                             
-                            @if($payment->pickup_location)
-                                <div style="background: #f8fafc; padding: 8px; border-radius: 6px; margin: 8px 0;">
-                                    <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">PICKUP LOCATION</div>
-                                    <div style="font-size: 12px; color: #374151;">{{ $payment->pickup_location }}</div>
+                            @if($payment->type === 'group_full_payment' && $payment->childPayments()->exists())
+                                <!-- Group Booking Details -->
+                                <div style="background: #eff6ff; padding: 8px; border-radius: 6px; margin: 8px 0; border: 1px solid #bfdbfe;">
+                                    <div style="font-size: 10px; color: #1e40af; margin-bottom: 6px; font-weight: 600;">👥 GROUP PASSENGERS</div>
+                                    @php $allGroupPayments = collect([$payment])->merge($payment->childPayments); @endphp
+                                    @foreach($allGroupPayments as $index => $groupPayment)
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; {{ !$loop->last ? 'border-bottom: 1px solid #dbeafe;' : '' }}">
+                                            <div style="font-size: 11px; color: #1f2937;">
+                                                <strong>{{ $index + 1 }}.</strong> {{ $groupPayment->user_phone }}
+                                                @if($index === 0)<span style="color: #059669; font-weight: 600;"> (Main)</span>@endif
+                                            </div>
+                                            <div style="font-size: 10px; color: #6b7280;">
+                                                HK$ {{ number_format($groupPayment->amount, 0) }}
+                                            </div>
+                                        </div>
+                                        @php
+                                            // Safely get trip join using direct query
+                                            $groupTripJoin = \App\Models\TripJoin::where('trip_id', $groupPayment->trip_id)
+                                                                                 ->where('user_phone', $groupPayment->user_phone)
+                                                                                 ->first();
+                                        @endphp
+                                        @if($groupTripJoin && $groupTripJoin->pickup_location)
+                                            <div style="font-size: 9px; color: #6b7280; margin-left: 12px; margin-top: 2px;">
+                                                📍 {{ Str::limit($groupTripJoin->pickup_location, 25) }}
+                                            </div>
+                                        @endif
+                                    @endforeach
                                 </div>
+                            @else
+                                @php
+                                    // Safely get trip join using direct query
+                                    $mainTripJoin = \App\Models\TripJoin::where('trip_id', $payment->trip_id)
+                                                                        ->where('user_phone', $payment->user_phone)
+                                                                        ->first();
+                                @endphp
+                                @if($mainTripJoin && $mainTripJoin->pickup_location)
+                                    <div style="background: #f8fafc; padding: 8px; border-radius: 6px; margin: 8px 0;">
+                                        <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">PICKUP LOCATION</div>
+                                        <div style="font-size: 12px; color: #374151;">{{ $mainTripJoin->pickup_location }}</div>
+                                    </div>
+                                @endif
                             @endif
                             
                             <a href="{{ route('admin.payment-confirmation.show', $payment) }}" class="mobile-action-btn">
@@ -385,8 +408,8 @@
                                     <div class="mobile-username">{{ $payment->user_phone }}</div>
                                     {{-- <div class="mobile-email">{{ $payment->user->email }}</div> --}}
                                 </div>
-                                <div class="mobile-payment-badge {{ $payment->type }}">
-                                    {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
+                                <div class="mobile-payment-badge deposit">
+                                    💰 PAID
                                 </div>
                             </div>
                             
@@ -466,6 +489,10 @@
                 <!-- Statistics -->
                 <div class="p-6">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-sky-100 dark:bg-sky-900/30 border-2 border-sky-300 dark:border-sky-600 p-4 rounded-lg shadow-sm">
+                            <div class="text-2xl font-bold text-sky-900 dark:text-sky-100">{{ $tripStats['total_members'] }}</div>
+                            <div class="text-sm font-medium text-sky-700 dark:text-sky-300">Total Members</div>
+                        </div>
                         <div class="bg-amber-100 dark:bg-amber-900/30 border-2 border-amber-300 dark:border-amber-600 p-4 rounded-lg shadow-sm">
                             <div class="text-2xl font-bold text-amber-900 dark:text-amber-100">{{ $pendingPayments->count() }}</div>
                             <div class="text-sm font-medium text-amber-700 dark:text-amber-300">Pending Payments</div>
@@ -474,43 +501,9 @@
                             <div class="text-2xl font-bold text-emerald-900 dark:text-emerald-100">{{ $confirmedPayments->count() }}</div>
                             <div class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Confirmed Payments</div>
                         </div>
-                        <div class="bg-sky-100 dark:bg-sky-900/30 border-2 border-sky-300 dark:border-sky-600 p-4 rounded-lg shadow-sm">
-                            <div class="text-2xl font-bold text-sky-900 dark:text-sky-100">{{ $tripStats['total_members'] }}</div>
-                            <div class="text-sm font-medium text-sky-700 dark:text-sky-300">Total Members</div>
-                        </div>
                         <div class="bg-violet-100 dark:bg-violet-900/30 border-2 border-violet-300 dark:border-violet-600 p-4 rounded-lg shadow-sm">
                             <div class="text-2xl font-bold text-violet-900 dark:text-violet-100">HK$ {{ number_format($tripStats['total_confirmed_amount'], 2) }}</div>
                             <div class="text-sm font-medium text-violet-700 dark:text-violet-300">Total Confirmed</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Type Breakdown -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div class="bg-orange-100 dark:bg-orange-900/40 border-2 border-orange-300 dark:border-orange-500 p-4 rounded-lg shadow-sm">
-                            <div class="text-lg font-bold text-orange-900 dark:text-orange-100 mb-3">💰 Deposits (20%)</div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="text-center bg-emerald-50 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-600 rounded-lg p-2">
-                                    <div class="text-xl font-bold text-emerald-800 dark:text-emerald-100">{{ $tripStats['confirmed_deposits'] }}</div>
-                                    <div class="text-xs font-medium text-emerald-700 dark:text-emerald-300">Confirmed</div>
-                                </div>
-                                <div class="text-center bg-amber-50 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-600 rounded-lg p-2">
-                                    <div class="text-xl font-bold text-amber-800 dark:text-amber-100">{{ $tripStats['pending_deposits'] }}</div>
-                                    <div class="text-xs font-medium text-amber-700 dark:text-amber-300">Pending</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-300 dark:border-indigo-500 p-4 rounded-lg shadow-sm">
-                            <div class="text-lg font-bold text-indigo-900 dark:text-indigo-100 mb-3">💳 Remaining (80%)</div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="text-center bg-emerald-50 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-600 rounded-lg p-2">
-                                    <div class="text-xl font-bold text-emerald-800 dark:text-emerald-100">{{ $tripStats['confirmed_remaining'] }}</div>
-                                    <div class="text-xs font-medium text-emerald-700 dark:text-emerald-300">Confirmed</div>
-                                </div>
-                                <div class="text-center bg-amber-50 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-600 rounded-lg p-2">
-                                    <div class="text-xl font-bold text-amber-800 dark:text-amber-100">{{ $tripStats['pending_remaining'] }}</div>
-                                    <div class="text-xs font-medium text-amber-700 dark:text-amber-300">Pending</div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -582,35 +575,87 @@
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-amber-200 dark:bg-amber-700 border-2 border-amber-400 dark:border-amber-500 rounded-full flex items-center justify-center mr-3">
-                                            <span class="text-amber-900 dark:text-amber-100 font-bold text-sm">
-                                                {{-- {{ substr($payment->user->username, 0, 1) }} --}}
+                                        <div class="w-8 h-8 {{ $payment->type === 'group_full_payment' ? 'bg-blue-200 dark:bg-blue-700 border-2 border-blue-400 dark:border-blue-500' : 'bg-amber-200 dark:bg-amber-700 border-2 border-amber-400 dark:border-amber-500' }} rounded-full flex items-center justify-center mr-3">
+                                            <span class="{{ $payment->type === 'group_full_payment' ? 'text-blue-900 dark:text-blue-100' : 'text-amber-900 dark:text-amber-100' }} font-bold text-sm">
+                                                {{ $payment->type === 'group_full_payment' ? '👥' : '�' }}
                                             </span>
                                         </div>
                                         <div>
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 {{ $payment->user_phone }}
+                                                @if($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                                                    <span class="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 rounded-full">
+                                                        Group ({{ $payment->group_size }} people)
+                                                    </span>
+                                                @endif
                                             </div>
-                                            {{-- <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                {{ $payment->user->email }}
-                                            </div> --}}
+                                            @if($payment->type === 'group_full_payment' && $payment->childPayments()->exists())
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    Main booker • Paid for {{ $payment->group_size }} passengers
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-3 py-1 text-xs font-bold rounded-full border-2 {{ $payment->type === 'deposit' ? 'bg-orange-200 text-orange-900 border-orange-400 dark:bg-orange-800 dark:text-orange-100 dark:border-orange-500' : 'bg-indigo-200 text-indigo-900 border-indigo-400 dark:bg-indigo-800 dark:text-indigo-100 dark:border-indigo-500' }}">
-                                        {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
+                                    <span class="px-3 py-1 text-xs font-bold rounded-full border-2 
+                                        @if($payment->type === 'group_full_payment')
+                                            bg-blue-200 text-blue-900 border-blue-400 dark:bg-blue-800 dark:text-blue-100 dark:border-blue-500
+                                        @else
+                                            bg-orange-200 text-orange-900 border-orange-400 dark:bg-orange-800 dark:text-orange-100 dark:border-orange-500
+                                        @endif">
+                                        @if($payment->type === 'group_full_payment')
+                                            👥 GROUP
+                                        @else
+                                            💰 PAYMENT
+                                        @endif
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        HK$ {{ number_format($payment->amount, 2) }}
-                                    </span>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            HK$ {{ number_format($payment->amount, 2) }}
+                                        </span>
+                                        @if($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                (HK$ {{ number_format($payment->amount / $payment->group_size, 2) }} per person)
+                                            </div>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $payment->pickup_location ?: 'Not specified' }}
-                                    </span>
+                                    @if($payment->type === 'group_full_payment' && $payment->childPayments()->exists())
+                                        <div class="space-y-1">
+                                            @php $allGroupPayments = collect([$payment])->merge($payment->childPayments); @endphp
+                                            @foreach($allGroupPayments->take(2) as $index => $groupPayment)
+                                                @php
+                                                    // Safely get trip join using direct query
+                                                    $groupTripJoin = \App\Models\TripJoin::where('trip_id', $groupPayment->trip_id)
+                                                                                         ->where('user_phone', $groupPayment->user_phone)
+                                                                                         ->first();
+                                                    $pickupLocation = $groupTripJoin ? $groupTripJoin->pickup_location : 'Not specified';
+                                                @endphp
+                                                <div class="text-xs text-gray-900 dark:text-gray-100">
+                                                    <strong>{{ $index + 1 }}.</strong> {{ Str::limit($pickupLocation, 30) }}
+                                                </div>
+                                            @endforeach
+                                            @if($allGroupPayments->count() > 2)
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    +{{ $allGroupPayments->count() - 2 }} more locations...
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        @php
+                                            // Safely get trip join using direct query
+                                            $mainTripJoin = \App\Models\TripJoin::where('trip_id', $payment->trip_id)
+                                                                                ->where('user_phone', $payment->user_phone)
+                                                                                ->first();
+                                        @endphp
+                                        <span class="text-sm text-gray-900 dark:text-gray-100">
+                                            {{ ($mainTripJoin && $mainTripJoin->pickup_location) ? $mainTripJoin->pickup_location : 'Not specified' }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="text-sm text-gray-900 dark:text-gray-100">
@@ -671,8 +716,8 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-3 py-1 text-xs font-bold rounded-full border-2 {{ $payment->type === 'deposit' ? 'bg-orange-200 text-orange-900 border-orange-400 dark:bg-orange-800 dark:text-orange-100 dark:border-orange-500' : 'bg-indigo-200 text-indigo-900 border-indigo-400 dark:bg-indigo-800 dark:text-indigo-100 dark:border-indigo-500' }}">
-                                        {{ $payment->type === 'deposit' ? '💰 DEPOSIT' : '💳 REMAINING' }}
+                                    <span class="px-3 py-1 text-xs font-bold rounded-full border-2 bg-green-200 text-green-900 border-green-400 dark:bg-green-800 dark:text-green-100 dark:border-green-500">
+                                        ✅ PAID
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">

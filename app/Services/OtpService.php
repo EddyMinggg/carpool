@@ -2,55 +2,31 @@
 
 namespace App\Services;
 
-use Aws\Sns\SnsClient;
-use Aws\Exception\AwsException;
-use Illuminate\Support\Facades\DB;
+use App\Models\PhoneVerification;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Exception;
 
+use App\Notifications\OtpNotification;
+
 class OtpService
 {
-    private $snsClient;
     private $maxAttempts = 3;
     private $otpExpireMinutes = 5;
-    private $resendCooldownMinutes = 0.17; // 10 seconds for development
+    private $resendCooldownMinutes = 0.5; // 10 seconds for development
 
-    public function __construct()
-    {
-        // Delay SNS client initialization until needed
-    }
 
-    /**
-     * Get or create SNS client
-     */
-    private function getSnsClient()
-    {
-        if (!$this->snsClient) {
-            $this->snsClient = new SnsClient([
-                'version' => 'latest',
-                'region' => config('services.aws.region', 'us-east-1'),
-                'credentials' => [
-                    'key' => config('services.aws.key'),
-                    'secret' => config('services.aws.secret'),
-                ],
-                'http' => [
-                    'verify' => app()->environment('production'), // Only verify SSL in production
-                ],
-            ]);
-        }
-        return $this->snsClient;
-    }
+    public function __construct(readonly private User $user) {}
 
     /**
      * Generate and send OTP code
      */
-    public function sendOtp(string $phone, array $userData = null, string $ipAddress = null): array
+    public function sendOtp()
     {
         try {
             // Check rate limiting - only allow one OTP per minute
-            $recentOtp = DB::table('phone_verifications')
-                ->where('phone', $phone)
+            $recentOtp = PhoneVerification::where('phone', $this->user->phone)
                 ->where('created_at', '>', Carbon::now()->subMinutes($this->resendCooldownMinutes))
                 ->first();
 
@@ -67,69 +43,53 @@ class OtpService
             $expiresAt = Carbon::now()->addMinutes($this->otpExpireMinutes);
 
             // Clean up old OTP records for this phone
-            DB::table('phone_verifications')
-                ->where('phone', $phone)
-                ->delete();
+            PhoneVerification::where('phone', $this->user->phone)->delete();
 
             // Store OTP in database
-            DB::table('phone_verifications')->insert([
-                'phone' => $phone,
+            PhoneVerification::create([
+                'phone' => $this->user->phone,
                 'otp_code' => $otpCode,
                 'expires_at' => $expiresAt,
-                'ip_address' => $ipAddress,
-                'user_data' => $userData ? json_encode($userData) : null,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
+                'ip_address' => request()->ip()
             ]);
 
-            // Send SMS via AWS SNS using professional template
-            $message = SmsTemplateService::otpVerification($otpCode, $this->otpExpireMinutes);
+            $this->user->notify(new OtpNotification($otpCode));
 
-            $snsClient = $this->getSnsClient();
-            $result = $snsClient->publish([
-                'Message' => $message,
-                'PhoneNumber' => $phone,
-            ]);
+            // if (!$result['success']) {
+            //     Log::error('Failed to send OTP via Twilio', [
+            //         'phone' => $this->user->phone,
+            //         'error' => $result['error'] ?? 'Unknown error'
+            //     ]);
 
-            Log::info('OTP sent successfully', [
-                'phone' => $phone,
-                'message_id' => $result['MessageId'] ?? null,
-                'otp_code' => $otpCode // Log OTP for development
-            ]);
+            //     return [
+            //         'success' => false,
+            //         'message' => 'Failed to send OTP code. Please try again.',
+            //         'error' => $result['error'] ?? 'SMS service error'
+            //     ];
+            // }
 
-            // In development mode, also write OTP to a file for easy access
-            if (app()->environment('local')) {
-                $otpFile = storage_path('logs/current_otp.txt');
-                file_put_contents($otpFile, "Phone: {$phone}\nOTP Code: {$otpCode}\nTime: " . now()->format('Y-m-d H:i:s') . "\n");
-            }
+            // Log::info('OTP sent successfully via Twilio', [
+            //     'phone' => $this->user->phone,
+            //     'method' => $result['method'] ?? 'unknown',
+            //     'message_id' => $result['message_id'] ?? null,
+            //     'otp_code' => $otpCode // Log OTP for development
+            // ]);
+
+            // // In development mode, also write OTP to a file for easy access
+            // if (app()->environment('local')) {
+            //     $otpFile = storage_path('logs/current_otp.txt');
+            //     file_put_contents($otpFile, "Phone: {$this->user->phone}\nOTP Code: {$otpCode}\nMethod: {$result['method']}\nTime: " . now()->format('Y-m-d H:i:s') . "\n");
+            // }
 
             return [
                 'success' => true,
                 'message' => 'OTP code sent successfully.',
-                'expires_in' => $this->otpExpireMinutes * 60
+                'expires_in' => $this->otpExpireMinutes * 60,
             ];
-
-        } catch (AwsException $e) {
-            Log::error('AWS SNS Error', [
-                'phone' => $phone,
-                'error' => $e->getMessage()
-            ]);
-
+        } catch (Exception $e) {
             return [
                 'success' => false,
                 'message' => 'Failed to send OTP code. Please try again.',
-                'error' => $e->getMessage()
-            ];
-
-        } catch (Exception $e) {
-            Log::error('OTP Service Error', [
-                'phone' => $phone,
-                'error' => $e->getMessage()
-            ]);
-
-            return [
-                'success' => false,
-                'message' => 'An error occurred. Please try again.',
                 'error' => $e->getMessage()
             ];
         }
@@ -138,12 +98,12 @@ class OtpService
     /**
      * Verify OTP code
      */
-    public function verifyOtp(string $phone, string $otpCode, string $ipAddress = null): array
+    public function verifyOtp(string $otpCode): array
     {
         try {
-            $verification = DB::table('phone_verifications')
-                ->where('phone', $phone)
+            $verification = PhoneVerification::where('phone', $this->user->phone)
                 ->where('is_verified', false)
+                ->latest()
                 ->first();
 
             if (!$verification) {
@@ -155,9 +115,7 @@ class OtpService
 
             // Check if OTP has expired
             if (Carbon::parse($verification->expires_at)->isPast()) {
-                DB::table('phone_verifications')
-                    ->where('id', $verification->id)
-                    ->delete();
+                PhoneVerification::where('id', $verification->id)->delete();
 
                 return [
                     'success' => false,
@@ -167,9 +125,7 @@ class OtpService
 
             // Check max attempts
             if ($verification->attempts >= $this->maxAttempts) {
-                DB::table('phone_verifications')
-                    ->where('id', $verification->id)
-                    ->delete();
+                PhoneVerification::where('id', $verification->id)->delete();
 
                 return [
                     'success' => false,
@@ -178,11 +134,9 @@ class OtpService
             }
 
             // Verify OTP code
-            if ($verification->otp_code !== $otpCode) {
+            if ($verification->otp_code != $otpCode) {
                 // Increment attempts
-                DB::table('phone_verifications')
-                    ->where('id', $verification->id)
-                    ->increment('attempts');
+                PhoneVerification::where('id', $verification->id)->increment('attempts');
 
                 $remainingAttempts = $this->maxAttempts - ($verification->attempts + 1);
 
@@ -193,25 +147,19 @@ class OtpService
             }
 
             // Mark as verified
-            DB::table('phone_verifications')
-                ->where('id', $verification->id)
+            PhoneVerification::where('id', $verification->id)
                 ->update([
                     'is_verified' => true,
                     'updated_at' => Carbon::now()
                 ]);
 
+            $this->user->markPhoneAsVerified();
+
             return [
                 'success' => true,
-                'message' => 'Phone number verified successfully.',
-                'user_data' => $verification->user_data ? json_decode($verification->user_data, true) : null
+                'message' => 'Phone number verified successfully.'
             ];
-
         } catch (Exception $e) {
-            Log::error('OTP Verification Error', [
-                'phone' => $phone,
-                'error' => $e->getMessage()
-            ]);
-
             return [
                 'success' => false,
                 'message' => 'Verification failed. Please try again.'
@@ -224,9 +172,7 @@ class OtpService
      */
     public function cleanupExpiredOtps(): int
     {
-        return DB::table('phone_verifications')
-            ->where('expires_at', '<', Carbon::now())
-            ->delete();
+        return PhoneVerification::where('expires_at', '<', Carbon::now())->delete();
     }
 
     /**
@@ -234,8 +180,7 @@ class OtpService
      */
     public function getOtpStatus(string $phone): array
     {
-        $verification = DB::table('phone_verifications')
-            ->where('phone', $phone)
+        $verification = PhoneVerification::where('phone', $phone)
             ->where('is_verified', false)
             ->first();
 
@@ -254,6 +199,62 @@ class OtpService
             'expires_in' => $timeLeft,
             'attempts' => $verification->attempts,
             'max_attempts' => $this->maxAttempts
+        ];
+    }
+
+    /**
+     * Send OTP via Twilio (try WhatsApp first, then SMS)
+     */
+    private function sendViaTwilio(string $otpCode): array
+    {
+        // In sandbox mode, just log the OTP
+        // if ($this->isSandbox) {
+        //     Log::info('OTP (Sandbox Mode)', [
+        //         'phone' => $this->user->phone,
+        //         'otp_code' => $otpCode,
+        //         'expires_in' => $this->otpExpireMinutes
+        //     ]);
+
+        //     return [
+        //         'success' => true,
+        //         'method' => 'sandbox',
+        //         'message_id' => 'sandbox_' . time()
+        //     ];
+        // }
+
+        // Try WhatsApp first
+        $whatsappResult = $this->twilioService->sendOtpWhatsApp($this->user->phone, $otpCode, $this->otpExpireMinutes);
+
+        if ($whatsappResult['success']) {
+            return [
+                'success' => true,
+                'method' => 'whatsapp',
+                'message_id' => $whatsappResult['message_id']
+            ];
+        }
+
+        // Fallback to SMS if WhatsApp fails
+        Log::warning('WhatsApp OTP failed, falling back to SMS', [
+            'phone' => $this->user->phone,
+            'whatsapp_error' => $whatsappResult['error'] ?? 'Unknown'
+        ]);
+
+        $smsResult = $this->twilioService->sendOtpSms($this->user->phone, $otpCode, $this->otpExpireMinutes);
+
+        if ($smsResult['success']) {
+            return [
+                'success' => true,
+                'method' => 'sms',
+                'message_id' => $smsResult['message_id']
+            ];
+        }
+
+        // Both methods failed
+        return [
+            'success' => false,
+            'error' => 'Both WhatsApp and SMS delivery failed',
+            'whatsapp_error' => $whatsappResult['error'] ?? 'Unknown',
+            'sms_error' => $smsResult['error'] ?? 'Unknown'
         ];
     }
 }

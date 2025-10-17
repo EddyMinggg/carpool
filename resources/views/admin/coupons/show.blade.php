@@ -7,7 +7,12 @@
     {{-- 移動版 CSS 重設和專用樣式 --}}
     @if($isMobile)
         <style>
-            /* 移動版嚴格CSS重設 - 防止水平滾動 */
+                     <div style="text-align: center; margin-bottom: 16px;">
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Discount Amount</div>
+                <div style="font-size: 32px; color: #059669; font-weight: 700;">
+                    HK$ {{ number_format($coupon->discount_amount, 0) }}
+                </div>
+            </div>移動版嚴格CSS重設 - 防止水平滾動 */
             * {
                 box-sizing: border-box !important;
                 max-width: 100vw !important;
@@ -138,7 +143,7 @@
                 </div>
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Discount Amount</p>
-                    <p class="text-gray-900">¥{{ number_format($coupon->discount_amount, 2) }}</p>
+                    <p class="text-gray-900">HK$ {{ number_format($coupon->discount_amount, 2) }}</p>
                 </div>
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Valid From</p>
@@ -154,7 +159,11 @@
                 </div>
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Usage Limit</p>
-                    <p class="text-gray-900">{{ $coupon->usage_limit ?? '-' }}</p>
+                    <p class="text-gray-900">{{ $coupon->usage_limit ?? 'Unlimited' }}</p>
+                </div>
+                <div class="py-3">
+                    <p class="text-sm text-gray-500">Per User Limit</p>
+                    <p class="text-gray-900">{{ $coupon->per_user_limit ?? 'Unlimited' }}</p>
                 </div>
                 <div class="py-3">
                     <p class="text-sm text-gray-500">Used Count</p>
@@ -252,6 +261,12 @@
                     <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Usage Limit</div>
                     <div style="font-size: 20px; color: #1f2937; font-weight: 700;">
                         {{ $coupon->usage_limit ?? 'Unlimited' }}
+                    </div>
+                </div>
+                <div style="flex: 1; text-align: center;">
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Per User Limit</div>
+                    <div style="font-size: 20px; color: #059669; font-weight: 700;">
+                        {{ $coupon->per_user_limit ?? 'Unlimited' }}
                     </div>
                 </div>
                 <div style="flex: 1; text-align: right;">

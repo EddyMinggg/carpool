@@ -25,24 +25,18 @@
                 class="absolute bottom-0 h-0.5 bg-primary dark:bg-primary-dark transition-transform duration-300 transform scale-x-0 translate-x-0 tab-indicator">
             </div>
 
-            <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('username') || old('email') || old('phone')) ? '' : 'active' }} inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
-                data-dui-tab-target="tab1-group4">
+            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-login inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab1-group4">
                 {{ __('Login') }}
             </a>
-            <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && ( old('invitation_code') || old('phone')) ? '' : 'active' }} inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
-                data-dui-tab-target="tab2-group4">
+            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-join-trip inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab2-group4">
                 {{ __('Join Trip') }}
             </a>
-            <a href="#"
-                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'active' : '' }} inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1"
-                data-dui-tab-target="tab3-group4">
+            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-register inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab3-group4">
                 {{ __('Register') }}
             </a>
         </div>
         <div class="mt-4 tab-content-container">
-            <div id="tab1-group4" class="tab-content {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'hidden' : 'block' }} font-medium text-sm text-gray-700 dark:text-gray-300">
+            <div id="tab1-group4" class="tab-content hidden font-medium text-sm text-gray-700 dark:text-gray-300">
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
                     <!-- Email Address -->
@@ -57,8 +51,8 @@
                     <div class="mt-4">
                         <x-input-label for="password_login" :value="__('Password')" />
 
-                        <x-text-input id="password_login" class="block mt-1 w-full" type="password" name="password" required
-                            autocomplete="current-password" />
+                        <x-text-input id="password_login" class="block mt-1 w-full" type="password" name="password"
+                            required autocomplete="current-password" />
 
                         <x-input-error :messages="$errors->get('password')" class="mt-2" />
                     </div>
@@ -87,10 +81,10 @@
                     </div>
                 </form>
             </div>
-            <div id="tab2-group4" class="tab-content {{ $errors->any() && ( old('invitation_code') || old('phone')) ? 'hidden' : 'block' }} font-medium text-sm text-gray-700 dark:text-gray-300">
+            <div id="tab2-group4" class="tab-content hidden font-medium text-sm text-gray-700 dark:text-gray-300">
                 <form method="POST" action="{{ route('guest') }}">
                     @csrf
-                    <!-- Email Address -->
+                    <!-- Invitation Code -->
                     <div>
                         <x-input-label for="invitation_code" :value="__('Invitation Code')" />
                         <x-text-input id="invitation_code" class="block mt-1 w-full" name="invitation_code"
@@ -102,17 +96,16 @@
                     <div class="mt-4">
                         <x-input-label for="phone_invite" :value="__('Phone Number')" />
                         <div class="flex mt-1">
-                            <select id="phone_country_code_invite" name="phone_country_code_invite" 
+                            <select id="phone_country_code_invite" name="phone_country_code_invite"
                                 class="rounded-l-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 shadow-sm">
-                                <option value="+852" {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)</option>
-                                <option value="+86" {{ old('phone_country_code') == '+86' ? 'selected' : '' }}>+86 (CN)</option>
+                                <option value="+852"
+                                    {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)
+                                </option>
+                                <option value="+86" {{ old('phone_country_code') == '+86' ? 'selected' : '' }}>+86
+                                    (CN)</option>
                             </select>
-                            <x-text-input id="phone_invite" class="block w-full rounded-l-none border-l-0" 
-                                type="tel" 
-                                name="phone_invite" 
-                                :value="old('phone_invite')" 
-                                required 
-                                autocomplete="tel"
+                            <x-text-input id="phone_invite" class="block w-full rounded-l-none border-l-0"
+                                type="tel" name="phone_invite" :value="old('phone_invite')" required autocomplete="tel"
                                 placeholder="12345678" />
                         </div>
                         <x-input-error :messages="$errors->get('phone_invite')" class="mt-2" />
@@ -126,98 +119,132 @@
                     </div>
                 </form>
             </div>
-            <div id="tab3-group4" class="tab-content {{ $errors->any() && (old('username') || old('email') || old('phone')) ? 'block' : 'hidden' }} font-medium text-sm text-gray-700 dark:text-gray-300">
-                <form method="POST" action="{{ route('register') }}">
-                    @csrf
+            <div id="tab3-group4" class="tab-content hidden font-medium text-sm text-gray-700 dark:text-gray-300">
 
-                    <!-- Name -->
-                    <div>
-                        <x-input-label for="username" :value="__('Username')" />
-                        <x-text-input id="username" class="block mt-1 w-full" type="text" name="username"
-                            :value="old('username')" required autofocus autocomplete="name" />
-                        <x-input-error :messages="$errors->get('username')" class="mt-2" />
-                    </div>
-
-                    <!-- Email Address -->
-                    <div class="mt-4">
-                        <x-input-label for="email_register" :value="__('Email')" />
-                        <x-text-input id="email_register" class="block mt-1 w-full" type="email" name="email"
-                            :value="old('email')" required autocomplete="username" />
-                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                    </div>
-
-                    <!-- Phone Number -->
-                    <div class="mt-4">
-                        <x-input-label for="phone_register" :value="__('Phone Number')" />
-                        <div class="flex mt-1">
-                            <select id="phone_country_code" name="phone_country_code" 
-                                class="rounded-l-md border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm">
-                                <option value="+852" {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)</option>
-                                <option value="+86" {{ old('phone_country_code') == '+86' ? 'selected' : '' }}>+86 (CN)</option>
-                            </select>
-                            <x-text-input id="phone_register" class="block w-full rounded-l-none border-l-0" 
-                                type="tel" 
-                                name="phone" 
-                                :value="old('phone')" 
-                                required 
-                                autocomplete="tel"
-                                placeholder="12345678" />
+                <!-- Registration Progress Indicator -->
+                {{-- <div class="mb-6">
+                    <div class="flex items-center justify-center space-x-4">
+                        <div class="flex items-center">
+                            <div id="step1-indicator"
+                                class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-medium">
+                                1</div>
+                            <span
+                                class="ml-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">{{ __('Basic Info') }}</span>
                         </div>
-                        <x-input-error :messages="$errors->get('phone')" class="mt-2" />
-                        <x-input-error :messages="$errors->get('phone_country_code')" class="mt-2" />
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            {{ __('We will send you an OTP to verify your phone number') }}
-                        </p>
+                        <div class="w-12 h-0.5 bg-gray-300 dark:bg-gray-600"></div>
+                        <div class="flex items-center">
+                            <div id="step2-indicator"
+                                class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400 flex items-center justify-center text-sm font-medium">
+                                2</div>
+                            <span
+                                class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Verify Phone') }}</span>
+                        </div>
+                        <div class="w-12 h-0.5 bg-gray-300 dark:bg-gray-600"></div>
+                        <div class="flex items-center">
+                            <div id="step3-indicator"
+                                class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400 flex items-center justify-center text-sm font-medium">
+                                3</div>
+                            <span
+                                class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Complete') }}</span>
+                        </div>
                     </div>
+                </div> --}}
 
-                    <!-- Password -->
-                    <div class="mt-4">
-                        <x-input-label for="password_register" :value="__('Password')" />
+                <!-- Step 1: Basic Information -->
+                <div id="register-step-1" class="register-step block">
+                    <form method="POST" action="{{ route('register') }}">
+                        @csrf
+                        <!-- Messages -->
+                        <div id="register-messages" class="hidden mb-4"></div>
 
-                        <x-text-input id="password_register" class="block mt-1 w-full" type="password" name="password" required
-                            autocomplete="new-password" />
+                        <!-- Name -->
+                        <div>
+                            <x-input-label for="username" :value="__('Username')" />
+                            <x-text-input id="username" class="block mt-1 w-full" type="text" name="username"
+                                :value="old('username')" required autofocus autocomplete="name" />
+                            <div id="username-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                        </div>
 
-                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                    </div>
+                        <!-- Email Address -->
+                        <div class="mt-4">
+                            <x-input-label for="email_register" :value="__('Email')" />
+                            <x-text-input id="email_register" class="block mt-1 w-full" type="email"
+                                name="email" :value="old('email')" required autocomplete="username" />
+                            <div id="email-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                        </div>
 
-                    <!-- Confirm Password -->
-                    <div class="mt-4">
-                        <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                        <!-- Phone Number -->
+                        <div class="mt-4">
+                            <x-input-label for="phone_register" :value="__('Phone Number')" />
+                            <div class="flex mt-1">
+                                <select id="phone_country_code" name="phone_country_code"
+                                    class="rounded-l-md border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm">
+                                    <option value="+852"
+                                        {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)
+                                    </option>
+                                    <option value="+86" {{ old('phone_country_code') == '+86' ? 'selected' : '' }}>
+                                        +86 (CN)</option>
+                                </select>
+                                <x-text-input id="phone_register" class="block w-full rounded-l-none border-l-0"
+                                    type="tel" name="phone" :value="old('phone')" required autocomplete="tel"
+                                    placeholder="12345678" />
+                            </div>
+                            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+                            <x-input-error :messages="$errors->get('phone_country_code')" class="mt-2" />
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                {{ __('We will send you an One-Time-Passcode to verify your phone number.') }}
+                            </p>
+                        </div>
 
-                        <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
+                        <!-- Password -->
+                        <div class="mt-4">
+                            <x-input-label for="password_register" :value="__('Password')" />
+                            <x-text-input id="password_register" class="block mt-1 w-full" type="password"
+                                name="password" required autocomplete="new-password" />
+                            <div id="password-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                        </div>
 
-                        <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-                    </div>
+                        <!-- Confirm Password -->
+                        <div class="mt-4">
+                            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                            <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password"
+                                name="password_confirmation" required autocomplete="new-password" />
+                            <div id="password-confirmation-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                        </div>
 
-                    <div class="flex items-center justify-end mt-4">
-                        <x-primary-button class="ms-4">
-                            {{ __('Register') }}
-                        </x-primary-button>
-                    </div>
-                </form>
-                
-
-                
-
+                        <div class="flex items-center justify-end mt-6">
+                            <x-primary-button id="send-otp-btn">
+                                <span class="send-otp-text">{{ __('Register') }}</span>
+                                <svg class="send-otp-spinner animate-spin -mr-1 ml-3 h-4 w-4 text-white hidden"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                            </x-primary-button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </x-guest-layout>
 
 <style>
-.tab-indicator {
-    transition: transform 0.3s ease, width 0.3s ease;
-    transform-origin: left;
-}
+    .tab-indicator {
+        transition: transform 0.3s ease, width 0.3s ease;
+        transform-origin: left;
+    }
 
-.tab-content {
-    transition: opacity 0.2s ease;
-}
+    .tab-content {
+        transition: opacity 0.2s ease;
+    }
 
-.tab-content.hidden {
-    display: none !important;
-}
+    .tab-content.hidden {
+        display: none !important;
+    }
 </style>
 
 <script>
@@ -252,53 +279,80 @@
         const tabLinks = document.querySelectorAll('.tab-link');
         const tabContents = document.querySelectorAll('.tab-content');
         const tabIndicator = document.querySelector('.tab-indicator');
-        
-        // Check if we should show register tab (due to validation errors)
-        const hasRegisterErrors = @json($errors->any() && (old('username') || old('email') || old('phone')));
-        
+
+        // Define error conditions for each tab more clearly
+        const errors = @json($errors->toArray());
+        const oldInput = {
+            username: @json(old('username')),
+            email: @json(old('email')),
+            phone: @json(old('phone')),
+            invitation_code: @json(old('invitation_code')),
+            phone_invite: @json(old('phone_invite')),
+            phone_country_code_invite: @json(old('phone_country_code_invite')),
+            password: @json(old('password'))
+        };
+
         function showTab(targetId, activeLink) {
             // Hide all tab contents
             tabContents.forEach(content => {
                 content.classList.add('hidden');
                 content.classList.remove('block');
             });
-            
+
             // Remove active class from all links
             tabLinks.forEach(link => {
                 link.classList.remove('active');
             });
-            
+
             // Show target tab content
             const targetContent = document.getElementById(targetId);
             if (targetContent) {
                 targetContent.classList.remove('hidden');
                 targetContent.classList.add('block');
             }
-            
+
             // Add active class to clicked link
             activeLink.classList.add('active');
-            
+
             // Move tab indicator
             const linkRect = activeLink.getBoundingClientRect();
             const containerRect = activeLink.parentElement.getBoundingClientRect();
             const offsetLeft = linkRect.left - containerRect.left;
             const width = linkRect.width;
-            
+
             tabIndicator.style.transform = `translateX(${offsetLeft}px) scaleX(1)`;
             tabIndicator.style.width = `${width}px`;
         }
-        
-        // Initialize tabs
-        if (hasRegisterErrors) {
-            // Show register tab if there are register errors
-            const registerLink = document.querySelector('[data-dui-tab-target="tab2-group4"]');
-            showTab('tab2-group4', registerLink);
-        } else {
-            // Show login tab by default
-            const loginLink = document.querySelector('[data-dui-tab-target="tab1-group4"]');
-            showTab('tab1-group4', loginLink);
+
+        // Determine which tab to show based on form submission context
+        function determineActiveTab() {
+            // Check if register form was submitted (has username or register-specific errors)
+            if (oldInput.username || errors.username || errors.phone_country_code) {
+                return { tabId: 'tab3-group4', linkClass: '.tab-register' };
+            }
+            
+            // Check if join trip form was submitted (has invitation_code or phone_invite)
+            if (oldInput.invitation_code || oldInput.phone_invite || 
+                errors.invitation_code || errors.phone_invite || errors.phone_country_code_invite) {
+                return { tabId: 'tab2-group4', linkClass: '.tab-join-trip' };
+            }
+            
+            // Check if login form was submitted or has login errors
+            if (errors.email || errors.password) {
+                return { tabId: 'tab1-group4', linkClass: '.tab-login' };
+            }
+            
+            // Default to login tab
+            return { tabId: 'tab1-group4', linkClass: '.tab-login' };
         }
-        
+
+        // Initialize the correct tab
+        const activeTab = determineActiveTab();
+        const activeLink = document.querySelector(activeTab.linkClass);
+        if (activeLink) {
+            showTab(activeTab.tabId, activeLink);
+        }
+
         // Add click handlers to tab links
         tabLinks.forEach(link => {
             link.addEventListener('click', function(e) {
