@@ -350,13 +350,13 @@
                 <div :class="{
                     'border-primary-accent border-2': trip.type === 'golden',
                     'border-gray-100 dark:border-gray-700': trip.type !== 'golden' && !trip.is_expired,
-                    'border-gray-300 dark:border-gray-600 opacity-40': trip.type !== 'golden' && trip.is_expired
+                    'border-gray-300 dark:border-gray-600 opacity-40': trip.is_expired
                 }"
-                    :class="(trip.type !== 'golden' && trip.is_expired) ? 'cursor-not-allowed' : 'cursor-pointer'"
-                    :class="!(trip.type !== 'golden' && trip.is_expired) ?
+                    :class="trip.is_expired ? 'cursor-not-allowed' : 'cursor-pointer'"
+                    :class="trip.type == 'golden' || !trip.is_expired ?
                     'hover:shadow-lg hover:scale-[1.02] active:scale-98' : ''"
                     class="bg-white dark:bg-secondary-accent rounded-xl p-6 sm:p-8 shadow-md border transition-all"
-                    @click="!(trip.type !== 'golden' && trip.is_expired) ? (window.location='/trips/' + trip.id) : null">
+                    @click="!trip.is_expired ? (window.location='/trips/' + trip.id) : null">
 
                     <!-- Golden Hour 特殊標記 -->
                     <template x-if="trip.type === 'golden'">

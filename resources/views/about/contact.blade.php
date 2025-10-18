@@ -1,15 +1,15 @@
 <x-app-layout>
     @section('Title', __('Contact Us'))
     
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">{{ __('Contact Us') }}</h1>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">{{ __('Contact Us') }}</h1>
             <p class="text-xl text-gray-600 dark:text-gray-400">{{ __('We\'re here to help you 24/7') }}</p>
         </div>
 
         <div class="grid md:grid-cols-2 gap-8">
             <!-- Contact Information -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+            <div class="bg-secondary dark:bg-secondary-accent rounded-2xl shadow-lg p-8">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('Get In Touch') }}</h2>
                 
                 <div class="space-y-6">
@@ -21,7 +21,7 @@
                         </div>
                         <div class="ml-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Phone') }}</h3>
-                            <p class="text-gray-600 dark:text-gray-400 mt-1">+852 9858 8879</p>
+                            <p class="text-gray-600 dark:text-gray-400">+852 9858 8879</p>
                             <p class="text-sm text-gray-500 dark:text-gray-500">{{ __('24/7 Customer Service') }}</p>
                         </div>
                     </div>
@@ -34,7 +34,7 @@
                         </div>
                         <div class="ml-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Email') }}</h3>
-                            <p class="text-gray-600 dark:text-gray-400 mt-1">danielwu@snowpins.com</p>
+                            <p class="text-gray-600 dark:text-gray-400">danielwu@snowpins.com</p>
                         </div>
                     </div>
 
@@ -46,9 +46,9 @@
                         </div>
                         <div class="ml-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('WhatsApp') }}</h3>
-                            <p class="text-gray-600 dark:text-gray-400 mt-1">+852 9858 8879</p>
+                            <p class="text-gray-600 dark:text-gray-400">+852 9858 8879</p>
                             <a href="https://wa.me/85298588879" target="_blank" class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm">
-                                {{ __('Chat with us') }} →
+                                → {{ __('Chat with us') }}
                             </a>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                         <div class="ml-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Office Address') }}</h3>
                             @if(app()->getLocale() == 'en')
-                                <p class="text-gray-600 dark:text-gray-400 mt-1">
+                                <p class="text-gray-600 dark:text-gray-400">
                                     Room 03, 11/F, SOLO<br>
                                     83 Bic Fat Road<br>
                                     Tai Kok Tsui<br>
@@ -96,7 +96,7 @@
             </div>
 
             <!-- Contact Form - Coming Soon -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+            <div class="bg-secondary dark:bg-secondary-accent rounded-2xl shadow-lg p-8">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('Send Us a Message') }}</h2>
 
                 <!-- Quick Contact Buttons -->

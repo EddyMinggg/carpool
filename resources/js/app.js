@@ -10,3 +10,4 @@ window.$ = jQuery;
 window.Alpine = Alpine;
 
 Alpine.start();
+

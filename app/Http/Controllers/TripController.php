@@ -132,9 +132,7 @@ class TripController extends Controller
 
         $isGroupBooking = $payment && $payment->type === 'group';
         $showInvitationCode = ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking;
-        // if (!$showInvitationCode) {
-        //     $showInvitationCode = false;
-        // }
+
 
         return view('trips.show', compact(
             'trip',

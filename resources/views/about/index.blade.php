@@ -1,10 +1,10 @@
 <x-app-layout>
     @section('Title', __('About Us'))
     
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <!-- Hero Section -->
         <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 {{ __('About Snowpins') }}
             </h1>
             <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
@@ -13,8 +13,8 @@
         </div>
 
         <!-- About Our Service -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">{{ __('About Our Service') }}</h2>
+        <div class="bg-seondary dark:bg-secondary-accent rounded-2xl shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('Our Service') }}</h2>
             <div class="grid md:grid-cols-3 gap-6">
                 <div class="text-center p-6">
                     <div class="text-5xl mb-4">🛡️</div>
@@ -36,14 +36,14 @@
 
         <!-- Mission & Vision -->
         <div class="grid md:grid-cols-2 gap-8 mb-8">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">{{ __('Our Mission') }}</h2>
+            <div class="bg-seondary dark:bg-secondary-accent rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">{{ __('Our Mission') }}</h2>
                 <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
                     {{ __('To provide safe, affordable, and convenient cross-border transportation services that connect Hong Kong and Mainland China, making travel easier for everyone. We are committed to delivering exceptional customer service and building a trusted community of travelers.') }}
                 </p>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">{{ __('Our Vision') }}</h2>
+            <div class="bg-seondary dark:bg-secondary-accent rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">{{ __('Our Vision') }}</h2>
                 <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
                     {{ __('To become the leading carpool service provider in the Greater Bay Area, connecting communities and promoting sustainable transportation through shared mobility solutions.') }}
                 </p>
@@ -51,8 +51,8 @@
         </div>
 
         <!-- Operating Hours -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">{{ __('Operating Hours') }}</h2>
+        <div class="bg-seondary dark:bg-secondary-accent rounded-2xl shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('Operating Hours') }}</h2>
             <div class="grid md:grid-cols-2 gap-6">
                 <div class="border-l-4 border-blue-600 dark:border-blue-400 pl-4">
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{ __('Customer Service') }}</h3>
@@ -68,8 +68,8 @@
         </div>
 
         <!-- Legal & Compliance -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">{{ __('Legal & Compliance') }}</h2>
+        <div class="bg-seondary dark:bg-secondary-accent rounded-2xl shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('Legal & Compliance') }}</h2>
             <div class="space-y-4">
                 <div class="flex items-start">
                     <svg class="h-6 w-6 text-blue-600 dark:text-blue-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +119,7 @@
         </div>
 
         <!-- Quick Links -->
-        <div class="text-center">
+        {{-- <div class="text-center">
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('More Information') }}</h2>
             <div class="flex flex-wrap justify-center gap-4">
                 <a href="{{ route('about.terms') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
@@ -141,6 +141,6 @@
                     {{ __('Contact Us') }}
                 </a>
             </div>
-        </div>
+        </div> --}}
     </div>
 </x-app-layout>
