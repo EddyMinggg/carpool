@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Database\Eloquent\SoftDeletes;
+// 移除 SoftDeletes 如果不需要軟刪除功能
+// use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable; // 移除 SoftDeletes
 
     /**
      * The primary key associated with the table.
@@ -30,7 +31,8 @@ class User extends Authenticatable
         'password',
         'phone',
         'phone_verified_at',
-        'user_role'
+        'user_role',
+        'active'
     ];
 
     /**
@@ -51,6 +53,7 @@ class User extends Authenticatable
     protected $casts = [
         'phone_verified_at' => 'datetime',
         'password' => 'hashed',
+        'active' => 'boolean',
     ];
 
     // Role constants
@@ -139,4 +142,45 @@ class User extends Authenticatable
     {
         $this->notify(new \App\Notifications\FastVerifyEmail);
     }
+
+    /**
+     * Scope a query to only include active users.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('active', 1);
+    }
+
+    /**
+     * Scope a query to only include inactive users.
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('active', 0);
+    }
+
+    /**
+     * Check if user is active.
+     */
+    public function isActive()
+    {
+        return $this->active == 1;
+    }
+
+    /**
+     * Activate the user.
+     */
+    public function activate()
+    {
+        $this->update(['active' => 1]);
+    }
+
+    /**
+     * Deactivate the user.
+     */
+    public function deactivate()
+    {
+        $this->update(['active' => 0]);
+    }
+
 }

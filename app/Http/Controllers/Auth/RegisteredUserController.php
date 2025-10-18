@@ -91,7 +91,9 @@ class RegisteredUserController extends Controller
             );
         }
 
-        return redirect()->back();
+        return redirect()->back()->withInput()->withErrors([
+            'phone' => 'Failed to send OTP. Please check your phone number and try again.'
+        ]);
     }
 
     /**

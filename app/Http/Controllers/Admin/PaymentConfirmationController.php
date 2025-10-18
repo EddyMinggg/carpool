@@ -70,11 +70,23 @@ class PaymentConfirmationController extends Controller
      */
     public function show(Payment $payment)
     {
-        // Check if payment is already confirmed
+        // FIRST: Store where user came from in session (do this before any checks)
+        $previousUrl = url()->previous();
+        $cameFromGlobal = str_contains($previousUrl, route('admin.payment-confirmation.global'));
+        session(['came_from_global' => $cameFromGlobal]);
+
+        // THEN: Check if payment is already confirmed
         if ($payment->paid) {
+            if ($cameFromGlobal) {
+                session()->forget('came_from_global');
+                return redirect()
+                    ->route('admin.payment-confirmation.global');
+                    
+            }
+            
+            session()->forget('came_from_global');
             return redirect()
-                ->route('admin.payment-confirmation.index', $payment->trip)
-                ->with('error', 'Payment has already been confirmed.');
+                ->route('admin.payment-confirmation.index', $payment->trip);
         }
 
         // Load relationships
@@ -120,7 +132,11 @@ class PaymentConfirmationController extends Controller
 
             $trip->joins()->update(['payment_confirmed' => 1]);
 
-            $confirmedCount = 1;
+            // Determine the number of passengers confirmed
+            // For group bookings, use group_size; otherwise it's 1 person
+            $confirmedCount = ($payment->type === 'group_full_payment' && $payment->group_size > 1) 
+                ? $payment->group_size 
+                : 1;
 
             $otherUserPhone = $trip
                 ->joins()
@@ -161,9 +177,9 @@ class PaymentConfirmationController extends Controller
                 'user_phone' => $payment->user_phone,
                 'type' => $payment->type,
                 'amount' => $payment->amount,
-                'reference_code' => $request->reference_code,
+                'reference_code' => $referenceCode,
                 'confirmed_by' => Auth::id(),
-                'group_booking' => $payment->passengers > 1,
+                'group_booking' => $payment->type === 'group_full_payment' && $payment->group_size > 1,
                 'total_confirmed' => $confirmedCount,
             ]);
 
@@ -171,6 +187,16 @@ class PaymentConfirmationController extends Controller
                 ? 'Payment confirmed successfully.'
                 : "Group booking confirmed successfully ({$confirmedCount} passengers).";
 
+            // Check if user came from global page (use session instead of previous URL)
+            $cameFromGlobal = session('came_from_global', false);
+            session()->forget('came_from_global'); // Clear after use
+            
+            if ($cameFromGlobal) {
+                return redirect()
+                    ->route('admin.payment-confirmation.global')
+                    ->with('success', $message);
+            }
+            
             return redirect()
                 ->route('admin.payment-confirmation.index', $payment->trip)
                 ->with('success', $message);

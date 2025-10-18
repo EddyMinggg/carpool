@@ -1189,7 +1189,7 @@
                 </button>
 
                 <x-modal name="confirm-leave-trip" focusable>
-                    <form action="{{ route('trips.leave', $trip) }}">
+                    <form action="{{ route('trips.leave', $trip) }}" method="POST">
                         @csrf
                         <div class="p-8 items-start">
                             <h2 class="text-xl text-gray-900 dark:text-gray-300 font-black">

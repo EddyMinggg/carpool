@@ -107,15 +107,10 @@ class SmsTemplateService
                 "💬 如有疑問請聯繫客服";
         }
     }
-    public static function goldenTimeLeaveMessage(Trip $trip): string
+    public static function goldenTimeLeaveMessage(Trip $trip, string $leftUserPhone, ?string $leftUserName = null): string
     {
-        $leaveRecord = TripJoin::where('trip_id', $trip->id)
-            ->where('has_left', 1)
-            ->latest('updated_at')
-            ->first();
-
-        $leftUser = User::where('phone', $leaveRecord->user_phone)->first();
-        $leftUserDisplayName = $leftUser ? $leftUser->username : $leaveRecord->user_phone;
+        // Use provided user info instead of querying
+        $leftUserDisplayName = $leftUserName ?? $leftUserPhone;
 
         $allTripJoinsCount = TripJoin::where('trip_id', $trip->id)->whereNot('has_left', 1)->count();
 
@@ -132,15 +127,10 @@ class SmsTemplateService
     /**
      * Generate message for regular time trips (with discount structure)
      */
-    public static function regularTimeLeaveMessage(Trip $trip): string
+    public static function regularTimeLeaveMessage(Trip $trip, string $leftUserPhone, ?string $leftUserName = null): string
     {
-        $leaveRecord = TripJoin::where('trip_id', $trip->id)
-            ->where('has_left', 1)
-            ->latest('updated_at')
-            ->first();
-
-        $leftUser = User::where('phone', $leaveRecord->user_phone)->first();
-        $leftUserDisplayName = $leftUser ? $leftUser->username : $leaveRecord->user_phone;
+        // Use provided user info instead of querying
+        $leftUserDisplayName = $leftUserName ?? $leftUserPhone;
 
         $allTripJoinsCount = TripJoin::where('trip_id', $trip->id)->whereNot('has_left', 1)->count();
 

@@ -32,10 +32,10 @@ class DriverController extends Controller
 
         // 計算統計資訊
         $statistics = [
-            'total_drivers' => $query->count(),
-            'active_drivers' => $query->whereNotNull('phone_verified_at')->count(),
-            'new_this_month' => $query->where('created_at', '>=', now()->startOfMonth())->count(),
-            'verified_drivers' => $query->whereNotNull('phone_verified_at')->count(),
+            'total_drivers' => (clone $query)->count(),
+            'active_drivers' => (clone $query)->active()->count(),
+            'inactive_drivers' => (clone $query)->inactive()->count(),
+            'new_this_month' => (clone $query)->whereMonth('created_at', date('m'))->whereYear('created_at', date('Y'))->count(),
         ];
 
         return view('admin.drivers.index', compact('drivers', 'isMobile', 'statistics'));
@@ -144,5 +144,31 @@ class DriverController extends Controller
 
         return redirect()->route('admin.drivers.index')
             ->with('success', 'Driver deleted successfully.');
+    }
+
+    // 啟用司機
+    public function activate(User $driver)
+    {
+        $driver->activate();
+        
+        return redirect()->route('admin.drivers.index')
+            ->with('success', 'Driver activated successfully.');
+    }
+
+    // 停用司機
+    public function deactivate(User $driver)
+    {
+        $currentUser = Auth::user();
+
+        // 防止停用自己
+        if ($currentUser->id === $driver->id) {
+            return redirect()->route('admin.drivers.index')
+                ->with('error', 'You cannot deactivate yourself.');
+        }
+
+        $driver->deactivate();
+        
+        return redirect()->route('admin.drivers.index')
+            ->with('success', 'Driver deactivated successfully.');
     }
 }

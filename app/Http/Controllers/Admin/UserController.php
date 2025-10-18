@@ -21,6 +21,12 @@ class UserController extends Controller
         // 構建基礎查詢 - User Management 只顯示普通用戶
         $query = User::where('user_role', 'user');
 
+        // 計算統計數據
+        $totalUsers = $query->count();
+        $activeUsers = (clone $query)->active()->count();
+        $inactiveUsers = (clone $query)->inactive()->count();
+        $newUsersThisMonth = (clone $query)->whereMonth('created_at', date('m'))->whereYear('created_at', date('Y'))->count();
+
         // 移動版使用分頁，桌面版獲取所有數據供 DataTable 使用
         if ($isMobile) {
             $users = $query->orderBy('created_at', 'desc')->paginate(10);
@@ -28,7 +34,7 @@ class UserController extends Controller
             $users = $query->get();
         }
 
-        return view('admin.users.index', compact('users', 'isMobile'));
+        return view('admin.users.index', compact('users', 'isMobile', 'totalUsers', 'activeUsers', 'inactiveUsers', 'newUsersThisMonth'));
     }
 
     // 用戶詳情
@@ -95,8 +101,36 @@ class UserController extends Controller
                 ->with('error', 'You cannot delete yourself.');
         }
 
-        $user->delete();
+        // 使用 forceDelete() 永久刪除記錄（不是軟刪除）
+        $user->forceDelete();
         return redirect()->route('admin.users.index')
-            ->with('success', 'User deleted successfully.');
+            ->with('success', 'User permanently deleted successfully.');
+    }
+
+    // 啟用用戶
+    public function activate(User $user)
+    {
+        $user->activate();
+        
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User activated successfully.');
+    }
+
+    // 停用用戶
+    public function deactivate(User $user)
+    {
+        $currentUser = Auth::user();
+
+        // 防止停用自己
+        if ($currentUser->id === $user->id) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'You cannot deactivate yourself.');
+        }
+
+        $user->deactivate();
+        
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User deactivated successfully.');
     }
 }
+

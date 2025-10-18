@@ -181,8 +181,6 @@ class TripController extends Controller
      */
     public function update(Request $request, Trip $trip)
     {
-        dd('$bruh');
-
         $validated = $request->validate([
             'creator_id' => 'required|exists:users,id',
             'dropoff_location' => 'required|string|max:255',
@@ -206,11 +204,17 @@ class TripController extends Controller
      */
     public function destroy(Trip $trip)
     {
-        // 删除相关的 trip_joins 记录
-        $trip->joins()->delete();
+        // 檢查是否有人已經預訂
+        $joinsCount = $trip->joins()->count();
+        
+        if ($joinsCount > 0) {
+            return redirect()->route('admin.trips.index')
+                ->with('error', "Cannot delete this trip. There are {$joinsCount} booking(s) for this trip. Please cancel all bookings first.");
+        }
 
-        // 删除 trip 记录
-        $trip->delete();
+        // 沒有預訂，可以刪除
+        // 使用 forceDelete() 來永久刪除記錄
+        $trip->forceDelete();
 
         return redirect()->route('admin.trips.index')->with('success', 'Trip deleted successfully!');
     }

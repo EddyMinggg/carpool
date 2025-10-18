@@ -63,10 +63,19 @@ class TripController extends Controller
 
         $madePayment = null;
 
+        // Always use individual user_fee from TripJoin, not payment amount
+        // This ensures we show per-person fee even for group bookings
         $price = null;
+        if ($tripJoin) {
+            $price = $tripJoin->user_fee;
+        }
+        
         if ($payment) {
             $madePayment = $payment->paid;
-            $price = $payment->amount;
+            // Only use payment amount if no TripJoin record exists
+            if ($price === null) {
+                $price = $payment->amount;
+            }
         }
 
         // 只有當付款未完成且用戶未離開且行程仍在進行中時才跳轉到付款頁面
@@ -342,39 +351,54 @@ class TripController extends Controller
     public function leave(Trip $trip)
     {
         $user = Auth::user();
+        
+        // Check if user is authenticated
+        if (!$user) {
+            return redirect()->route('login')->with('error', __('Please login to continue.'));
+        }
 
-        $trip
+        // Get user phone
+        $userPhone = $user->phone;
+        
+        if (!$userPhone) {
+            return redirect()->back()->with('error', __('Unable to identify user phone number.'));
+        }
+
+        // Find the trip join record
+        $tripJoin = $trip
             ->joins()
-            ->where('user_phone', $user->phone)
-            ->first()
-            ->update(['has_left' => 1]);
+            ->where('user_phone', $userPhone)
+            ->first();
 
+        // Check if user is actually a member of this trip
+        if (!$tripJoin) {
+            return redirect()->back()->with('error', __('You are not a member of this trip.'));
+        }
+
+        // Check if already left
+        if ($tripJoin->has_left) {
+            return redirect()->back()->with('error', __('You have already left this trip.'));
+        }
+
+        // Update the has_left status
+        $tripJoin->update(['has_left' => 1]);
+
+        // Get user display name for notification
+        $leftUserName = $user->username ?? null;
+
+        // Notify other members
         $otherUserPhone = $trip
             ->joins()
-            ->whereNot('user_phone', Auth::user()->phone)
+            ->whereNot('user_phone', $userPhone)
+            ->whereNot('has_left', 1) // Only notify active members
             ->pluck('user_phone');
 
         foreach ($otherUserPhone as $phone) {
             Notification::route('Sms', $phone)
-                ->notify(new TripMemberLeaveNotification($trip));
+                ->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));
         }
 
-        // if (!$deleted) {
-        //     return redirect()->back()->with('error', __('You are not a member of this trip.'));
-        // }
-
-        // // 重新計算剩餘成員的費用
-        // $remainingPeople = $trip->joins()->count();
-        // if ($remainingPeople > 0) {
-        //     $totalCost = $trip->base_price;
-        //     $updatedUserFee = $totalCost / $remainingPeople;
-
-        //     DB::table('trip_joins')
-        //         ->where('trip_id', $trip->id)
-        //         ->update(['user_fee' => round($updatedUserFee, 2)]);
-        // }
-
-        return redirect()->back()->with('success', __('Successfully left the trip.'));
+        return redirect()->route('trips')->with('success', __('Successfully left the trip.'));
     }
 
     /**

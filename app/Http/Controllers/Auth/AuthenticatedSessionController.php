@@ -32,6 +32,17 @@ class AuthenticatedSessionController extends Controller
         // Redirect based on user role
         $user = Auth::user();
 
+        // Check if user is active
+        if (!$user->isActive()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            return back()->withErrors([
+                'email' => 'Your account has been deactivated. Please contact administrator for assistance.',
+            ])->onlyInput('email');
+        }
+
         session()->put('guest_mode', false);
         session()->save();
 
