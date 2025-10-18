@@ -1,9 +1,9 @@
 <x-app-layout>
     @section('Title', __('Terms of Service'))
     
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12">
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">{{ __('Terms of Service') }}</h1>
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+        <div class="bg-secondary dark:bg-secondary-accent rounded-2xl shadow-xl p-8 md:p-12">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">{{ __('Terms of Service') }}</h1>
             <p class="text-gray-600 dark:text-gray-400 mb-8">{{ __('Last updated: October 2025') }}</p>
 
             <div class="prose prose-lg max-w-none dark:text-gray-300">
@@ -12,7 +12,7 @@
                 </p>
 
                 <!-- Acknowledgment -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Acknowledgment') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Acknowledgment') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('These are the Terms of Service governing the use of this Service and the agreement that operates between You and the Company. These Terms of Service set out the rights and obligations of all users regarding the use of the Service.') }}
                 </p>
@@ -30,7 +30,7 @@
                 </p>
 
                 <!-- User Accounts -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('User Accounts') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('User Accounts') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('When You create an account with Us, You must provide Us information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of Your account on Our Service.') }}
                 </p>
@@ -45,7 +45,7 @@
                 </p>
 
                 <!-- Content -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Content') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Content') }}</h2>
                 
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-3">{{ __('Your Right to Post Content') }}</h3>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
@@ -94,7 +94,7 @@
                 </p>
 
                 <!-- Copyright Policy -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Copyright Policy') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Copyright Policy') }}</h2>
                 
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-3">{{ __('Intellectual Property Infringement') }}</h3>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
@@ -124,7 +124,7 @@
                 </p>
 
                 <!-- Intellectual Property -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Intellectual Property') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Intellectual Property') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('The Service and its original content (excluding Content provided by You or other users), features and functionality are and will remain the exclusive property of the Company and its licensors.') }}
                 </p>
@@ -133,13 +133,13 @@
                 </p>
 
                 <!-- Your Feedback to Us -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Your Feedback to Us') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Your Feedback to Us') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-6">
                     {{ __('You assign all rights, title and interest in any Feedback You provide the Company. If for any reason such assignment is ineffective, You agree to grant the Company a non-exclusive, perpetual, irrevocable, royalty free, worldwide right and license to use, reproduce, disclose, sub-license, distribute, modify and exploit such Feedback without restriction.') }}
                 </p>
 
                 <!-- Links to Other Websites -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Links to Other Websites') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Links to Other Websites') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('Our Service may contain links to third-party web sites or services that are not owned or controlled by the Company.') }}
                 </p>
@@ -151,7 +151,7 @@
                 </p>
 
                 <!-- Termination -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Termination') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Termination') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('We may terminate or suspend Your Account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if You breach these Terms of Service.') }}
                 </p>
@@ -160,7 +160,7 @@
                 </p>
 
                 <!-- Limitation of Liability -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Limitation of Liability') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Limitation of Liability') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('Notwithstanding any damages that You might incur, the entire liability of the Company and any of its suppliers under any provision of this Terms and Your exclusive remedy for all of the foregoing shall be limited to the amount actually paid by You through the Service or 100 USD if You haven\'t purchased anything through the Service.') }}
                 </p>
@@ -172,7 +172,7 @@
                 </p>
 
                 <!-- "AS IS" and "AS AVAILABLE" Disclaimer -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('"AS IS" and "AS AVAILABLE" Disclaimer') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('"AS IS" and "AS AVAILABLE" Disclaimer') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('The Service is provided to You "AS IS" and "AS AVAILABLE" and with all faults and defects without warranty of any kind. To the maximum extent permitted under applicable law, the Company, on its own behalf and on behalf of its Affiliates and its and their respective licensors and service providers, expressly disclaims all warranties, whether express, implied, statutory or otherwise, with respect to the Service, including all implied warranties of merchantability, fitness for a particular purpose, title and non-infringement, and warranties that may arise out of course of dealing, course of performance, usage or trade practice. Without limitation to the foregoing, the Company provides no warranty or undertaking, and makes no representation of any kind that the Service will meet Your requirements, achieve any intended results, be compatible or work with any other software, applications, systems or services, operate without interruption, meet any performance or reliability standards or be error free or that any errors or defects can or will be corrected.') }}
                 </p>
@@ -184,19 +184,19 @@
                 </p>
 
                 <!-- Governing Law -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Governing Law') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Governing Law') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-6">
                     {{ __('The laws of Hong Kong SAR, excluding its conflicts of law rules, shall govern this Terms and Your use of the Service. Your use of the Application may also be subject to other local, state, national, or international laws.') }}
                 </p>
 
                 <!-- Disputes Resolution -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Disputes Resolution') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Disputes Resolution') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-6">
                     {{ __('If You have any concern or dispute about the Service, You agree to first try to resolve the dispute informally by contacting the Company.') }}
                 </p>
 
                 <!-- Severability and Waiver -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Severability and Waiver') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Severability and Waiver') }}</h2>
                 
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-3">{{ __('Severability') }}</h3>
                 <p class="text-gray-700 dark:text-gray-300 mb-6">
@@ -209,7 +209,7 @@
                 </p>
 
                 <!-- Changes to These Terms of Service -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Changes to These Terms of Service') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Changes to These Terms of Service') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('We reserve the right, at Our sole discretion, to modify or replace these Terms at any time. If a revision is material We will make reasonable efforts to provide at least 30 days\' notice prior to any new terms taking effect. What constitutes a material change will be determined at Our sole discretion.') }}
                 </p>
@@ -218,7 +218,7 @@
                 </p>
 
                 <!-- Contact Us -->
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Contact Us') }}</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{{ __('Contact Us') }}</h2>
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
                     {{ __('If you have any questions about these Terms of Service, You can contact us:') }}
                 </p>
@@ -229,7 +229,7 @@
             </div>
 
             <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-                <a href="{{ route('about.index') }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold">
+                <a href="{{ route('about.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold">
                     ← {{ __('Back to About Us') }}
                 </a>
             </div>

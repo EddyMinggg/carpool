@@ -1,8 +1,8 @@
 <!-- Footer -->
-<footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
-    <div class="max-w-7xl mx-auto px-4 py-8">
+<footer class="bg-secondary dark:bg-secondary-accent">
+    <div class="max-w-7xl mx-auto p-8">
         <!-- Desktop Footer -->
-        <div class="hidden md:grid grid-cols-1 md:grid-cols-3 gap-12">
+        {{-- <div class="hidden md:grid grid-cols-1 md:grid-cols-3 gap-12">
             <!-- Company Info -->
             <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -90,10 +90,10 @@
                     </li>
                 </ul>
             </div>
-        </div>
+        </div> --}}
 
         <!-- Mobile Footer -->
-        <div class="md:hidden space-y-6">
+        <div class="space-y-6">
             <!-- About Links -->
             <div>
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-3">
@@ -130,14 +130,14 @@
                         <span>danielwu@snowpins.com</span>
                     </a>
                     <a href="https://wa.me/85298588879" target="_blank" class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400">
-                        <i class="fab fa-whatsapp text-green-600"></i>
+                        <i class="fab fa-whatsapp text-base text-green-600"></i>
                         <span>WhatsApp</span>
                     </a>
                 </div>
             </div>
 
             <!-- Copyright -->
-            <div class="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="text-center pt-4 border-t border-neutral-200 dark:border-neutral-600">
                 <p class="text-xs text-gray-500 dark:text-gray-500">
                     © {{ date('Y') }} {{ config('app.name') }}<br>
                     {{ __('All rights reserved.') }}
