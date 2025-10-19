@@ -237,8 +237,45 @@
             </div>
         </div>
 
-        <!-- 司機資訊區域 - 只在用戶已加入行程後顯示 -->
-        @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $assignedDriver)
+        <!-- Cancelled Trip 退款提示 - 只在行程被取消且用戶已加入時顯示 -->
+        @if ($trip->trip_status === 'cancelled' && ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)))
+            <div
+                class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 shadow-md mt-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+                            {{ __('Trip Cancelled') }}
+                        </h3>
+                        <div class="text-sm text-red-800 dark:text-red-200 space-y-2">
+                            <p>
+                                {{ __('This trip has been cancelled by the system or administrator.') }}
+                            </p>
+                            <p class="font-medium">
+                                {{ __('Refund Process:') }}
+                            </p>
+                            <ul class="list-disc list-inside space-y-1 ml-2">
+                                <li>{{ __('Admin will process offline refunds within 48 hours') }}</li>
+                                <li>{{ __('Refund will be returned to your original payment method') }}</li>
+                                <li>{{ __('You will receive a notification once the refund is completed') }}</li>
+                            </ul>
+                            <p class="mt-3 text-xs text-red-700 dark:text-red-300">
+                                {{ __('For any questions, please contact our customer service.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- 司機資訊區域 - 只在用戶已加入行程後顯示（排除已取消的行程） -->
+        @if ($trip->trip_status !== 'cancelled' && ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $assignedDriver)
             <div
                 class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <div class="flex items-center justify-between mb-6">
@@ -361,7 +398,7 @@
                     </div>
                 </div>
             </div>
-        @elseif ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed))
+        @elseif ($trip->trip_status !== 'cancelled' && ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)))
             <div
                 class="bg-yellow-50 dark:bg-yellow-900/50 rounded-xl p-6 shadow-md border border-yellow-200 dark:border-yellow-800 mt-4">
                 <div class="flex items-center gap-3">
@@ -384,12 +421,12 @@
             </div>
         @endif
 
-        <!-- 成員列表 - 只显示未离开的成员 -->
-        @if ($trip->activeJoins->isNotEmpty())
+        <!-- 成員列表 - 只显示有效的成員（已確認付款 + 30分鐘內未付款） -->
+        @if (isset($validMembers) && $validMembers->isNotEmpty())
             <div
                 class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{{ __('Members') }}</h3>
-                @foreach ($trip->activeJoins as $join)
+                @foreach ($validMembers as $join)
                     <div
                         class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
                         <div class="flex items-center gap-3">
@@ -415,6 +452,11 @@
                                 </div>
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
                                     {{ __('Joined') }} {{ $join->created_at->diffForHumans() }}
+                                    @if (!$join->payment_confirmed)
+                                        <span class="text-amber-600 dark:text-amber-400 ml-1">
+                                            ({{ __('Pending Payment') }})
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -1179,8 +1221,8 @@
             </div>
         @endif
 
-        <!-- 離開拼車功能 - 只對已加入的用戶顯示 -->
-        @if ($hasJoined && !$hasLeft)
+        <!-- 離開拼車功能 - 只對已加入且未取消的行程用戶顯示 -->
+        @if ($trip->trip_status !== 'cancelled' && $hasJoined && !$hasLeft)
             <div class="mt-6">
                 <button
                     class="w-full bg-red-600 hover:bg-red-500 dark:bg-red-700 dark:hover:bg-red-600 text-gray-100 dark:text-gray-200 py-4 rounded-xl font-semibold transition shadow-md"

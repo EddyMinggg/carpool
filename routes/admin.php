@@ -15,6 +15,11 @@ require __DIR__ . '/auth.php';
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::resource('trips', TripController::class)->parameters(['trips' => 'trip:id']);
+    
+    // Trip pending review routes (for 2-passenger trips)
+    Route::get('trips/pending/review', [TripController::class, 'pendingReview'])->name('trips.pending-review');
+    Route::post('trips/{trip}/confirm-surcharge', [TripController::class, 'confirmWithSurcharge'])->name('trips.confirm-surcharge');
+    
     Route::resource('users', UserController::class)->parameters(['users' => 'user:id']);
     
     // User activation/deactivation routes

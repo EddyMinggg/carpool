@@ -120,10 +120,10 @@ class PaymentController extends Controller
         $passengers = $request->input('passengers');
         $peopleCount = count($passengers);
         
-        // 檢查行程是否有足夠空位
-        $currentPeople = $trip->joins()->count();
-        if (($currentPeople + $peopleCount) > $trip->max_people) {
-            return redirect()->back()->with('error', __('Not enough spaces available for this group booking.'));
+        // 檢查行程是否有足夠空位（使用新的方法，考慮30分鐘超時）
+        $availableSlots = $trip->getAvailableSlots();
+        if ($peopleCount > $availableSlots) {
+            return redirect()->back()->with('error', __('Not enough spaces available for this group booking. Only :slots slot(s) available.', ['slots' => $availableSlots]));
         }
         
         // 檢查行程狀態和預訂截止時間
@@ -152,10 +152,9 @@ class PaymentController extends Controller
             }
             $phoneNumbers[] = $fullPhone;
             
-            // 檢查此手機號碼是否已加入行程
-            $existingJoin = $trip->joins()->where('user_phone', $fullPhone)->first();
-            if ($existingJoin) {
-                return redirect()->back()->with('error', __('Phone number :phone has already joined this trip.', ['phone' => $fullPhone]));
+            // 檢查此手機號碼是否已加入行程（使用新的邏輯）
+            if (!TripJoin::canUserRebook($fullPhone, $trip->id)) {
+                return redirect()->back()->with('error', __('Phone number :phone has already joined this trip or has a pending booking.', ['phone' => $fullPhone]));
             }
         }
         
@@ -218,14 +217,14 @@ class PaymentController extends Controller
         $passenger = $passengers[0]; // 單人預訂只有一個乘客
         $userPhone = $passenger['phone_country_code'] . $passenger['phone'];
         
-        // 檢查用戶是否已經加入
-        $existingJoin = $trip->joins()->where('user_phone', $userPhone)->first();
-        if ($existingJoin) {
-            return redirect()->back()->with('error', __('You have already joined this trip.'));
+        // 檢查用戶是否可以預訂（使用新的邏輯）
+        if (!TripJoin::canUserRebook($userPhone, $trip->id)) {
+            return redirect()->back()->with('error', __('You have already joined this trip or have a pending booking. Please complete your payment or wait for the booking to expire (30 minutes).'));
         }
 
-        // 檢查行程是否已滿
-        if ($trip->joins()->count() >= $trip->max_people) {
+        // 檢查行程是否已滿（使用新的方法）
+        $availableSlots = $trip->getAvailableSlots();
+        if ($availableSlots <= 0) {
             return redirect()->back()->with('error', __('This trip is full.'));
         }
 

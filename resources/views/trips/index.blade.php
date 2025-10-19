@@ -97,7 +97,12 @@
                     <!-- 頂部狀態指示器 -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
-                            @if ($isUpcoming)
+                            @if ($trip->trip_status === 'cancelled')
+                                <span
+                                    class="px-3 py-1 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-xs font-semibold rounded-full">
+                                    {{ __('Cancelled') }}
+                                </span>
+                            @elseif ($isUpcoming)
                                 <span
                                     class="px-3 py-1 bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200 text-xs font-semibold rounded-full">
                                     {{ __('Upcoming') }}

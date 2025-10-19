@@ -74,6 +74,39 @@ class Trip extends Model
         return $this->hasMany(TripJoin::class, 'trip_id', 'id')->where('has_left', 0);
     }
 
+    // Relationship: Confirmed joins (payment_confirmed = 1 and has_left = 0)
+    public function confirmedJoins()
+    {
+        return $this->hasMany(TripJoin::class, 'trip_id', 'id')
+            ->where('payment_confirmed', 1)
+            ->where('has_left', 0);
+    }
+
+    // Relationship: Valid pending joins (未付款但仍在30分鐘內的預訂)
+    public function validPendingJoins()
+    {
+        return $this->hasMany(TripJoin::class, 'trip_id', 'id')
+            ->where('payment_confirmed', 0)
+            ->where('has_left', 0)
+            ->where('created_at', '>=', now()->subMinutes(30));
+    }
+
+    // 計算有效的占位數量（包含已確認 + 30分鐘內未付款）
+    public function getValidOccupiedSlotsCount(): int
+    {
+        $confirmedCount = $this->confirmedJoins()->count();
+        $validPendingCount = $this->validPendingJoins()->count();
+        
+        return $confirmedCount + $validPendingCount;
+    }
+
+    // 計算可用槽位（考慮30分鐘超時邏輯）
+    public function getAvailableSlots(): int
+    {
+        $occupiedSlots = $this->getValidOccupiedSlotsCount();
+        return max(0, $this->max_people - $occupiedSlots);
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class, 'trip_id', 'id');

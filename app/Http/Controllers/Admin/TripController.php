@@ -275,11 +275,14 @@ class TripController extends Controller
             return redirect()->back()->with('error', 'You have already joined this trip.');
         }
 
-        $currentPeople = $trip->activeJoins()->count();
-        if ($currentPeople >= $trip->max_people) {
+        // 使用新的方法檢查可用槽位（考慮30分鐘超時）
+        $availableSlots = $trip->getAvailableSlots();
+        if ($availableSlots <= 0) {
             return redirect()->back()->with('error', 'This trip is already full.');
         }
 
+        // 計算有效人數用於定價
+        $currentPeople = $trip->getValidOccupiedSlotsCount();
         $totalCost = $trip->base_price;
         $userFee = $totalCost / ($currentPeople + 1);
 
@@ -336,6 +339,86 @@ class TripController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Trip has departed successfully!');
+    }
+
+    /**
+     * Show trips that need admin review (2 passengers for normal type)
+     */
+    public function pendingReview()
+    {
+        $now = Carbon::now();
+        
+        // Find normal trips with exactly 2 confirmed passengers that are past deadline
+        $pendingTrips = Trip::where('trip_status', Trip::STATUS_AWAITING)
+            ->where('type', Trip::TYPE_NORMAL)
+            ->with(['activeJoins.user', 'creator'])
+            ->get()
+            ->filter(function ($trip) use ($now) {
+                // Check if deadline passed (48 hours before departure)
+                $deadline = Carbon::parse($trip->planned_departure_time)->subHours(48);
+                if (!$now->greaterThanOrEqualTo($deadline)) {
+                    return false;
+                }
+                
+                // Check if exactly 2 confirmed passengers
+                $confirmedCount = $trip->activeJoins()
+                    ->where('payment_confirmed', 1)
+                    ->count();
+                
+                return $confirmedCount === 2;
+            });
+
+        return view('admin.trips.pending-review', compact('pendingTrips'));
+    }
+
+    /**
+     * Confirm trip with surcharge for 2-passenger trips
+     */
+    public function confirmWithSurcharge(Trip $trip, Request $request)
+    {
+        $request->validate([
+            'surcharge_amount' => 'required|numeric|min:0',
+            'action' => 'required|in:confirm,cancel'
+        ]);
+
+        if ($trip->type !== Trip::TYPE_NORMAL) {
+            return redirect()->back()->with('error', 'Only normal trips can use this function.');
+        }
+
+        $confirmedCount = $trip->activeJoins()
+            ->where('payment_confirmed', 1)
+            ->count();
+
+        if ($confirmedCount !== 2) {
+            return redirect()->back()->with('error', 'This trip does not have exactly 2 passengers.');
+        }
+
+        if ($request->action === 'cancel') {
+            // Admin decided to cancel the trip
+            $trip->update(['trip_status' => Trip::STATUS_CANCELLED]);
+            
+            return redirect()->back()->with('success', 'Trip has been cancelled.');
+        }
+
+        // Admin confirmed the trip with surcharge
+        // Update price for all active joins
+        $surchargePerPerson = $request->surcharge_amount;
+        
+        foreach ($trip->activeJoins()->where('payment_confirmed', 1)->get() as $join) {
+            $newFee = $join->user_fee + $surchargePerPerson;
+            $join->update(['user_fee' => $newFee]);
+        }
+
+        // Update trip status to departed if departure time reached, otherwise keep awaiting
+        if (Carbon::now()->greaterThanOrEqualTo($trip->planned_departure_time)) {
+            $trip->update(['trip_status' => Trip::STATUS_DEPARTED]);
+            $message = "Trip confirmed with surcharge of \${$surchargePerPerson} per person and marked as departed.";
+        } else {
+            // Keep as awaiting but add a note that admin approved
+            $message = "Trip confirmed with surcharge of \${$surchargePerPerson} per person. Will depart as scheduled.";
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     private function updateAllUserFees(Trip $trip)
