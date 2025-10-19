@@ -20,7 +20,7 @@ Route::get('/', [TripController::class, 'dashboard'])->name('dashboard');
 
 Route::prefix('trips')->middleware(['auth', 'verified', 'prevent.driver.trips'])->group(function () {
     Route::get('/', [TripController::class, 'index'])->name('trips');
-    Route::get('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
+    Route::post('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
 });
 
 Route::prefix('trips')->get('/{id}', [TripController::class, 'show'])->name('trips.show');
@@ -37,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/deactivate', [ProfileController::class, 'deactivate'])->name('profile.deactivate');
 
 
     // Driver routes - will be accessible later via direct login

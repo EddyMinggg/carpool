@@ -22,7 +22,8 @@ class TripJoin extends Model
         'reference_code',
         'payment_confirmed',
         'payment_confirmed_at',
-        'confirmed_by'
+        'confirmed_by',
+        'has_left'
     ];
 
     protected $casts = [

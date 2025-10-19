@@ -446,6 +446,11 @@
     "By visiting the Contact page on our website": "通过访问我们网站上的联络我们页面",
     "By sending us an email: danielwu@snowpins.com": "通过向我们发送电子邮件：danielwu@snowpins.com",
     "Please read these terms and conditions carefully before using Our Service.": "请在使用我们的服务之前仔细阅读这些条款和条件。",
+    "You have left this trip": "您已离开此行程",
+    "You cannot book this trip again as you have already left or were removed from it. Please contact support if you need assistance.": "由于您已离开或被移除此行程，因此无法再次预订。如需协助，请联络客服。",
+    "Invalid invitation code. Please check and try again.": "无效的邀请码。请检查后重试。",
+    "This phone number is not registered for this trip. Please check the phone number or use the correct invitation code.": "此电话号码未注册此行程。请检查电话号码或使用正确的邀请码。",
+    "Registration completed! Your phone number was already verified.": "注册完成！您的电话号码已经验证过。",
     "Verify Your Phone Number": "验证您的电话号码",
     "We sent a 6-digit verification code to": "已发送6位验证码至：",
     "Resend": "重新发送",
@@ -520,4 +525,5 @@
     "Trip History": "行程记录",
     "Resend in": "秒后重新发送"
 }
+
 

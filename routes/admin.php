@@ -16,7 +16,17 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::resource('trips', TripController::class)->parameters(['trips' => 'trip:id']);
     Route::resource('users', UserController::class)->parameters(['users' => 'user:id']);
+    
+    // User activation/deactivation routes
+    Route::post('users/{user}/activate', [UserController::class, 'activate'])->name('users.activate');
+    Route::post('users/{user}/deactivate', [UserController::class, 'deactivate'])->name('users.deactivate');
+    
     Route::resource('drivers', DriverController::class)->parameters(['drivers' => 'driver:id']);
+    
+    // Driver activation/deactivation routes
+    Route::post('drivers/{driver}/activate', [DriverController::class, 'activate'])->name('drivers.activate');
+    Route::post('drivers/{driver}/deactivate', [DriverController::class, 'deactivate'])->name('drivers.deactivate');
+    
     Route::resource('coupons', CouponController::class)->parameters(['coupons' => 'coupon:id']);
     Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show']);
 

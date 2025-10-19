@@ -37,7 +37,7 @@
             /* 移動版統計卡片樣式 */
             .mobile-stats-grid {
                 display: grid !important;
-                grid-template-columns: 1fr 1fr 1fr !important;
+                grid-template-columns: 1fr 1fr !important;
                 gap: 12px !important;
                 width: 100% !important;
                 max-width: 100% !important;
@@ -436,6 +436,16 @@
             color: white;
         }
 
+        .action-btn-green {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .action-btn-green:hover {
+            background-color: #059669;
+            color: white;
+        }
+
         /* 統計卡片樣式 */
         .stats-card-blue {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
@@ -516,6 +526,22 @@
                     </div>
                 </div>
             </div>
+
+            <div class="stats-card-purple" style="flex: 1; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p
+                            style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
+                            Inactive Drivers</p>
+                        <p style="font-size: 1.875rem; font-weight: bold;" id="inactive-drivers">
+                            {{ $statistics['inactive_drivers'] }}
+                        </p>
+                    </div>
+                    <div class="stats-icon-bg">
+                        <i class="fas fa-user-slash" style="font-size: 1.5rem;"></i>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="mb-6">
@@ -539,6 +565,7 @@
                             <th>Username</th>
                             <th>Email</th>
                             <th>Phone</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -549,6 +576,17 @@
                                 <td>{{ $driver->username }}</td>
                                 <td>{{ $driver->email }}</td>
                                 <td>{{ $driver->phone ?: 'N/A' }}</td>
+                                <td>
+                                    @if ($driver->active)
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle"></i> Active
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            <i class="fas fa-times-circle"></i> Inactive
+                                        </span>
+                                    @endif
+                                </td>
                                 <td>
                                     <div class="flex space-x-1">
                                         <a href="{{ route('admin.drivers.show', $driver->id) }}"
@@ -561,18 +599,30 @@
                                             <i class="fas fa-edit"></i>
                                         </a>
 
-                                        @if (Auth::user()->id !== $driver->id && !(Auth::user()->user_role === 'admin' && $driver->user_role === 'super_admin'))
-                                            <button
-                                                onclick="showDeleteModal(document.getElementById('delete-form-{{ $driver->id }}'), '{{ $driver->username }}')"
-                                                class="action-btn action-btn-red" title="Delete Driver">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                            <form id="delete-form-{{ $driver->id }}"
-                                                action="{{ route('admin.drivers.destroy', $driver->id) }}" method="POST"
-                                                style="display: none;">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
+                                        @if (Auth::user()->id !== $driver->id)
+                                            @if ($driver->active)
+                                                <button
+                                                    onclick="showDeactivateModal(document.getElementById('deactivate-form-{{ $driver->id }}'), '{{ $driver->username }}')"
+                                                    class="action-btn action-btn-red" title="Deactivate Driver">
+                                                    <i class="fas fa-user-slash"></i>
+                                                </button>
+                                                <form id="deactivate-form-{{ $driver->id }}"
+                                                    action="{{ route('admin.drivers.deactivate', $driver->id) }}" method="POST"
+                                                    style="display: none;">
+                                                    @csrf
+                                                </form>
+                                            @else
+                                                <button
+                                                    onclick="showActivateModal(document.getElementById('activate-form-{{ $driver->id }}'), '{{ $driver->username }}')"
+                                                    class="action-btn action-btn-green" title="Activate Driver">
+                                                    <i class="fas fa-user-check"></i>
+                                                </button>
+                                                <form id="activate-form-{{ $driver->id }}"
+                                                    action="{{ route('admin.drivers.activate', $driver->id) }}" method="POST"
+                                                    style="display: none;">
+                                                    @csrf
+                                                </form>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>
@@ -624,6 +674,18 @@
                                     New</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-new-drivers">
                                     {{ $statistics['new_this_month'] }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Inactive Drivers -->
+                        <div class="mobile-stat-card" style="--gradient-start: #ef4444; --gradient-end: #dc2626;">
+                            <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                                <i class="fas fa-user-slash" style="font-size: 18px; margin-bottom: 8px;"></i>
+                                <p
+                                    style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
+                                    Inactive</p>
+                                <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-inactive-drivers">
+                                    {{ $statistics['inactive_drivers'] }}</p>
                             </div>
                         </div>
                     </div>
@@ -758,6 +820,96 @@
         </div>
     </div>
 
+    {{-- Deactivate Confirmation Modal --}}
+    <div id="deactivateModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div
+            style="background: white; border-radius: 8px; max-width: 400px; width: 90%; margin: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); max-height: 80vh; overflow-y: auto;">
+            <!-- Modal Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #ef4444;">
+                    <i class="fas fa-user-slash" style="margin-right: 8px;"></i>
+                    Confirm Deactivate
+                </h3>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 20px;">
+                <p style="margin: 0 0 16px 0; color: #374151; line-height: 1.5; font-size: 16px;">
+                    Are you sure you want to deactivate this driver? The driver will not be able to login until reactivated.
+                </p>
+                <div
+                    style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+                    <p style="margin: 0; font-size: 14px; color: #ef4444;">
+                        <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                        Driver: <strong id="driverToDeactivate"></strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+                style="padding: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; gap: 12px;">
+                <button onclick="closeDeactivateModal()"
+                    style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                    Cancel
+                </button>
+                <button onclick="confirmDeactivate()"
+                    style="padding: 12px 24px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                    <i class="fas fa-user-slash" style="margin-right: 6px;"></i>
+                    Deactivate Driver
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Activate Confirmation Modal --}}
+    <div id="activateModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div
+            style="background: white; border-radius: 8px; max-width: 400px; width: 90%; margin: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); max-height: 80vh; overflow-y: auto;">
+            <!-- Modal Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #10b981;">
+                    <i class="fas fa-user-check" style="margin-right: 8px;"></i>
+                    Confirm Activate
+                </h3>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 20px;">
+                <p style="margin: 0 0 16px 0; color: #374151; line-height: 1.5; font-size: 16px;">
+                    Are you sure you want to activate this driver? The driver will be able to login and access the system.
+                </p>
+                <div
+                    style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+                    <p style="margin: 0; font-size: 14px; color: #059669;">
+                        <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                        Driver: <strong id="driverToActivate"></strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+                style="padding: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; gap: 12px;">
+                <button onclick="closeActivateModal()"
+                    style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                    Cancel
+                </button>
+                <button onclick="confirmActivate()"
+                    style="padding: 12px 24px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                    <i class="fas fa-user-check" style="margin-right: 6px;"></i>
+                    Activate Driver
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- Mobile-specific modal styles --}}
     <style>
         @media (max-width: 640px) {
@@ -838,7 +990,7 @@
                             [0, 'asc']
                         ],
                         columnDefs: [{
-                            targets: [4], // Actions column
+                            targets: [5], // Actions column (now column 5 because we added Status)
                             orderable: false,
                             searchable: false
                         }],
@@ -1074,10 +1226,80 @@
             }
         }
 
+        // Deactivate Modal Functions
+        let deactivateForm = null;
+        let driverNameDeactivate = '';
+
+        function showDeactivateModal(form, name) {
+            deactivateForm = form;
+            driverNameDeactivate = name;
+            document.getElementById('driverToDeactivate').textContent = driverNameDeactivate;
+
+            const modal = document.getElementById('deactivateModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            return false;
+        }
+
+        function closeDeactivateModal() {
+            const modal = document.getElementById('deactivateModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+
+            deactivateForm = null;
+            driverNameDeactivate = '';
+        }
+
+        function confirmDeactivate() {
+            if (deactivateForm) {
+                deactivateForm.submit();
+            }
+        }
+
+        // Activate Modal Functions
+        let activateForm = null;
+        let driverNameActivate = '';
+
+        function showActivateModal(form, name) {
+            activateForm = form;
+            driverNameActivate = name;
+            document.getElementById('driverToActivate').textContent = driverNameActivate;
+
+            const modal = document.getElementById('activateModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            return false;
+        }
+
+        function closeActivateModal() {
+            const modal = document.getElementById('activateModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+
+            activateForm = null;
+            driverNameActivate = '';
+        }
+
+        function confirmActivate() {
+            if (activateForm) {
+                activateForm.submit();
+            }
+        }
+
         // Close modal with Escape key
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && document.getElementById('deleteModal').style.display === 'flex') {
-                closeDeleteModal();
+            if (event.key === 'Escape') {
+                if (document.getElementById('deleteModal').style.display === 'flex') {
+                    closeDeleteModal();
+                }
+                if (document.getElementById('deactivateModal').style.display === 'flex') {
+                    closeDeactivateModal();
+                }
+                if (document.getElementById('activateModal').style.display === 'flex') {
+                    closeActivateModal();
+                }
             }
         });
     </script>

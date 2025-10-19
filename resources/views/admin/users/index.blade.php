@@ -406,6 +406,16 @@
             color: white;
         }
 
+        .action-btn-green {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .action-btn-green:hover {
+            background-color: #059669;
+            color: white;
+        }
+
         /* 統計卡片樣式 */
         .stats-card-blue {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
@@ -449,7 +459,7 @@
                         <p
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             Total Users</p>
-                        <p style="font-size: 1.875rem; font-weight: bold;" id="total-users">{{ $users->count() }}</p>
+                        <p style="font-size: 1.875rem; font-weight: bold;" id="total-users">{{ $totalUsers }}</p>
                     </div>
                     <div class="stats-icon-bg">
                         <i class="fas fa-users" style="font-size: 1.5rem;"></i>
@@ -464,7 +474,7 @@
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             Active Users</p>
                         <p style="font-size: 1.875rem; font-weight: bold;" id="active-users">
-                            {{ $users->whereNotNull('phone_verified_at')->count() }}
+                            {{ $activeUsers }}
                         </p>
                     </div>
                     <div class="stats-icon-bg">
@@ -480,11 +490,27 @@
                             style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
                             New This Month</p>
                         <p style="font-size: 1.875rem; font-weight: bold;" id="new-users">
-                            {{ $users->where('created_at', '>=', now()->startOfMonth())->count() }}
+                            {{ $newUsersThisMonth }}
                         </p>
                     </div>
                     <div class="stats-icon-bg">
                         <i class="fas fa-user-plus" style="font-size: 1.5rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card-purple" style="flex: 1; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p
+                            style="color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">
+                            Inactive Users</p>
+                        <p style="font-size: 1.875rem; font-weight: bold;" id="inactive-users">
+                            {{ $inactiveUsers }}
+                        </p>
+                    </div>
+                    <div class="stats-icon-bg">
+                        <i class="fas fa-user-slash" style="font-size: 1.5rem;"></i>
                     </div>
                 </div>
             </div>
@@ -506,6 +532,7 @@
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Role</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -538,6 +565,17 @@
                                     </span>
                                 </td>
                                 <td>
+                                    @if ($user->active)
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle"></i> Active
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            <i class="fas fa-times-circle"></i> Inactive
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
                                     <div class="flex space-x-1">
                                         <a href="{{ route('admin.users.show', $user->id) }}"
                                             class="action-btn action-btn-blue" title="View User">
@@ -551,18 +589,30 @@
                                             </a>
                                         @endif
 
-                                        @if (Auth::user()->id !== $user->id && !(Auth::user()->user_role === 'admin' && $user->user_role === 'super_admin'))
-                                            <button
-                                                onclick="showDeleteModal(document.getElementById('delete-form-{{ $user->id }}'), '{{ $user->username }}')"
-                                                class="action-btn action-btn-red" title="Delete User">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                            <form id="delete-form-{{ $user->id }}"
-                                                action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
-                                                style="display: none;">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
+                                        @if (Auth::user()->id !== $user->id)
+                                            @if ($user->active)
+                                                <button
+                                                    onclick="showDeactivateModal(document.getElementById('deactivate-form-{{ $user->id }}'), '{{ $user->username }}')"
+                                                    class="action-btn action-btn-red" title="Deactivate User">
+                                                    <i class="fas fa-user-slash"></i>
+                                                </button>
+                                                <form id="deactivate-form-{{ $user->id }}"
+                                                    action="{{ route('admin.users.deactivate', $user->id) }}" method="POST"
+                                                    style="display: none;">
+                                                    @csrf
+                                                </form>
+                                            @else
+                                                <button
+                                                    onclick="showActivateModal(document.getElementById('activate-form-{{ $user->id }}'), '{{ $user->username }}')"
+                                                    class="action-btn action-btn-green" title="Activate User">
+                                                    <i class="fas fa-user-check"></i>
+                                                </button>
+                                                <form id="activate-form-{{ $user->id }}"
+                                                    action="{{ route('admin.users.activate', $user->id) }}" method="POST"
+                                                    style="display: none;">
+                                                    @csrf
+                                                </form>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>
@@ -589,7 +639,7 @@
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     Total</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-total-users">
-                                    {{ $users->count() }}</p>
+                                    {{ $totalUsers }}</p>
                             </div>
                         </div>
 
@@ -601,7 +651,7 @@
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     Active</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-active-users">
-                                    {{ $users->whereNotNull('phone_verified_at')->count() }}</p>
+                                    {{ $activeUsers }}</p>
                             </div>
                         </div>
 
@@ -613,7 +663,19 @@
                                     style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
                                     New</p>
                                 <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-new-users">
-                                    {{ $users->where('created_at', '>=', now()->startOfMonth())->count() }}</p>
+                                    {{ $newUsersThisMonth }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Inactive Users -->
+                        <div class="mobile-stat-card" style="--gradient-start: #ef4444; --gradient-end: #dc2626;">
+                            <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                                <i class="fas fa-user-slash" style="font-size: 18px; margin-bottom: 8px;"></i>
+                                <p
+                                    style="color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
+                                    Inactive</p>
+                                <p style="font-size: 20px; font-weight: bold; margin: 0;" id="mobile-inactive-users">
+                                    {{ $inactiveUsers }}</p>
                             </div>
                         </div>
                     </div>
@@ -644,6 +706,7 @@
                             <a href="{{ route('admin.users.show', $user->id) }}" class="mobile-user-card"
                                 data-role="{{ $userRoleText }}" data-username="{{ strtolower($user->username) }}"
                                 data-email="{{ strtolower($user->email) }}"
+                                data-active="{{ $user->active ? '1' : '0' }}"
                                 style="text-decoration: none; display: block; transition: all 0.2s ease;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <!-- 頭像 -->
@@ -668,9 +731,20 @@
                                             {{ $user->email }}</p>
                                         @if ($user->phone)
                                             <p
-                                                style="font-size: 12px; color: #9ca3af; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                style="font-size: 12px; color: #9ca3af; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                 {{ $user->phone }}</p>
                                         @endif
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            @if ($user->active)
+                                                <span style="font-size: 12px; color: #10b981; display: flex; align-items: center;">
+                                                    <i class="fas fa-check-circle" style="margin-right: 4px;"></i> Active
+                                                </span>
+                                            @else
+                                                <span style="font-size: 12px; color: #ef4444; display: flex; align-items: center;">
+                                                    <i class="fas fa-times-circle" style="margin-right: 4px;"></i> Inactive
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
 
                                     <!-- 箭頭圖標 -->
@@ -751,31 +825,131 @@
         </div>
     </div>
 
+    {{-- Deactivate Confirmation Modal --}}
+    <div id="deactivateModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div
+            style="background: white; border-radius: 8px; max-width: 400px; width: 90%; margin: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); max-height: 80vh; overflow-y: auto;">
+            <!-- Modal Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #ef4444;">
+                    <i class="fas fa-user-slash" style="margin-right: 8px;"></i>
+                    Confirm Deactivate
+                </h3>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 20px;">
+                <p style="margin: 0 0 16px 0; color: #374151; line-height: 1.5; font-size: 16px;">
+                    Are you sure you want to deactivate this user? The user will not be able to login until reactivated.
+                </p>
+                <div
+                    style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+                    <p style="margin: 0; font-size: 14px; color: #ef4444;">
+                        <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                        User: <strong id="userToDeactivate"></strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+                style="padding: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; gap: 12px;">
+                <button onclick="closeDeactivateModal()"
+                    style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                    Cancel
+                </button>
+                <button onclick="confirmDeactivate()"
+                    style="padding: 12px 24px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                    <i class="fas fa-user-slash" style="margin-right: 6px;"></i>
+                    Deactivate User
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Activate Confirmation Modal --}}
+    <div id="activateModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div
+            style="background: white; border-radius: 8px; max-width: 400px; width: 90%; margin: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); max-height: 80vh; overflow-y: auto;">
+            <!-- Modal Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #10b981;">
+                    <i class="fas fa-user-check" style="margin-right: 8px;"></i>
+                    Confirm Activate
+                </h3>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 20px;">
+                <p style="margin: 0 0 16px 0; color: #374151; line-height: 1.5; font-size: 16px;">
+                    Are you sure you want to activate this user? The user will be able to login and access the system.
+                </p>
+                <div
+                    style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+                    <p style="margin: 0; font-size: 14px; color: #059669;">
+                        <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                        User: <strong id="userToActivate"></strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+                style="padding: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; gap: 12px;">
+                <button onclick="closeActivateModal()"
+                    style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                    Cancel
+                </button>
+                <button onclick="confirmActivate()"
+                    style="padding: 12px 24px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                    <i class="fas fa-user-check" style="margin-right: 6px;"></i>
+                    Activate User
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- Mobile-specific modal styles --}}
     <style>
         @media (max-width: 640px) {
-            #deleteModal>div {
+            #deleteModal>div,
+            #deactivateModal>div,
+            #activateModal>div {
                 width: 95% !important;
                 margin: 10px !important;
                 max-height: 90vh !important;
             }
 
-            #deleteModal .modal-footer {
+            #deleteModal .modal-footer,
+            #deactivateModal .modal-footer,
+            #activateModal .modal-footer {
                 flex-direction: column !important;
             }
 
-            #deleteModal button {
+            #deleteModal button,
+            #deactivateModal button,
+            #activateModal button {
                 width: 100% !important;
                 min-height: 44px !important;
             }
         }
 
         /* Modal animation */
-        #deleteModal {
+        #deleteModal,
+        #deactivateModal,
+        #activateModal {
             animation: fadeIn 0.15s ease-out;
         }
 
-        #deleteModal>div {
+        #deleteModal>div,
+        #deactivateModal>div,
+        #activateModal>div {
             animation: slideUp 0.2s ease-out;
         }
 
@@ -1067,10 +1241,80 @@
             }
         }
 
+        // Deactivate Modal Functions
+        let deactivateForm = null;
+        let userNameDeactivate = '';
+
+        function showDeactivateModal(form, name) {
+            deactivateForm = form;
+            userNameDeactivate = name;
+            document.getElementById('userToDeactivate').textContent = userNameDeactivate;
+
+            const modal = document.getElementById('deactivateModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            return false;
+        }
+
+        function closeDeactivateModal() {
+            const modal = document.getElementById('deactivateModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+
+            deactivateForm = null;
+            userNameDeactivate = '';
+        }
+
+        function confirmDeactivate() {
+            if (deactivateForm) {
+                deactivateForm.submit();
+            }
+        }
+
+        // Activate Modal Functions
+        let activateForm = null;
+        let userNameActivate = '';
+
+        function showActivateModal(form, name) {
+            activateForm = form;
+            userNameActivate = name;
+            document.getElementById('userToActivate').textContent = userNameActivate;
+
+            const modal = document.getElementById('activateModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            return false;
+        }
+
+        function closeActivateModal() {
+            const modal = document.getElementById('activateModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+
+            activateForm = null;
+            userNameActivate = '';
+        }
+
+        function confirmActivate() {
+            if (activateForm) {
+                activateForm.submit();
+            }
+        }
+
         // Close modal with Escape key
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && document.getElementById('deleteModal').style.display === 'flex') {
-                closeDeleteModal();
+            if (event.key === 'Escape') {
+                if (document.getElementById('deleteModal').style.display === 'flex') {
+                    closeDeleteModal();
+                }
+                if (document.getElementById('deactivateModal').style.display === 'flex') {
+                    closeDeactivateModal();
+                }
+                if (document.getElementById('activateModal').style.display === 'flex') {
+                    closeActivateModal();
+                }
             }
         });
     </script>

@@ -18,8 +18,11 @@ class TripMemberLeaveNotification extends Notification implements ShouldQueue
     /**
      * Create a new notification instance.
      */
-    public function __construct(readonly private Trip $trip)
-    {
+    public function __construct(
+        readonly private Trip $trip,
+        readonly private string $leftUserPhone,
+        readonly private ?string $leftUserName = null
+    ) {
         //
     }
 
@@ -37,10 +40,10 @@ class TripMemberLeaveNotification extends Notification implements ShouldQueue
     {
         if ($this->trip->type == 'golden') {
             return (new SmsMessage())
-                ->content(SmsTemplateService::goldenTimeLeaveMessage($this->trip));
+                ->content(SmsTemplateService::goldenTimeLeaveMessage($this->trip, $this->leftUserPhone, $this->leftUserName));
         } else {
             return (new SmsMessage())
-                ->content(SmsTemplateService::regularTimeLeaveMessage($this->trip));
+                ->content(SmsTemplateService::regularTimeLeaveMessage($this->trip, $this->leftUserPhone, $this->leftUserName));
         }
     }
     // public function toWhatsApp(object $notifiable): WhatsAppMessage

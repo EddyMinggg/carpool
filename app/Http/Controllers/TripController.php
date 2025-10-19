@@ -64,10 +64,19 @@ class TripController extends Controller
 
         $madePayment = null;
 
+        // Always use individual user_fee from TripJoin, not payment amount
+        // This ensures we show per-person fee even for group bookings
         $price = null;
+        if ($tripJoin) {
+            $price = $tripJoin->user_fee;
+        }
+
         if ($payment) {
             $madePayment = $payment->paid;
-            $price = $payment->amount;
+            // Only use payment amount if no TripJoin record exists
+            if ($price === null) {
+                $price = $payment->amount;
+            }
         }
 
         // 只有當付款未完成且用戶未離開且行程仍在進行中時才跳轉到付款頁面
@@ -86,14 +95,14 @@ class TripController extends Controller
         $trip = Trip::with(['joins.user', 'creator'])->findOrFail($id);
 
         // 計算當前用戶是否已加入且payment已確認
-        $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
+        $userJoin = $trip->activeJoins->where('user_phone', $userPhone)->first();
         $hasJoined = $userJoin !== null && $userJoin->payment_confirmed;
 
         // 如果有payment記錄且已付款，但TripJoin記錄未確認，說明管理員還未處理
         $hasPaidButNotConfirmed = $payment && $payment->paid && $userJoin && !$userJoin->payment_confirmed;
 
-        // 計算價格（使用雙層定價系統）
-        $currentPeople = $trip->joins->count();
+        // 計算價格（使用雙層定價系統）- 只計算未離開的成員
+        $currentPeople = $trip->activeJoins->count();
 
         // Golden 或 Normal 類型：根據人數和類型計算價格
         $peopleCount = max(1, $currentPeople); // 至少1人
@@ -175,8 +184,8 @@ class TripController extends Controller
         // 確保使用香港時間
         $now = Carbon::now('Asia/Hong_Kong');
 
-        // 只顯示未來2週內且未過 departure time 的行程
-        $trips = Trip::with('joins')
+        // 只顯示未來2週內且未過 departure time 的行程 - 加载 activeJoins 以正确计算人数
+        $trips = Trip::with('activeJoins')
             ->where('planned_departure_time', '>', $now)
             ->where('planned_departure_time', '<=', $now->copy()->addWeeks(2))
             ->whereNot('trip_status', 'cancelled')
@@ -199,7 +208,7 @@ class TripController extends Controller
                 : Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
             $trip->date = $dt->format('Y-m-d');
             $trip->formatted_departure_time = $dt->format('H:i');
-            $trip->current_people = isset($trip->joins) ? $trip->joins->count() : 0;
+            $trip->current_people = isset($trip->activeJoins) ? $trip->activeJoins->count() : 0;
 
             // 使用新的定價系統計算每人費用
             if ($trip->type === 'fixed') {
@@ -342,44 +351,54 @@ class TripController extends Controller
     {
         $user = Auth::user();
 
-        $trip
-            ->joins()
-            ->where('user_phone', $user->phone)
-            ->first()
-            ->update(['has_left' => 1]);
+        // Check if user is authenticated
+        if (!$user) {
+            return redirect()->route('login')->with('error', __('Please login to continue.'));
+        }
 
+        // Get user phone
+        $userPhone = $user->phone;
+
+        if (!$userPhone) {
+            return redirect()->back()->with('error', __('Unable to identify user phone number.'));
+        }
+
+        // Find the trip join record
+        $tripJoin = $trip
+            ->joins()
+            ->where('user_phone', $userPhone)
+            ->first();
+
+        // Check if user is actually a member of this trip
+        if (!$tripJoin) {
+            return redirect()->back()->with('error', __('You are not a member of this trip.'));
+        }
+
+        // Check if already left
+        if ($tripJoin->has_left) {
+            return redirect()->back()->with('error', __('You have already left this trip.'));
+        }
+
+        // Update the has_left status
+        $tripJoin->update(['has_left' => 1]);
+
+        // Get user display name for notification
+        $leftUserName = $user->username ?? null;
+
+        // Notify other members
         $otherUserPhone = $trip
             ->joins()
-            ->whereNot('user_phone', Auth::user()->phone)
+            ->whereNot('user_phone', $userPhone)
+            ->whereNot('has_left', 1) // Only notify active members
             ->pluck('user_phone');
 
         // Get user message channel preference
         foreach ($otherUserPhone as $phone) {
-            $user = User::where('phone', $phone)->first();
-            if ($user) {
-                $user->notify(new TripMemberLeaveNotification($trip));
-            } else {
-                Notification::route('Sms', $phone)
-                    ->notify(new TripMemberLeaveNotification($trip));
-            }
+            Notification::route('Sms', $phone)
+                ->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));
         }
 
-        // if (!$deleted) {
-        //     return redirect()->back()->with('error', __('You are not a member of this trip.'));
-        // }
-
-        // // 重新計算剩餘成員的費用
-        // $remainingPeople = $trip->joins()->count();
-        // if ($remainingPeople > 0) {
-        //     $totalCost = $trip->base_price;
-        //     $updatedUserFee = $totalCost / $remainingPeople;
-
-        //     DB::table('trip_joins')
-        //         ->where('trip_id', $trip->id)
-        //         ->update(['user_fee' => round($updatedUserFee, 2)]);
-        // }
-
-        return redirect()->back()->with('success', __('Successfully left the trip.'));
+        return redirect()->route('trips')->with('success', __('Successfully left the trip.'));
     }
 
     /**

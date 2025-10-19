@@ -367,12 +367,12 @@
             </div>
         @endif
 
-        <!-- 成員列表 -->
-        @if ($trip->joins->isNotEmpty())
+        <!-- 成員列表 - 只显示未离开的成员 -->
+        @if ($trip->activeJoins->isNotEmpty())
             <div
                 class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
                 <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{{ __('Members') }}</h3>
-                @foreach ($trip->joins as $join)
+                @foreach ($trip->activeJoins as $join)
                     <div
                         class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
                         <div class="flex items-center gap-3">
@@ -890,8 +890,8 @@
                 </div>
             @endif
         @endif --}}
-        <!-- 預訂功能 -->
-        @if (!$hasJoined && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed) && $availableSlots > 0)
+        <!-- 預訂功能 - 只在用户未加入、未退出且有空位时显示 -->
+        @if (!$hasJoined && !$hasLeft && (!isset($hasPaidButNotConfirmed) || !$hasPaidButNotConfirmed) && $availableSlots > 0)
             <!-- 預訂功能（支援個人或多人預訂） -->
             <div
                 class="bg-secondary dark:bg-secondary-accent rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700 mt-4">
@@ -1180,7 +1180,7 @@
                 </button>
 
                 <x-modal name="confirm-leave-trip" focusable>
-                    <form action="{{ route('trips.leave', $trip) }}">
+                    <form action="{{ route('trips.leave', $trip) }}" method="POST">
                         @csrf
                         <div class="p-8 items-start">
                             <h2 class="text-xl text-gray-900 dark:text-gray-300 font-black">
@@ -1245,10 +1245,22 @@
 
         <!-- 已離開用戶的提示訊息 -->
         @if ($hasLeft)
-            <div class="mt-8 flex justify-center text-center px-4">
-                <h2 class="text-md text-gray-900 dark:text-gray-300 font-black">
-                    {{ __('You have left / was kicked from the trip.') }}
-                </h2>
+            <div class="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 shadow-md">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-red-900 dark:text-red-200 mb-2">
+                            {{ __('You have left this trip') }}
+                        </h3>
+                        <p class="text-sm text-red-800 dark:text-red-300">
+                            {{ __('You cannot book this trip again as you have already left or were removed from it. Please contact support if you need assistance.') }}
+                        </p>
+                    </div>
+                </div>
             </div>
         @endif
     </div>

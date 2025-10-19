@@ -15,7 +15,7 @@ class TripController extends Controller
 {
     public function index(Request $request)
     {
-        $trips = Trip::with(['creator', 'joins.user'])
+        $trips = Trip::with(['creator', 'activeJoins.user'])
             ->orderBy('planned_departure_time', 'desc')
             ->paginate(10);
 
@@ -26,7 +26,7 @@ class TripController extends Controller
         // Return JSON for AJAX requests
         if ($request->wantsJson()) {
             return response()->json(
-                Trip::with(['creator', 'joins'])
+                Trip::with(['creator', 'activeJoins'])
                     ->orderBy('planned_departure_time', 'desc')
                     ->limit(20)
                     ->get()
@@ -35,7 +35,7 @@ class TripController extends Controller
                             'id' => $trip->id,
                             'dropoff_location' => $trip->dropoff_location,
                             'planned_departure_time' => $trip->planned_departure_time->format('M d, H:i'),
-                            'joins_count' => $trip->joins->count(),
+                            'joins_count' => $trip->activeJoins->count(),
                             'max_people' => $trip->max_people,
                             'trip_status' => $trip->trip_status,
                             'creator' => $trip->creator->username ?? 'Unknown'
@@ -181,8 +181,6 @@ class TripController extends Controller
      */
     public function update(Request $request, Trip $trip)
     {
-        dd('$bruh');
-
         $validated = $request->validate([
             'creator_id' => 'required|exists:users,id',
             'dropoff_location' => 'required|string|max:255',
@@ -206,11 +204,17 @@ class TripController extends Controller
      */
     public function destroy(Trip $trip)
     {
-        // 删除相关的 trip_joins 记录
-        $trip->joins()->delete();
+        // 檢查是否有活跃成员（未离开的）
+        $activeJoinsCount = $trip->activeJoins()->count();
+        
+        if ($activeJoinsCount > 0) {
+            return redirect()->route('admin.trips.index')
+                ->with('error', "Cannot delete this trip. There are {$activeJoinsCount} active booking(s) for this trip. Please cancel all bookings first.");
+        }
 
-        // 删除 trip 记录
-        $trip->delete();
+        // 沒有預訂，可以刪除
+        // 使用 forceDelete() 來永久刪除記錄
+        $trip->forceDelete();
 
         return redirect()->route('admin.trips.index')->with('success', 'Trip deleted successfully!');
     }
@@ -220,13 +224,13 @@ class TripController extends Controller
         $currentDate = request('date', today()->format('Y-m-d'));
         $user = Auth::user();
 
-        $trips = Trip::with(['joins.user'])
+        $trips = Trip::with(['activeJoins.user'])
             ->whereDate('planned_departure_time', $currentDate)
             ->where('trip_status', 'awaiting')
             ->get()
             ->map(function ($trip) use ($user) {
-                $currentPeople = $trip->joins()->count();
-                $userHasJoined = $trip->joins()->where('user_id', $user->id)->exists();
+                $currentPeople = $trip->activeJoins()->count();
+                $userHasJoined = $trip->activeJoins()->where('user_id', $user->id)->exists();
 
                 if ($currentPeople <= 1) {
                     $price = $trip->base_price;
@@ -266,12 +270,12 @@ class TripController extends Controller
             return redirect()->back()->with('error', 'This trip is not available for joining.');
         }
 
-        $existingJoin = $trip->joins()->where('user_id', $user->id)->first();
+        $existingJoin = $trip->activeJoins()->where('user_id', $user->id)->first();
         if ($existingJoin) {
             return redirect()->back()->with('error', 'You have already joined this trip.');
         }
 
-        $currentPeople = $trip->joins()->count();
+        $currentPeople = $trip->activeJoins()->count();
         if ($currentPeople >= $trip->max_people) {
             return redirect()->back()->with('error', 'This trip is already full.');
         }
@@ -317,7 +321,7 @@ class TripController extends Controller
             return redirect()->route('login');
         }
 
-        $userHasJoined = $trip->joins()->where('user_id', $user->id)->exists();
+        $userHasJoined = $trip->activeJoins()->where('user_id', $user->id)->exists();
         if (!$userHasJoined) {
             return redirect()->back()->with('error', 'You must join the trip first.');
         }
@@ -336,13 +340,14 @@ class TripController extends Controller
 
     private function updateAllUserFees(Trip $trip)
     {
-        $currentPeople = $trip->joins()->count();
+        $currentPeople = $trip->activeJoins()->count();
 
         if ($currentPeople > 0) {
             $newFee = $trip->base_price / $currentPeople;
 
             DB::table('trip_joins')
                 ->where('trip_id', $trip->id)
+                ->where('has_left', 0)  // 只更新未离开的成员
                 ->update(['user_fee' => $newFee]);
         }
     }

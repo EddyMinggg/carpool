@@ -22,7 +22,7 @@
 
             <div class="p-6 sm:p-8 bg-secondary dark:bg-secondary-accent shadow rounded-lg">
                 <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
+                    @include('profile.partials.deactivate-user-form')
                 </div>
             </div>
         </div>

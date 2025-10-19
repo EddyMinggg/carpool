@@ -613,18 +613,12 @@
                                                title="View Trip">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('admin.payment-confirmation.index', $trip->id) }}" 
-                                               class="action-btn"
-                                               style="background: #059669; color: white;"
-                                               title="Payment Confirmation">
-                                                <i class="fas fa-dollar-sign"></i>
-                                            </a>
                                             <a href="{{ route('admin.trips.edit', $trip->id) }}" 
                                                class="action-btn action-btn-yellow"
                                                title="Edit Trip">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button onclick="deleteTrip({{ $trip->id }})" 
+                                            <button onclick="showDeleteModal({{ $trip->id }}, '{{ $trip->dropoff_location }}', {{ $trip->activeJoins->count() }})" 
                                                     class="action-btn action-btn-red"
                                                     title="Delete Trip">
                                                 <i class="fas fa-trash"></i>
@@ -644,35 +638,118 @@
         </div>
     @endif
 
-    <!-- Modal for Delete Confirmation -->
-    <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; padding: 20px; box-sizing: border-box;">
-        <div style="background: white; border-radius: 12px; max-width: 400px; margin: 50px auto; padding: 24px; position: relative; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="width: 60px; height: 60px; background-color: #fee2e2; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
-                    <svg style="width: 30px; height: 30px; color: #dc2626;" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">Confirm Deletion</h3>
-                <p style="color: #6b7280; margin-bottom: 4px;">Are you sure you want to delete this trip?</p>
-                <p style="color: #6b7280; font-size: 14px;">Trip ID: <span id="tripInfo" style="font-weight: 600;"></span></p>
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div
+            style="background: white; border-radius: 8px; max-width: 400px; width: 90%; margin: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); max-height: 80vh; overflow-y: auto;">
+            <!-- Modal Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #dc2626;">
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                    Confirm Delete Trip
+                </h3>
             </div>
-            
-            <div style="display: flex; gap: 12px; justify-content: center;">
-                <button onclick="closeDeleteModal()" style="flex: 1; padding: 10px 20px; background-color: #f3f4f6; color: #374151; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                    Cancel
+
+            <!-- Modal Body -->
+            <div style="padding: 20px;">
+                <div id="canDeleteContent">
+                    <p style="margin: 0 0 16px 0; color: #374151; line-height: 1.5; font-size: 16px;">
+                        Are you sure you want to delete this trip?
+                    </p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+                        <p style="margin: 0; font-size: 14px; color: #dc2626;">
+                            <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                            <strong>Trip ID:</strong> <span id="tripId"></span>
+                        </p>
+                        <p style="margin: 8px 0 0 0; font-size: 14px; color: #dc2626;">
+                            <i class="fas fa-map-marker-alt" style="margin-right: 6px;"></i>
+                            <strong>Destination:</strong> <span id="tripDestination"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="cannotDeleteContent" style="display: none;">
+                    <p style="margin: 0 0 16px 0; color: #374151; line-height: 1.5; font-size: 16px;">
+                        This trip cannot be deleted because there are active bookings.
+                    </p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+                        <p style="margin: 0; font-size: 14px; color: #dc2626;">
+                            <i class="fas fa-users" style="margin-right: 6px;"></i>
+                            <strong><span id="bookingsCount"></span> booking(s)</strong> for this trip
+                        </p>
+                        <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280;">
+                            Please cancel all bookings before deleting this trip.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="padding: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; gap: 12px;">
+                <button onclick="closeDeleteModal()"
+                    style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                    <span id="cancelButtonText">Cancel</span>
                 </button>
-                <button onclick="confirmDeleteSubmit()" style="flex: 1; padding: 10px 20px; background-color: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                    Delete
+                <button id="confirmDeleteButton" onclick="confirmDeleteSubmit()"
+                    style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px; transition: background-color 0.2s; flex: 1;"
+                    onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                    <i class="fas fa-trash" style="margin-right: 6px;"></i>
+                    Delete Trip
                 </button>
             </div>
         </div>
     </div>
+
+    {{-- Mobile-specific modal styles --}}
+    <style>
+        @media (max-width: 640px) {
+            #deleteModal>div {
+                width: 95% !important;
+                margin: 10px !important;
+                max-height: 90vh !important;
+            }
+
+            #deleteModal button {
+                width: 100% !important;
+                min-height: 44px !important;
+            }
+        }
+
+        /* Modal animation */
+        #deleteModal {
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        #deleteModal>div {
+            animation: slideUp 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 @endsection
 
 @push('scripts')
 <script>
-let currentTripId = null;
 const isMobile = {{ $isMobile ? 'true' : 'false' }};
 
 if (isMobile) {
@@ -854,23 +931,36 @@ if (isMobile) {
         });
     });
 
-    // Desktop delete function
-    function deleteTrip(tripId) {
-        if (confirm('Are you sure you want to delete this trip?')) {
-            document.getElementById('delete-form-' + tripId).submit();
-        }
-    }
 }
 
 // Modal functions (both mobile and desktop)
-function confirmDelete(tripId) {
+let currentTripId = null;
+
+function showDeleteModal(tripId, destination, bookingsCount) {
     currentTripId = tripId;
-    document.getElementById('tripInfo').textContent = '#' + tripId;
-    document.getElementById('deleteModal').style.display = 'block';
+    
+    // Set trip info
+    document.getElementById('tripId').textContent = '#' + tripId;
+    document.getElementById('tripDestination').textContent = destination;
+    document.getElementById('bookingsCount').textContent = bookingsCount;
+    
+    // Show/hide content based on bookings
+    const canDelete = bookingsCount === 0;
+    document.getElementById('canDeleteContent').style.display = canDelete ? 'block' : 'none';
+    document.getElementById('cannotDeleteContent').style.display = canDelete ? 'none' : 'block';
+    document.getElementById('confirmDeleteButton').style.display = canDelete ? 'block' : 'none';
+    document.getElementById('cancelButtonText').textContent = canDelete ? 'Cancel' : 'Close';
+    
+    // Show modal
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
 }
 
 function closeDeleteModal() {
-    document.getElementById('deleteModal').style.display = 'none';
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
     currentTripId = null;
 }
 
@@ -880,10 +970,16 @@ function confirmDeleteSubmit() {
     }
 }
 
-// Close modal when clicking outside
+// Close modal when clicking outside or pressing Escape
 document.addEventListener('click', function(event) {
     const modal = document.getElementById('deleteModal');
     if (event.target === modal) {
+        closeDeleteModal();
+    }
+});
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && document.getElementById('deleteModal').style.display === 'flex') {
         closeDeleteModal();
     }
 });

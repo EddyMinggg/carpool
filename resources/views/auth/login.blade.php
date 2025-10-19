@@ -189,11 +189,24 @@
                         <!-- Messages -->
                         <div id="register-messages" class="hidden mb-4"></div>
 
+                        <!-- Display All Validation Errors -->
+                        @if ($errors->any())
+                            <div class="mb-4 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg">
+                                <div class="font-medium mb-2">{{ __('Whoops! Something went wrong.') }}</div>
+                                <ul class="list-disc list-inside text-sm">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <!-- Name -->
                         <div>
                             <x-input-label for="username" :value="__('Username')" />
                             <x-text-input id="username" class="block mt-1 w-full" type="text" name="username"
                                 :value="old('username')" required autofocus autocomplete="name" />
+                            <x-input-error :messages="$errors->get('username')" class="mt-2" />
                             <div id="username-error" class="text-red-600 text-sm mt-1 hidden"></div>
                         </div>
 
@@ -202,6 +215,7 @@
                             <x-input-label for="email_register" :value="__('Email')" />
                             <x-text-input id="email_register" class="block mt-1 w-full" type="email"
                                 name="email" :value="old('email')" required autocomplete="username" />
+                            <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             <div id="email-error" class="text-red-600 text-sm mt-1 hidden"></div>
                         </div>
 
@@ -233,6 +247,7 @@
                             <x-input-label for="password_register" :value="__('Password')" />
                             <x-text-input id="password_register" class="block mt-1 w-full" type="password"
                                 name="password" required autocomplete="new-password" />
+                            <x-input-error :messages="$errors->get('password')" class="mt-2" />
                             <div id="password-error" class="text-red-600 text-sm mt-1 hidden"></div>
                         </div>
 
@@ -241,6 +256,7 @@
                             <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
                             <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password"
                                 name="password_confirmation" required autocomplete="new-password" />
+                            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                             <div id="password-confirmation-error" class="text-red-600 text-sm mt-1 hidden"></div>
                         </div>
 
@@ -318,11 +334,16 @@
             username: @json(old('username')),
             email: @json(old('email')),
             phone: @json(old('phone')),
+            phone_country_code: @json(old('phone_country_code')),
             invitation_code: @json(old('invitation_code')),
             phone_invite: @json(old('phone_invite')),
             phone_country_code_invite: @json(old('phone_country_code_invite')),
             password: @json(old('password'))
         };
+
+        // Debug: Log errors and old input
+        console.log('Errors:', errors);
+        console.log('Old Input:', oldInput);
 
         function showTab(targetId, activeLink) {
             // Hide all tab contents
@@ -358,36 +379,40 @@
 
         // Determine which tab to show based on form submission context
         function determineActiveTab() {
-            // Check if register form was submitted (has username or register-specific errors)
-            if (oldInput.username || errors.username || errors.phone_country_code) {
-                return {
-                    tabId: 'tab3-group4',
-                    linkClass: '.tab-register'
-                };
+            // Priority 1: Check if register form was submitted (look for register-specific fields)
+            // Register form has: username, email, phone, phone_country_code, password, password_confirmation
+            if (oldInput.username || oldInput.phone || oldInput.phone_country_code) {
+                console.log('Detected: Register form (old input)');
+                return { tabId: 'tab3-group4', linkClass: '.tab-register' };
             }
-
-            // Check if join trip form was submitted (has invitation_code or phone_invite)
-            if (oldInput.invitation_code || oldInput.phone_invite ||
-                errors.invitation_code || errors.phone_invite || errors.phone_country_code_invite) {
-                return {
-                    tabId: 'tab2-group4',
-                    linkClass: '.tab-join-trip'
-                };
+            
+            // Check for register-specific errors
+            if (errors.username || errors.phone || errors.phone_country_code || errors.password_confirmation) {
+                console.log('Detected: Register form (errors)');
+                return { tabId: 'tab3-group4', linkClass: '.tab-register' };
             }
-
-            // Check if login form was submitted or has login errors
+            
+            // Priority 2: Check if join trip form was submitted
+            if (oldInput.invitation_code || oldInput.phone_invite || oldInput.phone_country_code_invite) {
+                console.log('Detected: Join Trip form (old input)');
+                return { tabId: 'tab2-group4', linkClass: '.tab-join-trip' };
+            }
+            
+            if (errors.invitation_code || errors.phone_invite || errors.phone_country_code_invite) {
+                console.log('Detected: Join Trip form (errors)');
+                return { tabId: 'tab2-group4', linkClass: '.tab-join-trip' };
+            }
+            
+            // Priority 3: Check if login form was submitted or has login errors
+            // Login only has email and password (no username, no phone)
             if (errors.email || errors.password) {
-                return {
-                    tabId: 'tab1-group4',
-                    linkClass: '.tab-login'
-                };
+                console.log('Detected: Login form (errors)');
+                return { tabId: 'tab1-group4', linkClass: '.tab-login' };
             }
 
             // Default to login tab
-            return {
-                tabId: 'tab1-group4',
-                linkClass: '.tab-login'
-            };
+            console.log('Default: Login tab');
+            return { tabId: 'tab1-group4', linkClass: '.tab-login' };
         }
 
         // Initialize the correct tab
