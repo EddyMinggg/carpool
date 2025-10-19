@@ -70,6 +70,7 @@ class RegisteredUserController extends Controller
             'phone' => $userData['phone'],
             'password' => $userData['password'],
             'user_role' => $userData['user_role'],
+            'notification_channel' => 'sms',
         ]);
 
         $res = (new OtpService($tempUser))->sendOtp();

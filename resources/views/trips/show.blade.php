@@ -94,10 +94,9 @@
                 <span
                     class="px-2 py-1 rounded-md text-xs
                         @if ($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300
-                        @elseif($trip->trip_status === 'charging') bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300
                         @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300
                         @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
-                    {{ ucfirst($trip->trip_status) }}
+                    {{ __(ucfirst($trip->trip_status)) }}
                 </span>
 
                 @if (
@@ -221,7 +220,7 @@
                         HK$ {{ number_format($userFee, 0) }}
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {{ __('Per person') }}
+                        {{ __('Per Person') }}
                     </div>
                 </div>
             </div>
@@ -344,22 +343,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="border-t border-gray-200 dark:border-gray-600 pt-4 mt-6">
-                    <div class="text-center">
-                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                            {{ __('Your pickup location') }}
-                        </div>
-                        @php
-                            // 等待司機時顯示確定的接送地址（trip_join 表中的記錄）
-                            $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
-                            $confirmedLocation = $userJoin ? $userJoin->pickup_location : null;
-                        @endphp
-                        <div class="font-medium text-gray-900 dark:text-gray-100 location-display">
-                            <span>{{ $confirmedLocation ?: __('Location not set') }}</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         @elseif ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed))
             <div
@@ -413,8 +396,16 @@
                                         {{ __('Guest User') }}
                                     @endif
                                 </div>
+                                @php
+                                $carbonLocale = match (\App::getLocale()) {
+                                    'en' => 'en',
+                                    'ch' => 'zh',
+                                    'hk' => 'zh-TW',
+                                    default => 'en'
+                                };
+                                @endphp
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                                    {{ __('Joined') }} {{ $join->created_at->diffForHumans() }}
+                                    {{ __('Joined') }} {{ $join->created_at->locale($carbonLocale)->diffForHumans() }}
                                 </div>
                             </div>
                         </div>
@@ -928,7 +919,7 @@
                                 </span>
                                 @if ($availableSlots < $trip->max_people)
                                     <div class="mt-2 text-xs text-orange-600 dark:text-orange-400">
-                                        {{ __('Limited slots available! Book quickly.') }}
+                                        {{ __('Limited slots available! Book quickly!') }}
                                     </div>
                                 @endif
                             </div>
@@ -960,7 +951,7 @@
                             class="passenger-form border border-primary-accent dark:border-primary hover:border-primary rounded-lg p-4 bg-primary-opaque dark:bg-primary-opaque-dark">
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="font-medium text-gray-700 dark:text-gray-200">
-                                    {{ __('Main Booker') }} ({{ __('Passenger 1') }})
+                                    {{ __('Main Booker') }} ({{ __('Passenger') }} 1)
                                 </h4>
                                 <span
                                     class="text-xs text-gray-100 dark:text-gray-200 font-medium px-2 py-1 bg-primary-accent dark:bg-primary rounded">
@@ -1081,7 +1072,7 @@
                                     {{ number_format($userFee, 0) }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-700 dark:text-gray-300">{{ __('Number of people') }}:</span>
+                                <span class="text-gray-700 dark:text-gray-300">{{ __('Passengers') }}:</span>
                                 <span class="font-semibold text-gray-900 dark:text-gray-200"
                                     id="people-display">1</span>
                             </div>
@@ -2186,7 +2177,7 @@
             $('.passenger-form').each(function(index) {
                 $(this).attr('data-passenger', index);
                 $(this).find('h4').text(index === 0 ?
-                    '{{ __('Main Booker') }} ({{ __('Passenger 1') }})' :
+                    '{{ __('Main Booker') }} ({{ __('Passenger') }} 1)' :
                     `{{ __('Passenger') }} ${index + 1}`);
 
                 // 更新 name 屬性和 id 屬性

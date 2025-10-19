@@ -12,7 +12,7 @@
             <!-- 付款狀態篩選器 -->
             <div class="flex items-center gap-2">
                 <button id="filter-paid"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-secondary dark:bg-secondary-accent text-gray-700 dark:text-gray-300">
                     {{-- class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-green-600 dark:bg-green-700 text-gray-200 filter-btn active"> --}}
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,7 +23,7 @@
                     </span>
                 </button>
                 <button id="filter-unpaid"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-secondary dark:bg-secondary-accent text-gray-700 dark:text-gray-300">
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -97,22 +97,14 @@
                     <!-- 頂部狀態指示器 -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
-                            @if ($isUpcoming)
-                                <span
-                                    class="px-3 py-1 bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200 text-xs font-semibold rounded-full">
-                                    {{ __('Upcoming') }}
-                                </span>
-                            @elseif ($isToday && !$isExpired)
-                                <span
-                                    class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full animate-pulse">
-                                    {{ __('Today') }}
-                                </span>
-                            @elseif ($isExpired)
-                                <span
-                                    class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-semibold rounded-full">
-                                    {{ __('Completed') }}
-                                </span>
-                            @endif
+                            <span
+                                class="px-3 py-1 text-xs font-semibold rounded-full
+                                @if ($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300
+                                @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300
+                                @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
+                                {{ __(ucfirst($trip->trip_status)) }}
+                            </span>
+
 
                             <span
                                 class="px-3 py-1 text-xs font-semibold rounded-full {{ $tripJoin->payment_confirmed == 1 ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200' }}">
@@ -164,8 +156,8 @@
                                 <div class="text-xl font-bold text-gray-900 dark:text-gray-100">
                                     {{ $departureTime->format('H:i') }}
                                 </div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $departureTime->format('M d, Y') }}
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {{ $departureTime->format('m-d-Y') }}
                                 </div>
                             </div>
                         </div>
@@ -189,10 +181,10 @@
                     <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">{{ __('No trip history') }}
                     </h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        {{ __('You haven\'t joined any trips yet.') }}</p>
+                        {{ __('Haven\'t joined any trips yet?') }}</p>
                     <div class="mt-6">
                         <a href="{{ route('dashboard') }}"
-                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-100 dark:text-gray-200 bg-primary hover:bg-primary-accent dark:bg-primary-dark dark:hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -226,19 +218,23 @@
             // Filter button click events
             filterPaidBtn.on('click', function() {
                 currentFilter = 'paid';
-                filterPaidBtn.removeClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300');
+                filterPaidBtn.removeClass(
+                    'bg-secondary dark:bg-secondary-accent text-gray-700 dark:text-gray-300');
                 filterPaidBtn.addClass('bg-green-600 dark:bg-green-700 text-gray-200');
                 filterUnpaidBtn.removeClass('bg-red-600 dark:bg-red-700 text-gray-200');
-                filterUnpaidBtn.addClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300');
+                filterUnpaidBtn.addClass(
+                    'bg-secondary dark:bg-secondary-accent text-gray-700 dark:text-gray-300');
                 applyFilters();
             });
 
             filterUnpaidBtn.on('click', function() {
                 currentFilter = 'unpaid';
-                filterUnpaidBtn.removeClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300');
+                filterUnpaidBtn.removeClass(
+                    'bg-secondary dark:bg-secondary-accent text-gray-700 dark:text-gray-300');
                 filterUnpaidBtn.addClass('bg-red-600 dark:bg-red-700 text-gray-200');
                 filterPaidBtn.removeClass('bg-green-600 dark:bg-green-700 text-gray-200');
-                filterPaidBtn.addClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300');
+                filterPaidBtn.addClass(
+                    'bg-secondary dark:bg-secondary-accent text-gray-700 dark:text-gray-300');
                 applyFilters();
             });
 

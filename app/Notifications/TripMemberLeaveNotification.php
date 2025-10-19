@@ -3,13 +3,15 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use App\Channels\SmsChannel;
 use App\Channels\Messages\SmsMessage;
+use App\Channels\Messages\WhatsAppMessage;
 use App\Models\Trip;
 use App\Services\SmsTemplateService;
 
-class TripMemberLeaveNotification extends Notification
+class TripMemberLeaveNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -28,7 +30,7 @@ class TripMemberLeaveNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return [SmsChannel::class];
+        return [$notifiable->notification_channel];
     }
 
     public function toSms(object $notifiable): SmsMessage
@@ -41,4 +43,14 @@ class TripMemberLeaveNotification extends Notification
                 ->content(SmsTemplateService::regularTimeLeaveMessage($this->trip));
         }
     }
+    // public function toWhatsApp(object $notifiable): WhatsAppMessage
+    // {
+    //     if ($this->trip->type == 'golden') {
+    //         return (new WhatsAppMessage())
+    //             ->content(SmsTemplateService::goldenTimeLeaveMessage($this->trip));
+    //     } else {
+    //         return (new WhatsAppMessage())
+    //             ->content(SmsTemplateService::regularTimeLeaveMessage($this->trip));
+    //     }
+    // }
 }

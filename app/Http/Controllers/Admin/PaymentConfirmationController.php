@@ -127,9 +127,15 @@ class PaymentConfirmationController extends Controller
                 ->whereNot('user_phone', $payment->user_phone)
                 ->pluck('user_phone');
 
+            // Get user message channel preference
             foreach ($otherUserPhone as $phone) {
-                Notification::route('Sms', $phone)
-                    ->notify(new TripMemberJoinNotification($trip));
+                $user = User::where('phone', $phone)->first();
+                if ($user) {
+                    $user->notify(new TripMemberJoinNotification($trip));
+                } else {
+                    Notification::route('Sms', $phone)
+                        ->notify(new TripMemberJoinNotification($trip));
+                }
             }
 
             // No child payments to process since each group booking has only one payment record

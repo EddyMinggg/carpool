@@ -6,10 +6,11 @@ use App\Models\Payment;
 use App\Models\TripJoin;
 use Illuminate\Http\Request;
 use App\Models\Trip;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Notification;
 use App\Notifications\TripMemberLeaveNotification;
+use Notification;
 
 class TripController extends Controller
 {
@@ -352,9 +353,15 @@ class TripController extends Controller
             ->whereNot('user_phone', Auth::user()->phone)
             ->pluck('user_phone');
 
+        // Get user message channel preference
         foreach ($otherUserPhone as $phone) {
-            Notification::route('Sms', $phone)
-                ->notify(new TripMemberLeaveNotification($trip));
+            $user = User::where('phone', $phone)->first();
+            if ($user) {
+                $user->notify(new TripMemberLeaveNotification($trip));
+            } else {
+                Notification::route('Sms', $phone)
+                    ->notify(new TripMemberLeaveNotification($trip));
+            }
         }
 
         // if (!$deleted) {

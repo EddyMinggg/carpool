@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Channels\SmsChannel;
+use App\Channels\WhatsAppChannel;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -30,7 +32,8 @@ class User extends Authenticatable
         'password',
         'phone',
         'phone_verified_at',
-        'user_role'
+        'user_role',
+        'notification_channel'
     ];
 
     /**
@@ -94,15 +97,30 @@ class User extends Authenticatable
     }
 
     /**
-     * Route notifications for the Vonage channel.
+     * Route notifications for the Twilio channel.
      */
     public function routeNotificationForWhatsApp(): string
     {
         return $this->phone;
     }
+
     public function routeNotificationForSms(): string
     {
         return $this->phone;
+    }
+
+    /**
+     * Get the user's preferred notification channel.
+     */
+    protected function notificationChannel(): Attribute
+    {
+        return Attribute::make(
+            get: fn(string $value) => match ($value) {
+                'sms' => SmsChannel::class,
+                'whatsapp' => WhatsAppChannel::Class,
+                default => SmsChannel::Class,
+            },
+        );
     }
 
     // Check if phone is verified
@@ -130,13 +148,5 @@ class User extends Authenticatable
         return $this->belongsToMany(Trip::class, 'trip_drivers', 'driver_id', 'trip_id')
             ->withPivot(['status', 'notes', 'assigned_at', 'confirmed_at'])
             ->withTimestamps();
-    }
-
-    /**
-     * Send the email verification notification with fast delivery.
-     */
-    public function sendEmailVerificationNotification()
-    {
-        $this->notify(new \App\Notifications\FastVerifyEmail);
     }
 }

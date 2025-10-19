@@ -1,10 +1,6 @@
 @section('Title', 'Dashboard')
 <x-app-layout>
 
-    @php
-        // 使用控制器傳遞的數據，不要重新定義
-        // $dates 和 $activeDate 已經在控制器中正確設定
-    @endphp
 
     <div x-data="{
         activeDate: '{{ $activeDate }}',
@@ -335,11 +331,11 @@
                             'bg-gray-300 dark:bg-secondary-accent text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-600 border-gray-200 dark:border-gray-600'"
                         class="min-w-[80px] px-3 py-3 rounded-xl font-semibold text-sm transition-all duration-300 snap-center focus:outline-none whitespace-nowrap shadow-sm">
                         <div class="w-full text-xs opacity-75"
-                            x-text="new Date(date).toLocaleDateString('en', {weekday: 'short'})"></div>
+                            x-text="new Date(date).toLocaleDateString('{{ App::getLocale() }}', {weekday: 'short'})"></div>
                         <div class="w-full text-base font-bold mt-1"
                             x-text="new Date(date).toLocaleDateString('en', {day: 'numeric'})"></div>
-                        <div class="w-full text-xs opacity-75"
-                            x-text="new Date(date).toLocaleDateString('en', {month: 'short'})"></div>
+                        <div class="w-full text-xs opacity-75 mt-1"
+                            x-text="new Date(date).toLocaleDateString('{{ App::getLocale() }}', {month: 'short'})"></div>
                     </button>
                 </template>
             </div>
@@ -422,7 +418,7 @@
                             <div class="text-primary-accent text-xl sm:text-2xl font-bold"
                                 x-text="'HK$ ' + trip.price">
                             </div>
-                            <div class="text-xs text-gray-700 dark:text-gray-200" x-text="'{{ __('per person') }}'">
+                            <div class="text-xs text-gray-700 dark:text-gray-200" x-text="'{{ __('Per Person') }}'">
                             </div>
                         </div>
                     </div>

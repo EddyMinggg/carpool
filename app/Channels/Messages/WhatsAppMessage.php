@@ -4,11 +4,13 @@ namespace App\Channels\Messages;
 
 class WhatsAppMessage
 {
-    public $content;
+    public $contentSid;
+    public $contentVariables;
 
-    public function content($content)
+    public function content($contentSid, $contentVariables)
     {
-        $this->content = $content;
+        $this->contentSid = $contentSid;
+        $this->contentVariables = $contentVariables;
 
         return $this;
     }
