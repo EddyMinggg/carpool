@@ -2,9 +2,13 @@
 
 namespace App\Models;
 
+use App\Channels\SmsChannel;
+use App\Channels\WhatsAppChannel;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 // 移除 SoftDeletes 如果不需要軟刪除功能
 // use Illuminate\Database\Eloquent\SoftDeletes;
@@ -32,7 +36,8 @@ class User extends Authenticatable
         'phone',
         'phone_verified_at',
         'user_role',
-        'active'
+        'active',
+        'notification_channel'
     ];
 
     /**
@@ -97,15 +102,30 @@ class User extends Authenticatable
     }
 
     /**
-     * Route notifications for the Vonage channel.
+     * Route notifications for the Twilio channel.
      */
     public function routeNotificationForWhatsApp(): string
     {
         return $this->phone;
     }
+
     public function routeNotificationForSms(): string
     {
         return $this->phone;
+    }
+
+    /**
+     * Get the user's preferred notification channel.
+     */
+    protected function notificationChannel(): Attribute
+    {
+        return Attribute::make(
+            get: fn(string $value) => match ($value) {
+                'sms' => SmsChannel::class,
+                'whatsapp' => WhatsAppChannel::Class,
+                default => SmsChannel::Class,
+            },
+        );
     }
 
     // Check if phone is verified
@@ -182,5 +202,4 @@ class User extends Authenticatable
     {
         $this->update(['active' => 0]);
     }
-
 }

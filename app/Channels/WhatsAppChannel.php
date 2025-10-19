@@ -2,7 +2,9 @@
 
 namespace App\Channels;
 
+use Exception;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 use Twilio\Rest\Client;
 
 class WhatsAppChannel
@@ -19,9 +21,15 @@ class WhatsAppChannel
         $twilio = new Client(config('sms.twilio.sid'), config('sms.twilio.token'));
 
 
-        return $twilio->messages->create('whatsapp:' . $to, [
-            "from" => $from,
-            "body" => $message->content
-        ]);
+        $res = $twilio->messages->create(
+            'whatsapp:' . $to,
+            [
+                "contentSid" => $message->contentSid,
+                "contentVariables" => json_encode($message->contentVariables),
+                "from" => $from,
+            ]
+        );
+
+        return $res;
     }
 }

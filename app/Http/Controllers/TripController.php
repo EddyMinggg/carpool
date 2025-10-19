@@ -6,10 +6,11 @@ use App\Models\Payment;
 use App\Models\TripJoin;
 use Illuminate\Http\Request;
 use App\Models\Trip;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Notification;
 use App\Notifications\TripMemberLeaveNotification;
+use Notification;
 
 class TripController extends Controller
 {
@@ -69,7 +70,7 @@ class TripController extends Controller
         if ($tripJoin) {
             $price = $tripJoin->user_fee;
         }
-        
+
         if ($payment) {
             $madePayment = $payment->paid;
             // Only use payment amount if no TripJoin record exists
@@ -365,7 +366,7 @@ class TripController extends Controller
     public function leave(Trip $trip)
     {
         $user = Auth::user();
-        
+
         // Check if user is authenticated
         if (!$user) {
             return redirect()->route('login')->with('error', __('Please login to continue.'));
@@ -373,7 +374,7 @@ class TripController extends Controller
 
         // Get user phone
         $userPhone = $user->phone;
-        
+
         if (!$userPhone) {
             return redirect()->back()->with('error', __('Unable to identify user phone number.'));
         }
@@ -407,6 +408,7 @@ class TripController extends Controller
             ->whereNot('has_left', 1) // Only notify active members
             ->pluck('user_phone');
 
+        // Get user message channel preference
         foreach ($otherUserPhone as $phone) {
             Notification::route('Sms', $phone)
                 ->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));

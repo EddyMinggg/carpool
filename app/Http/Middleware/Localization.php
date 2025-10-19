@@ -18,7 +18,7 @@ class Localization
     public function handle(Request $request, Closure $next): Response
     {
         if (Session::has('locale')) {
-            $locale = Session::get('locale', 'en');
+            $locale = Session::get('locale', 'hk');
             App::setLocale($locale);
         }
         return $next($request);

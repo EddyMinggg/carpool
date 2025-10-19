@@ -59,8 +59,13 @@
                         <button type="button" id="resend-otp-btn"
                             class="text-primary hover:text-primary-accent font-medium disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="resend-text ms-1">{{ __('Resend') }}</span>
-                            <span class="resend-countdown ms-1 hidden">{{ __('Resend in') }} <span
-                                    id="countdown">60</span>s</span>
+                            <span class="resend-countdown ms-1 hidden">
+                                @if (App::getLocale() == 'en')
+                                {{ __('Resend in') }} <span id="countdown">60</span> s
+                                @else
+                                <span id="countdown">60</span> {{ __('Resend in') }}
+                                @endif 
+                            </span>
                         </button>
                     </p>
                 </div>
@@ -288,9 +293,6 @@
                 success: function(data) {
                     // Handle the response data
                     if (data.success) {
-                        showMessage('otp-messages',
-                            'A new verification code has been sent to your phone.',
-                            'success');
                         startResendCountdown(60);
 
                         // Clear OTP inputs

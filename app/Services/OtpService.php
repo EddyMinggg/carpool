@@ -53,7 +53,7 @@ class OtpService
                 'ip_address' => request()->ip()
             ]);
 
-            $this->user->notify(new OtpNotification($otpCode));
+            $this->user->notify(new OtpNotification($otpCode, \App::getLocale()));
 
             // if (!$result['success']) {
             //     Log::error('Failed to send OTP via Twilio', [
@@ -199,62 +199,6 @@ class OtpService
             'expires_in' => $timeLeft,
             'attempts' => $verification->attempts,
             'max_attempts' => $this->maxAttempts
-        ];
-    }
-
-    /**
-     * Send OTP via Twilio (try WhatsApp first, then SMS)
-     */
-    private function sendViaTwilio(string $otpCode): array
-    {
-        // In sandbox mode, just log the OTP
-        // if ($this->isSandbox) {
-        //     Log::info('OTP (Sandbox Mode)', [
-        //         'phone' => $this->user->phone,
-        //         'otp_code' => $otpCode,
-        //         'expires_in' => $this->otpExpireMinutes
-        //     ]);
-
-        //     return [
-        //         'success' => true,
-        //         'method' => 'sandbox',
-        //         'message_id' => 'sandbox_' . time()
-        //     ];
-        // }
-
-        // Try WhatsApp first
-        $whatsappResult = $this->twilioService->sendOtpWhatsApp($this->user->phone, $otpCode, $this->otpExpireMinutes);
-
-        if ($whatsappResult['success']) {
-            return [
-                'success' => true,
-                'method' => 'whatsapp',
-                'message_id' => $whatsappResult['message_id']
-            ];
-        }
-
-        // Fallback to SMS if WhatsApp fails
-        Log::warning('WhatsApp OTP failed, falling back to SMS', [
-            'phone' => $this->user->phone,
-            'whatsapp_error' => $whatsappResult['error'] ?? 'Unknown'
-        ]);
-
-        $smsResult = $this->twilioService->sendOtpSms($this->user->phone, $otpCode, $this->otpExpireMinutes);
-
-        if ($smsResult['success']) {
-            return [
-                'success' => true,
-                'method' => 'sms',
-                'message_id' => $smsResult['message_id']
-            ];
-        }
-
-        // Both methods failed
-        return [
-            'success' => false,
-            'error' => 'Both WhatsApp and SMS delivery failed',
-            'whatsapp_error' => $whatsappResult['error'] ?? 'Unknown',
-            'sms_error' => $smsResult['error'] ?? 'Unknown'
         ];
     }
 }

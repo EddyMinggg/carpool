@@ -2,7 +2,7 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <div class="flex flex-col justify-center items-end">
+    <div class="flex justify-end items-center">
         <input type="checkbox" name="light-switch" class="light-switch sr-only" id="light-switch">
         <label class="relative cursor-pointer p-2" for="light-switch">
             <svg class="dark:hidden" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
@@ -17,6 +17,32 @@
                     d="M12.5 5a.625.625 0 0 1-.625-.625 1.252 1.252 0 0 0-1.25-1.25.625.625 0 1 1 0-1.25 1.252 1.252 0 0 0 1.25-1.25.625.625 0 1 1 1.25 0c.001.69.56 1.249 1.25 1.25a.625.625 0 1 1 0 1.25c-.69.001-1.249.56-1.25 1.25A.625.625 0 0 1 12.5 5Z" />
             </svg>
         </label>
+
+        <x-dropdown align="right" width="auto">
+            <x-slot name="trigger">
+                <button
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-200 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                    @php
+                        $lang = Session::get('locale', 'en');
+                    @endphp
+                    <i class="material-icons text-lg sm:text-xl">&#xe894;</i>
+                </button>
+            </x-slot>
+            <x-slot name="content">
+                <x-dropdown-link :href="route('change.lang', ['lang' => 'en'])"
+                    class="{{ $lang === 'en' ? 'bg-primary dark:bg-primary-dark text-white rounded-t-md' : 'text-gray-800 dark:text-white' }}">
+                    English
+                </x-dropdown-link>
+                <x-dropdown-link :href="route('change.lang', ['lang' => 'ch'])"
+                    class="{{ $lang === 'ch' ? 'bg-primary dark:bg-primary-dark text-white' : 'text-gray-800 dark:text-white' }}">
+                    中文（简体）
+                </x-dropdown-link>
+                <x-dropdown-link :href="route('change.lang', ['lang' => 'hk'])"
+                    class="{{ $lang === 'hk' ? 'bg-primary dark:bg-primary-dark text-white rounded-b-md' : 'text-gray-800 dark:text-white' }}">
+                    中文（繁體）
+                </x-dropdown-link>
+            </x-slot>
+        </x-dropdown>
     </div>
 
     <div class="relative tab-group">
@@ -25,13 +51,19 @@
                 class="absolute bottom-0 h-0.5 bg-primary dark:bg-primary-dark transition-transform duration-300 transform scale-x-0 translate-x-0 tab-indicator">
             </div>
 
-            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-login inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab1-group4">
+            <a href="#"
+                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-login inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
+                data-dui-tab-target="tab1-group4">
                 {{ __('Login') }}
             </a>
-            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-join-trip inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab2-group4">
+            <a href="#"
+                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-join-trip inline-block py-2 px-4 hover:text-stone-500 transition-colors duration-300 mr-1"
+                data-dui-tab-target="tab2-group4">
                 {{ __('Join Trip') }}
             </a>
-            <a href="#" class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-register inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1" data-dui-tab-target="tab3-group4">
+            <a href="#"
+                class="tab-link block font-medium text-sm text-gray-700 dark:text-gray-300 tab-register inline-block py-2 px-4  hover:text-stone-500 transition-colors duration-300 mr-1"
+                data-dui-tab-target="tab3-group4">
                 {{ __('Register') }}
             </a>
         </div>
@@ -97,7 +129,7 @@
                         <x-input-label for="phone_invite" :value="__('Phone Number')" />
                         <div class="flex mt-1">
                             <select id="phone_country_code_invite" name="phone_country_code_invite"
-                                class="rounded-l-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 shadow-sm">
+                                class="rounded-l-md border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm">
                                 <option value="+852"
                                     {{ old('phone_country_code', '+852') == '+852' ? 'selected' : '' }}>+852 (HK)
                                 </option>
@@ -377,7 +409,7 @@
                 console.log('Detected: Login form (errors)');
                 return { tabId: 'tab1-group4', linkClass: '.tab-login' };
             }
-            
+
             // Default to login tab
             console.log('Default: Login tab');
             return { tabId: 'tab1-group4', linkClass: '.tab-login' };

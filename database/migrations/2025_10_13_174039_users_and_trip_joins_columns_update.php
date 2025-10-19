@@ -30,7 +30,7 @@ return new class extends Migration
         });
 
         Schema::table('trip_joins', function (Blueprint $table) {
-            $table->dropColumn('left');
+            $table->dropColumn('has_left');
         });
     }
 };
