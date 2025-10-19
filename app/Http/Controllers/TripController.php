@@ -401,17 +401,23 @@ class TripController extends Controller
         // Get user display name for notification
         $leftUserName = $user->username ?? null;
 
-        // Notify other members
-        $otherUserPhone = $trip
+        // Notify other members who have confirmed payment and haven't left
+        $otherUserPhones = $trip
             ->joins()
+            ->where('payment_confirmed', 1) // Only notify confirmed members
+            ->where('has_left', 0) // Only notify active members
             ->whereNot('user_phone', $userPhone)
-            ->whereNot('has_left', 1) // Only notify active members
             ->pluck('user_phone');
 
-        // Get user message channel preference
-        foreach ($otherUserPhone as $phone) {
-            Notification::route('Sms', $phone)
-                ->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));
+        // Send notification to each confirmed member
+        foreach ($otherUserPhones as $phone) {
+            $user = User::where('phone', $phone)->first();
+            if ($user) {
+                $user->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));
+            } else {
+                Notification::route('Sms', $phone)
+                    ->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));
+            }
         }
 
         return redirect()->route('trips')->with('success', __('Successfully left the trip.'));

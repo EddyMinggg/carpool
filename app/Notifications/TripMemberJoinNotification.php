@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use App\Channels\SmsChannel;
 use App\Channels\Messages\SmsMessage;
 use App\Channels\Messages\WhatsAppMessage;
 use App\Models\Trip;
@@ -29,7 +30,18 @@ class TripMemberJoinNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return [$notifiable->notification_channel];
+        // Check if notifiable has notification_channel property (User model)
+        // Otherwise use SmsChannel as default for anonymous notifiable
+        if (property_exists($notifiable, 'notification_channel') && $notifiable->notification_channel) {
+            // Map channel names to actual channel classes
+            return match($notifiable->notification_channel) {
+                'sms' => [SmsChannel::class],
+                'whatsapp' => ['whatsapp'], // Keep as string if you have WhatsApp channel
+                default => [SmsChannel::class],
+            };
+        }
+        
+        return [SmsChannel::class];
     }
 
     public function toSms(object $notifiable): SmsMessage
