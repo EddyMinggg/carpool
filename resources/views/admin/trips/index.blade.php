@@ -618,7 +618,7 @@
                                                title="Edit Trip">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button onclick="showDeleteModal({{ $trip->id }}, '{{ $trip->dropoff_location }}', {{ $trip->joins->count() }})" 
+                                            <button onclick="showDeleteModal({{ $trip->id }}, '{{ $trip->dropoff_location }}', {{ $trip->activeJoins->count() }})" 
                                                     class="action-btn action-btn-red"
                                                     title="Delete Trip">
                                                 <i class="fas fa-trash"></i>

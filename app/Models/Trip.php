@@ -62,10 +62,16 @@ class Trip extends Model
         return $this->belongsTo(User::class, 'creator_id', 'id');
     }
 
-    // Relationship: Trip has many joins
+    // Relationship: Trip has many joins (all members including those who left)
     public function joins()
     {
         return $this->hasMany(TripJoin::class, 'trip_id', 'id');
+    }
+
+    // Relationship: Active members only (has_left = 0)
+    public function activeJoins()
+    {
+        return $this->hasMany(TripJoin::class, 'trip_id', 'id')->where('has_left', 0);
     }
 
     public function payments()

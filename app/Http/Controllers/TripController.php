@@ -94,14 +94,14 @@ class TripController extends Controller
         $trip = Trip::with(['joins.user', 'creator'])->findOrFail($id);
 
         // 計算當前用戶是否已加入且payment已確認
-        $userJoin = $trip->joins->where('user_phone', $userPhone)->first();
+        $userJoin = $trip->activeJoins->where('user_phone', $userPhone)->first();
         $hasJoined = $userJoin !== null && $userJoin->payment_confirmed;
 
         // 如果有payment記錄且已付款，但TripJoin記錄未確認，說明管理員還未處理
         $hasPaidButNotConfirmed = $payment && $payment->paid && $userJoin && !$userJoin->payment_confirmed;
 
-        // 計算價格（使用雙層定價系統）
-        $currentPeople = $trip->joins->count();
+        // 計算價格（使用雙層定價系統）- 只計算未離開的成員
+        $currentPeople = $trip->activeJoins->count();
 
         // Golden 或 Normal 類型：根據人數和類型計算價格
         $peopleCount = max(1, $currentPeople); // 至少1人
@@ -183,8 +183,8 @@ class TripController extends Controller
         // 確保使用香港時間
         $now = Carbon::now('Asia/Hong_Kong');
 
-        // 只顯示未來2週內且未過 departure time 的行程
-        $trips = Trip::with('joins')
+        // 只顯示未來2週內且未過 departure time 的行程 - 加载 activeJoins 以正确计算人数
+        $trips = Trip::with('activeJoins')
             ->where('planned_departure_time', '>', $now)
             ->where('planned_departure_time', '<=', $now->copy()->addWeeks(2))
             ->whereNot('trip_status', 'cancelled')
@@ -207,7 +207,7 @@ class TripController extends Controller
                 : Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
             $trip->date = $dt->format('Y-m-d');
             $trip->formatted_departure_time = $dt->format('H:i');
-            $trip->current_people = isset($trip->joins) ? $trip->joins->count() : 0;
+            $trip->current_people = isset($trip->activeJoins) ? $trip->activeJoins->count() : 0;
 
             // 使用新的定價系統計算每人費用
             if ($trip->type === 'fixed') {

@@ -55,7 +55,13 @@ class RegisteredUserController extends Controller
         // Combine country code and phone number
         $fullPhoneNumber = $request->phone_country_code . $request->phone;
 
-        // Prepare user data for temporary storage
+        // Check if this phone number has been verified before (as a guest)
+        $existingVerification = \App\Models\PhoneVerification::where('phone', $fullPhoneNumber)
+            ->where('is_verified', true)
+            ->latest()
+            ->first();
+
+        // Prepare user data
         $userData = [
             'username' => $request->username,
             'email' => $request->email,
@@ -64,6 +70,26 @@ class RegisteredUserController extends Controller
             'user_role' => User::ROLE_USER,
         ];
 
+        // If phone was already verified as guest, create user with phone_verified_at set
+        if ($existingVerification) {
+            $user = User::create([
+                'username' => $userData['username'],
+                'email' => $userData['email'],
+                'phone' => $userData['phone'],
+                'password' => $userData['password'],
+                'user_role' => $userData['user_role'],
+                'phone_verified_at' => $existingVerification->updated_at ?? Carbon::now(),
+            ]);
+
+            Auth::login($user);
+
+            return redirect(route('dashboard'))->with(
+                'success',
+                'Registration completed! Your phone number was already verified.'
+            );
+        }
+
+        // Phone not verified before, send OTP
         $tempUser = new User([
             'username' => $userData['username'],
             'email' => $userData['email'],
