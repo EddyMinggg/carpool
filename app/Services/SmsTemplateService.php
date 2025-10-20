@@ -35,8 +35,8 @@ class SmsTemplateService
         $latestRecordsCount = $latestRecords->count();
 
         $latestUser = null;
-        if ($latestRecordsCount < 2) {
-            $latestUser = User::where('phone', $latestRecords->user_phone)->first();
+        if ($latestRecordsCount < 2 && $latestRecords->isNotEmpty()) {
+            $latestUser = User::where('phone', $latestRecords->first()->user_phone)->first();
         }
 
         return "🎉 *新成員加入通知*\n\n" .

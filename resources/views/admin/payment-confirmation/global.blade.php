@@ -211,6 +211,11 @@
                 color: #166534;
             }
             
+            .mobile-payment-badge.coupon {
+                background: #fce7f3;
+                color: #9f1239;
+            }
+            
             .mobile-payment-actions {
                 display: flex;
                 gap: 8px;
@@ -392,6 +397,12 @@
                                     {{ $payment->reference_code }}
                                 </span>
                             @endif
+                            
+                            @if($payment->couponUsage)
+                                <span class="mobile-payment-badge coupon">
+                                    🎟️ {{ $payment->couponUsage->coupon->code }} (-HK$ {{ number_format($payment->couponUsage->discount_amount, 0) }})
+                                </span>
+                            @endif
                         </div>
                         
                         <div class="mobile-payment-actions">
@@ -531,6 +542,7 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User & Trip</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Payment Info</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Coupon</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
@@ -571,6 +583,20 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 HK$ {{ number_format($payment->amount, 2) }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @if($payment->couponUsage)
+                                                    <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                        <span class="px-2 py-1 text-xs font-medium bg-pink-100 text-pink-800 rounded-full">
+                                                            🎟️ {{ $payment->couponUsage->coupon->code }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                        -HK$ {{ number_format($payment->couponUsage->discount_amount, 2) }}
+                                                    </div>
+                                                @else
+                                                    <span class="text-xs text-gray-400 dark:text-gray-500">No coupon</span>
+                                                @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 @if($payment->paid)

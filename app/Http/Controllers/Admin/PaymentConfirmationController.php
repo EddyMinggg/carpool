@@ -130,7 +130,24 @@ class PaymentConfirmationController extends Controller
 
             $trip = Trip::find($payment->trip_id);
 
-            $trip->joins()->update(['payment_confirmed' => 1]);
+            // FIRST: Get OTHER users who have ALREADY confirmed payment (BEFORE updating current user)
+            $otherConfirmedUserPhones = $trip
+                ->joins()
+                ->where('payment_confirmed', 1)
+                ->where('has_left', 0)
+                ->whereNot('user_phone', $payment->user_phone)
+                ->pluck('user_phone');
+
+            Log::info('Found other confirmed users to notify', [
+                'current_user' => $payment->user_phone,
+                'other_confirmed_phones' => $otherConfirmedUserPhones->toArray(),
+                'trip_id' => $trip->id,
+            ]);
+
+            // THEN: Update payment_confirmed for THIS payment's user
+            $trip->joins()
+                ->where('user_phone', $payment->user_phone)
+                ->update(['payment_confirmed' => 1]);
 
             // Determine the number of passengers confirmed
             // For group bookings, use group_size; otherwise it's 1 person
@@ -138,19 +155,30 @@ class PaymentConfirmationController extends Controller
                 ? $payment->group_size 
                 : 1;
 
-            $otherUserPhone = $trip
-                ->joins()
-                ->whereNot('user_phone', $payment->user_phone)
-                ->pluck('user_phone');
+            // Notify other CONFIRMED members about new member joining
+            foreach ($otherConfirmedUserPhones as $phone) {
+                Log::info('Sending join notification', [
+                    'to_phone' => $phone,
+                    'new_member' => $payment->user_phone,
+                    'trip_id' => $trip->id,
+                ]);
 
-            // Get user message channel preference
-            foreach ($otherUserPhone as $phone) {
-                $user = User::where('phone', $phone)->first();
-                if ($user) {
-                    $user->notify(new TripMemberJoinNotification($trip));
-                } else {
-                    Notification::route('Sms', $phone)
-                        ->notify(new TripMemberJoinNotification($trip));
+                try {
+                    $user = User::where('phone', $phone)->first();
+                    if ($user) {
+                        $user->notify(new TripMemberJoinNotification($trip));
+                        Log::info('Join notification sent via User model', ['phone' => $phone]);
+                    } else {
+                        Notification::route('Sms', $phone)
+                            ->notify(new TripMemberJoinNotification($trip));
+                        Log::info('Join notification sent via anonymous notifiable', ['phone' => $phone]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to send join notification', [
+                        'phone' => $phone,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
                 }
             }
 
@@ -405,10 +433,10 @@ class PaymentConfirmationController extends Controller
                 // For group bookings, update all trip_joins for this trip that match the payment criteria
                 // Since we only have one payment for the whole group, we need to find all related trip_joins
                 $updated = TripJoin::where('trip_id', $payment->trip_id)
-                    ->where('payment_confirmation', false)
+                    ->where('payment_confirmed', 0)
                     ->limit($payment->group_size) // Only update the number of people in this group
                     ->update([
-                        'payment_confirmation' => true
+                        'payment_confirmed' => 1
                     ]);
 
                 Log::info('Group booking trip joins updated', [
@@ -422,7 +450,7 @@ class PaymentConfirmationController extends Controller
                 TripJoin::where('trip_id', $payment->trip_id)
                     ->where('user_phone', $payment->user_phone)
                     ->update([
-                        'payment_confirmation' => true
+                        'payment_confirmed' => 1
                     ]);
 
                 Log::info('Individual trip join updated', [
@@ -448,7 +476,7 @@ class PaymentConfirmationController extends Controller
         // Detect if mobile device
         $isMobile = $this->isMobileDevice($request);
 
-        $query = Payment::with(['trip', 'user']);
+        $query = Payment::with(['trip', 'user', 'couponUsage.coupon']);
 
         // Apply filters if provided
         if ($request->filled('search')) {

@@ -399,5 +399,10 @@
     "You cannot book this trip again as you have already left or were removed from it. Please contact support if you need assistance.": "You cannot book this trip again as you have already left or were removed from it. Please contact support if you need assistance.",
     "Invalid invitation code. Please check and try again.": "Invalid invitation code. Please check and try again.",
     "This phone number is not registered for this trip. Please check the phone number or use the correct invitation code.": "This phone number is not registered for this trip. Please check the phone number or use the correct invitation code.",
-    "Registration completed! Your phone number was already verified.": "Registration completed! Your phone number was already verified."
+    "Registration completed! Your phone number was already verified.": "Registration completed! Your phone number was already verified.",
+    "The password must be at least 8 characters.": "The password must be at least 8 characters.",
+    "The password must contain at least one uppercase letter and one lowercase letter.": "The password must contain at least one uppercase letter and one lowercase letter.",
+    "Password must be at least 8 characters long.": "Password must be at least 8 characters long.",
+    "Password must contain at least one uppercase letter (A-Z).": "Password must contain at least one uppercase letter (A-Z).",
+    "Password must contain at least one lowercase letter (a-z).": "Password must contain at least one lowercase letter (a-z)."
 }

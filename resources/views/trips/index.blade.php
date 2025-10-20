@@ -97,14 +97,27 @@
                     <!-- 頂部狀態指示器 -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
-                            <span
-                                class="px-3 py-1 text-xs font-semibold rounded-full
-                                @if ($trip->trip_status === 'awaiting') bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300
-                                @elseif($trip->trip_status === 'departed') bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300
-                                @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 @endif">
-                                {{ __(ucfirst($trip->trip_status)) }}
-                            </span>
-
+                            @if ($trip->trip_status === 'cancelled')
+                                <span
+                                    class="px-3 py-1 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-xs font-semibold rounded-full">
+                                    {{ __('Cancelled') }}
+                                </span>
+                            @elseif ($isUpcoming)
+                                <span
+                                    class="px-3 py-1 bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200 text-xs font-semibold rounded-full">
+                                    {{ __('Upcoming') }}
+                                </span>
+                            @elseif ($isToday && !$isExpired)
+                                <span
+                                    class="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full animate-pulse">
+                                    {{ __('Today') }}
+                                </span>
+                            @elseif ($isExpired)
+                                <span
+                                    class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-semibold rounded-full">
+                                    {{ __('Completed') }}
+                                </span>
+                            @endif
 
                             <span
                                 class="px-3 py-1 text-xs font-semibold rounded-full {{ $tripJoin->payment_confirmed == 1 ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200' }}">

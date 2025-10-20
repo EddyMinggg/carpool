@@ -249,6 +249,11 @@
                                 name="password" required autocomplete="new-password" />
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                             <div id="password-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                {{ __('Password must be at least 8 characters long.') }}<br>
+                                {{ __('Password must contain at least one uppercase letter (A-Z).') }}<br>
+                                {{ __('Password must contain at least one lowercase letter (a-z).') }}
+                            </p>
                         </div>
 
                         <!-- Confirm Password -->
@@ -318,7 +323,7 @@
                     document.documentElement.classList.remove('dark');
                     localStorage.setItem('dark-mode', false);
                 }
-            });
+            }
         });
     }
 
@@ -327,6 +332,74 @@
         const tabLinks = document.querySelectorAll('.tab-link');
         const tabContents = document.querySelectorAll('.tab-content');
         const tabIndicator = document.querySelector('.tab-indicator');
+
+        // Password validation for register form
+        const passwordInput = document.getElementById('password_register');
+        const passwordConfirmInput = document.getElementById('password_confirmation');
+        const passwordError = document.getElementById('password-error');
+        const registerForm = document.querySelector('#register-step-1 form');
+
+        if (passwordInput) {
+            // Real-time password validation
+            passwordInput.addEventListener('input', function() {
+                validatePassword(this.value);
+            });
+
+            // Form submission validation
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(e) {
+                    const password = passwordInput.value;
+                    const passwordConfirm = passwordConfirmInput ? passwordConfirmInput.value : '';
+
+                    // Validate password
+                    if (!validatePassword(password)) {
+                        e.preventDefault();
+                        passwordInput.focus();
+                        return false;
+                    }
+
+                    // Validate password confirmation match
+                    if (password !== passwordConfirm) {
+                        e.preventDefault();
+                        const confirmError = document.getElementById('password-confirmation-error');
+                        if (confirmError) {
+                            confirmError.textContent = '{{ __("The password confirmation does not match.") }}';
+                            confirmError.classList.remove('hidden');
+                        }
+                        passwordConfirmInput.focus();
+                        return false;
+                    }
+                });
+            }
+        }
+
+        function validatePassword(password) {
+            const minLength = 8;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+
+            let errorMessage = '';
+
+            if (password.length < minLength) {
+                errorMessage = '{{ __("Password must be at least 8 characters long.") }}';
+            } else if (!hasUpperCase) {
+                errorMessage = '{{ __("Password must contain at least one uppercase letter (A-Z).") }}';
+            } else if (!hasLowerCase) {
+                errorMessage = '{{ __("Password must contain at least one lowercase letter (a-z).") }}';
+            }
+
+            if (errorMessage) {
+                passwordError.textContent = errorMessage;
+                passwordError.classList.remove('hidden');
+                passwordInput.classList.add('border-red-500');
+                return false;
+            } else {
+                passwordError.textContent = '';
+                passwordError.classList.add('hidden');
+                passwordInput.classList.remove('border-red-500');
+                return true;
+            }
+        }
 
         // Define error conditions for each tab more clearly
         const errors = @json($errors->toArray());

@@ -101,8 +101,9 @@ class TripController extends Controller
         // 如果有payment記錄且已付款，但TripJoin記錄未確認，說明管理員還未處理
         $hasPaidButNotConfirmed = $payment && $payment->paid && $userJoin && !$userJoin->payment_confirmed;
 
-        // 計算價格（使用雙層定價系統）- 只計算未離開的成員
-        $currentPeople = $trip->activeJoins->count();
+        // 計算當前有效的人數（包含已確認付款 + 30分鐘內未付款）
+        // 使用新的方法來計算有效占位數
+        $currentPeople = $trip->getValidOccupiedSlotsCount();
 
         // Golden 或 Normal 類型：根據人數和類型計算價格
         $peopleCount = max(1, $currentPeople); // 至少1人
@@ -122,8 +123,8 @@ class TripController extends Controller
         // 格式化時間
         $departureTime = Carbon::parse($trip->planned_departure_time);
 
-        // 計算可用槽位數
-        $availableSlots = max(0, $trip->max_people - $currentPeople);
+        // 計算可用槽位數（使用新的方法，考慮30分鐘超時）
+        $availableSlots = $trip->getAvailableSlots();
 
         // 獲取分配的司機信息
         $assignedDriver = null;
@@ -134,6 +135,18 @@ class TripController extends Controller
         $isGroupBooking = $payment && $payment->type === 'group';
         $showInvitationCode = ($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking;
 
+        // 獲取有效的成員列表（已確認付款 + 30分鐘內未付款的）
+        $validMembers = $trip->joins()
+            ->where('has_left', 0)
+            ->where(function ($query) {
+                $query->where('payment_confirmed', 1) // 已確認付款
+                    ->orWhere(function ($q) {
+                        $q->where('payment_confirmed', 0) // 或未付款但在30分鐘內
+                            ->where('created_at', '>=', now()->subMinutes(30));
+                    });
+            })
+            ->with('user')
+            ->get();
 
         return view('trips.show', compact(
             'trip',
@@ -148,8 +161,9 @@ class TripController extends Controller
             'isGroupBooking',
             'price',
             'departureTime',
-            'assignedDriver'
-        ))->with('userHasJoined', $hasJoined);
+            'assignedDriver',
+            'validMembers'
+        ));
     }
 
     /**
@@ -208,7 +222,9 @@ class TripController extends Controller
                 : Carbon::parse($trip->planned_departure_time, 'Asia/Hong_Kong');
             $trip->date = $dt->format('Y-m-d');
             $trip->formatted_departure_time = $dt->format('H:i');
-            $trip->current_people = isset($trip->activeJoins) ? $trip->activeJoins->count() : 0;
+            
+            // 使用新的方法計算有效人數（已確認 + 30分鐘內未付款）
+            $trip->current_people = $trip->getValidOccupiedSlotsCount();
 
             // 使用新的定價系統計算每人費用
             if ($trip->type === 'fixed') {
@@ -385,17 +401,23 @@ class TripController extends Controller
         // Get user display name for notification
         $leftUserName = $user->username ?? null;
 
-        // Notify other members
-        $otherUserPhone = $trip
+        // Notify other members who have confirmed payment and haven't left
+        $otherUserPhones = $trip
             ->joins()
+            ->where('payment_confirmed', 1) // Only notify confirmed members
+            ->where('has_left', 0) // Only notify active members
             ->whereNot('user_phone', $userPhone)
-            ->whereNot('has_left', 1) // Only notify active members
             ->pluck('user_phone');
 
-        // Get user message channel preference
-        foreach ($otherUserPhone as $phone) {
-            Notification::route('Sms', $phone)
-                ->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));
+        // Send notification to each confirmed member
+        foreach ($otherUserPhones as $phone) {
+            $user = User::where('phone', $phone)->first();
+            if ($user) {
+                $user->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));
+            } else {
+                Notification::route('Sms', $phone)
+                    ->notify(new TripMemberLeaveNotification($trip, $userPhone, $leftUserName));
+            }
         }
 
         return redirect()->route('trips')->with('success', __('Successfully left the trip.'));
