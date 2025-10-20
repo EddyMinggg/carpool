@@ -13,7 +13,7 @@ class SmsChannel
 
 
         $to = $notifiable->routeNotificationFor('Sms');
-        $from = config('sms.twilio.phone_number');
+        $from = config('sms.twilio.friendly_name');
 
 
         $twilio = new Client(config('sms.twilio.sid'), config('sms.twilio.token'));
