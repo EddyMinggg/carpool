@@ -32,6 +32,12 @@ class Payment extends Model
         return $this->belongsTo(User::class, 'user_phone', 'phone');
     }
 
+    // Coupon usage relationship
+    public function couponUsage()
+    {
+        return $this->hasOne(CouponUsage::class, 'payment_id', 'id');
+    }
+
     // Get all trip joins for this payment's group booking
     public function tripJoins()
     {

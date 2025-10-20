@@ -46,10 +46,17 @@ class RegisteredUserController extends Controller
                     }
                 }
             ],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => [
+                'required', 
+                'confirmed', 
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z]).+$/', // At least one uppercase and one lowercase letter
+            ],
         ], [
             'phone.regex' => 'The phone number must be 8-15 digits.',
             'phone_country_code.in' => 'Please select a valid country code.',
+            'password.min' => 'The password must be at least 8 characters.',
+            'password.regex' => 'The password must contain at least one uppercase letter and one lowercase letter.',
         ]);
 
         // Combine country code and phone number

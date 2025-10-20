@@ -476,7 +476,7 @@ class PaymentConfirmationController extends Controller
         // Detect if mobile device
         $isMobile = $this->isMobileDevice($request);
 
-        $query = Payment::with(['trip', 'user']);
+        $query = Payment::with(['trip', 'user', 'couponUsage.coupon']);
 
         // Apply filters if provided
         if ($request->filled('search')) {

@@ -11,7 +11,7 @@ use App\Channels\Messages\WhatsAppMessage;
 use App\Models\Trip;
 use App\Services\SmsTemplateService;
 
-class TripMemberLeaveNotification extends Notification implements ShouldQueue
+class TripMemberLeaveNotification extends Notification
 {
     use Queueable;
 
