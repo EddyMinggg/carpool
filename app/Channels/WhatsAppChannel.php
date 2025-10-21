@@ -27,6 +27,7 @@ class WhatsAppChannel
                 "contentSid" => $message->contentSid,
                 "contentVariables" => json_encode($message->contentVariables),
                 "from" => $from,
+                "messagingServiceSid" => 'MG13148a16d023d276031825468a753a60'
             ]
         );
 
