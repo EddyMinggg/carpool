@@ -11,7 +11,9 @@ use App\Channels\Messages\WhatsAppMessage;
 
 use App\Services\SmsTemplateService;
 
-class OtpNotification extends Notification implements ShouldQueue
+define('OTP_SID', 'HXa23c1829f579e9ad12af8a413fa3b772');
+
+class OtpNotification extends Notification
 {
     use Queueable;
 

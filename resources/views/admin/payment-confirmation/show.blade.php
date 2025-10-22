@@ -531,7 +531,7 @@
                         📧 Email Notification
                     </div>
                     <div class="mobile-info-text">
-                        Confirming will automatically send an email to <strong>{{ optional(\App\Models\User::where('phone', $payment->user_phone)->first())->email ?? $payment->user_phone }}</strong> with payment confirmation and trip details.
+                        Confirming will automatically send an email to <strong>{{ $payment->email }}</strong> with payment confirmation and trip details.
                     </div>
                 </div>
                 

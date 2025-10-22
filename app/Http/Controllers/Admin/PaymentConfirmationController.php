@@ -81,9 +81,8 @@ class PaymentConfirmationController extends Controller
                 session()->forget('came_from_global');
                 return redirect()
                     ->route('admin.payment-confirmation.global');
-                    
             }
-            
+
             session()->forget('came_from_global');
             return redirect()
                 ->route('admin.payment-confirmation.index', $payment->trip);
@@ -151,8 +150,8 @@ class PaymentConfirmationController extends Controller
 
             // Determine the number of passengers confirmed
             // For group bookings, use group_size; otherwise it's 1 person
-            $confirmedCount = ($payment->type === 'group_full_payment' && $payment->group_size > 1) 
-                ? $payment->group_size 
+            $confirmedCount = ($payment->type === 'group_full_payment' && $payment->group_size > 1)
+                ? $payment->group_size
                 : 1;
 
             // Notify other CONFIRMED members about new member joining
@@ -224,13 +223,13 @@ class PaymentConfirmationController extends Controller
             // Check if user came from global page (use session instead of previous URL)
             $cameFromGlobal = session('came_from_global', false);
             session()->forget('came_from_global'); // Clear after use
-            
+
             if ($cameFromGlobal) {
                 return redirect()
                     ->route('admin.payment-confirmation.global')
                     ->with('success', $message);
             }
-            
+
             return redirect()
                 ->route('admin.payment-confirmation.index', $payment->trip)
                 ->with('success', $message);
@@ -326,7 +325,7 @@ class PaymentConfirmationController extends Controller
     /**
      * Send payment confirmation email to user
      */
-    private function sendPaymentConfirmationEmail(Payment $payment, string $adminNotes = null)
+    private function sendPaymentConfirmationEmail(Payment $payment, ?string $adminNotes = null)
     {
         try {
             $payment->load(['trip']);
@@ -334,14 +333,14 @@ class PaymentConfirmationController extends Controller
             // Find user by phone number from payment
             $user = User::where('phone', $payment->user_phone)->first();
 
-            // Skip email if user doesn't exist or no email
-            if (!$user || !$user->email) {
-                Log::info('Skipping email - user not found or no email', [
-                    'payment_id' => $payment->id,
-                    'user_phone' => $payment->user_phone,
-                ]);
-                return;
-            }
+            // // Skip email if user doesn't exist or no email
+            // if (!$user || !$user->email) {
+            //     Log::info('Skipping email - user not found or no email', [
+            //         'payment_id' => $payment->id,
+            //         'user_phone' => $payment->user_phone,
+            //     ]);
+            //     return;
+            // }
 
             // Get trip join details
             $tripJoin = TripJoin::where('trip_id', $payment->trip_id)
@@ -349,7 +348,7 @@ class PaymentConfirmationController extends Controller
                 ->first();
 
             Mail::send('emails.payment-confirmed', [
-                'userName' => $user->username ?: 'Carpool Member',
+                'userName' => $user ? $user->username : 'Carpool Member',
                 'tripId' => $payment->trip->id,
                 'destination' => $payment->trip->dropoff_location ?: 'To be confirmed',
                 'departureDate' => $payment->trip->planned_departure_time ? $payment->trip->planned_departure_time->format('Y-m-d') : 'To be confirmed',
@@ -363,14 +362,14 @@ class PaymentConfirmationController extends Controller
                 'appName' => 'Snowpins',
                 'appUrl' => config('app.url'),
                 'adminNotes' => $adminNotes,
-            ], function ($message) use ($payment, $user) {
-                $message->to($user->email, $user->username)
+            ], function ($message) use ($payment) {
+                $message->to($payment->email)
                     ->subject('Payment Confirmed - Welcome to Trip #' . $payment->trip->id);
             });
 
             Log::info('Payment confirmation email sent', [
                 'payment_id' => $payment->id,
-                'user_email' => $user->email,
+                'user_email' => $payment->email,
                 'user_phone' => $payment->user_phone,
                 'trip_id' => $payment->trip->id,
                 'type' => $payment->type,

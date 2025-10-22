@@ -14,6 +14,7 @@ class Payment extends Model
         'reference_code',
         'trip_id',
         'user_phone',
+        'email',
         'amount',
         'type',
         'paid',
@@ -44,12 +45,12 @@ class Payment extends Model
         if ($this->type === 'group' && $this->group_size > 1) {
             // For group bookings, return multiple trip joins for the same trip
             return $this->hasMany(TripJoin::class, 'trip_id', 'trip_id')
-                       ->where('payment_confirmation', true)
-                       ->limit($this->group_size);
+                ->where('payment_confirmation', true)
+                ->limit($this->group_size);
         } else {
             // For individual bookings, return the specific user's trip join
             return $this->hasOne(TripJoin::class, 'trip_id', 'trip_id')
-                       ->where('user_phone', $this->user_phone);
+                ->where('user_phone', $this->user_phone);
         }
     }
 

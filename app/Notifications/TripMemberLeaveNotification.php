@@ -12,9 +12,10 @@ use App\Channels\Messages\WhatsAppMessage;
 use App\Models\Trip;
 use App\Models\TripJoin;
 use App\Services\SmsTemplateService;
+
 define('LEAVE_SID', 'HXcabbd56f3b677a67aaaf9a9067730741');
 
-class TripMemberLeaveNotification extends Notification implements ShouldQueue
+class TripMemberLeaveNotification extends Notification
 {
     use Queueable;
 
@@ -38,13 +39,13 @@ class TripMemberLeaveNotification extends Notification implements ShouldQueue
     {
         // Check if notifiable has notification_channel property (User model)
         // Otherwise use SmsChannel as default for anonymous notifiable
-    
-            // Map channel names to actual channel classes
-            return match($notifiable->notification_channel) {
-                'sms' => [SmsChannel::class],
-                'whatsapp' => [WhatsAppChannel::class], // Keep as string if you have WhatsApp channel
-                default => [SmsChannel::class],
-            };
+
+        // Map channel names to actual channel classes
+        return match ($notifiable->notification_channel) {
+            'sms' => [SmsChannel::class],
+            'whatsapp' => [WhatsAppChannel::class], // Keep as string if you have WhatsApp channel
+            default => [SmsChannel::class],
+        };
     }
 
     public function toSms(object $notifiable): SmsMessage
@@ -65,7 +66,7 @@ class TripMemberLeaveNotification extends Notification implements ShouldQueue
 
         return (new WhatsAppMessage())
             ->content(
-                JOIN_SID,
+                LEAVE_SID,
                 [
                     '1' => (string)$this->trip->dropoff_location,
                     '2' => (string)$this->trip->planned_departure_time,

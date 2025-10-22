@@ -45,13 +45,13 @@
 
 
                 <!-- Language Dropdown -->
+                @php
+                    $lang = Session::get('locale', 'en');
+                @endphp
                 <x-dropdown align="right" width="auto">
                     <x-slot name="trigger">
                         <button
                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-200 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            @php
-                                $lang = Session::get('locale', 'en');
-                            @endphp
                             <i class="material-icons text-lg sm:text-xl">&#xe894;</i>
                         </button>
                     </x-slot>

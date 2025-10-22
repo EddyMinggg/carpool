@@ -487,7 +487,7 @@
     "No trip history": "没有订单记录",
     "Haven't joined any trips yet?": "尚未加入任何行程？",
     "Find Trips": "浏览行程",
-    "Search trips by destination or pickup location...": "依目的地或上车地点搜寻行程...",
+    "Search trips by destination or pickup location...": "依目的地或上车地点搜索行程...",
     "Select pickup location": "选择上车地点",
     "Joined User": "已加入用户",
     "Book This Trip": "预约行程",
@@ -495,7 +495,7 @@
     "Name": "名称",
     "Main Booker": "主预约人",
     "Passenger": "乘客",
-    "Click to select pickup location on map": "点击于地图选择上车地点",
+    "Click to select pickup location on map": "点击于地图搜索上车地点",
     "Primary Contact": "主联络人",
     "Coupon Code": "优惠码",
     "Enter coupon code": "输入优惠码",
@@ -528,7 +528,8 @@
     "Driver has been assigned to this trip": "司机已被分配到这趟行程",
     "You can contact the driver directly using the buttons above when the trip time approaches.": "您可以于行程即将出发时，使用上方按钮直接联络司机",
     "Trip History": "行程记录",
-    "Resend in": "秒后重新发送"
+    "Resend in": "秒后重新发送",
+    "Select": "选择"
 }
 
 

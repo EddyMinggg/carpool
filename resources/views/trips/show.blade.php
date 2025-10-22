@@ -458,7 +458,7 @@
                                 };
                                 @endphp
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                                    {{ __('Joined') }} {{ $join->created_at->diffForHumans() }}
+                                    {{ __('Joined') }} {{ $join->created_at->locale($carbonLocale)->diffForHumans() }}
                                     @if (!$join->payment_confirmed)
                                         <span class="text-amber-600 dark:text-amber-400 ml-1">
                                             ({{ __('Pending Payment') }})
@@ -1036,20 +1036,28 @@
                                             $_userPhone = $userPhone;
                                         }
                                         $code = strpos($userPhone, '+852') !== false ? '+852' : '+86';
+                                        $isHKCode = $code == '+852' || $userPhone == null;
                                     @endphp
                                     <div class="flex">
                                         <select name="passengers[0][phone_country_code]"
                                             class="rounded-l-md border-gray-300 dark:border-gray-700 bg-secondary dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm">
                                             <option value="+852"
-                                                {{ $code == '+852' || $userPhone == null ? 'selected' : '' }}>+852 (HK)
+                                                {{ $isHKCode ? 'selected' : '' }}>+852 (HK)
                                             </option>
-                                            <option value="+86" {{ $code == '+86' ? 'selected' : '' }}>+86 (CN)
+                                            <option value="+86" {{ !$isHKCode ? 'selected' : '' }}>+86 (CN)
                                             </option>
                                         </select>
                                         <x-text-input type="tel" name="passengers[0][phone]" required
                                             class="border-gray-300 dark:border-gray-700 block w-full rounded-l-none border-l-0"
                                             placeholder="12345678" value="{{ $_userPhone }}" />
                                     </div>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {{ __('Email') }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <x-text-input name="email" type="email" required
+                                        class="w-full border-gray-300 dark:border-gray-700" />
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

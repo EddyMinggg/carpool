@@ -491,7 +491,7 @@
     "Name": "名稱",
     "Main Booker": "主預約人",
     "Passenger": "乘客",
-    "Click to select pickup location on map": "點擊於地圖選擇上車地點",
+    "Click to select pickup location on map": "點擊於地圖搜尋上車地點",
     "Primary Contact": "主聯絡人",
     "Coupon Code": "優惠碼",
     "Enter coupon code": "輸入優惠碼",
@@ -524,6 +524,8 @@
     "Driver has been assigned to this trip": "司機已被分配到這趟行程",
     "You can contact the driver directly using the buttons above when the trip time approaches.": "您可以於行程即將出發時，使用上方按鈕直接聯絡司機",
     "Trip History": "行程記錄",
-    "Resend in": "秒後重新發送"
+    "Resend in": "秒後重新發送",
+    "Joined": "加入於",
+    "Select": "選擇"
 }
 
