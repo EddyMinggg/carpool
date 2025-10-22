@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Exception;
 
 use App\Notifications\OtpNotification;
+use Notification;
 
 class OtpService
 {
@@ -53,7 +54,7 @@ class OtpService
                 'ip_address' => request()->ip()
             ]);
 
-            $this->user->notify(new OtpNotification($otpCode, \App::getLocale()));
+            Notification::route('WhatsApp', $this->user->phone)->notify(new OtpNotification($otpCode, \App::getLocale()));
 
             // if (!$result['success']) {
             //     Log::error('Failed to send OTP via Twilio', [
