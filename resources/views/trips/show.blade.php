@@ -1236,6 +1236,100 @@
             </div>
         @endif
 
+        <!-- 重新發送 Invoice 功能 - 只對已加入且已確認付款的主預訂人顯示 -->
+        @if ($trip->trip_status !== 'cancelled' && $hasJoined && !$hasLeft)
+            @php
+                $userPayment = \App\Models\Payment::where('trip_id', $trip->id)
+                    ->where('user_phone', $userPhone)
+                    ->where('paid', true)
+                    ->first();
+                $currentUser = Auth::user();
+            @endphp
+            
+            @if ($userPayment)
+                <div class="mt-6">
+                    <button
+                        class="w-full bg-blue-600 hover:bg-blue-500 dark:bg-blue-700 dark:hover:bg-blue-600 text-gray-100 dark:text-gray-200 py-4 rounded-xl font-semibold transition shadow-md flex items-center justify-center gap-2"
+                        x-data="" x-on:click.prevent="$dispatch('open-modal', 'resend-invoice-modal')">
+                        <span class="material-icons">email</span>
+                        {{ __('Resend Invoice') }}
+                    </button>
+
+                    <x-modal name="resend-invoice-modal" focusable>
+                        <form action="{{ route('trips.resend-invoice', $trip) }}" method="POST" id="resend-invoice-form">
+                            @csrf
+                            <div class="p-8">
+                                <h2 class="text-xl text-gray-900 dark:text-gray-300 font-black mb-4">
+                                    {{ __('Resend Payment Invoice') }}
+                                </h2>
+
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                                    {{ __('Enter your email address to receive the payment invoice. You can update the email if needed.') }}
+                                </p>
+
+                                <!-- Warning Message -->
+                                <div class="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-icons text-amber-600 dark:text-amber-400 text-xl">warning</span>
+                                        <p class="text-sm text-amber-800 dark:text-amber-200">
+                                            {{ __('Important: Make sure your email address is correct. This invoice contains your trip details and payment confirmation.') }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Email Input -->
+                                <div class="mb-4">
+                                    <label for="invoice-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {{ __('Email') }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <x-text-input 
+                                        id="invoice-email" 
+                                        name="email" 
+                                        type="email" 
+                                        class="w-full" 
+                                        value="{{ $currentUser->email ?? '' }}"
+                                        required 
+                                        placeholder="example@email.com" />
+                                    @error('email')
+                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <!-- Confirm Email Input -->
+                                <div class="mb-6">
+                                    <label for="invoice-email-confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {{ __('Confirm Email') }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <x-text-input 
+                                        id="invoice-email-confirmation" 
+                                        name="email_confirmation" 
+                                        type="email" 
+                                        class="w-full" 
+                                        required 
+                                        placeholder="{{ __('Please re-enter your email address to confirm') }}" />
+                                    @error('email_confirmation')
+                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="flex justify-end gap-3">
+                                    <x-secondary-button type="button" x-on:click="$dispatch('close')">
+                                        {{ __('Close') }}
+                                    </x-secondary-button>
+
+                                    <button type="submit"
+                                        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest transition ease-in-out duration-150">
+                                        <span class="material-icons text-sm">send</span>
+                                        {{ __('Send Invoice') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </x-modal>
+                </div>
+            @endif
+        @endif
+
         <!-- 離開拼車功能 - 只對已加入且未取消的行程用戶顯示 -->
         @if ($trip->trip_status !== 'cancelled' && $hasJoined && !$hasLeft)
             <div class="mt-6">
@@ -2848,6 +2942,42 @@
         @if (($hasJoined || (isset($hasPaidButNotConfirmed) && $hasPaidButNotConfirmed)) && $isGroupBooking)
             initializeInvitationCodeFeatures();
         @endif
+
+        // Email validation for resend invoice form
+        const resendInvoiceForm = document.getElementById('resend-invoice-form');
+        if (resendInvoiceForm) {
+            const emailInput = document.getElementById('invoice-email');
+            const emailConfirmInput = document.getElementById('invoice-email-confirmation');
+            
+            // Real-time validation for email confirmation
+            if (emailConfirmInput) {
+                emailConfirmInput.addEventListener('input', function() {
+                    const email = emailInput.value;
+                    const emailConfirm = emailConfirmInput.value;
+                    
+                    if (emailConfirm && email !== emailConfirm) {
+                        emailConfirmInput.setCustomValidity('{{ __("Email addresses do not match.") }}');
+                        emailConfirmInput.classList.add('border-red-500', 'dark:border-red-500');
+                    } else {
+                        emailConfirmInput.setCustomValidity('');
+                        emailConfirmInput.classList.remove('border-red-500', 'dark:border-red-500');
+                    }
+                });
+            }
+
+            // Form submission validation
+            resendInvoiceForm.addEventListener('submit', function(e) {
+                const email = emailInput.value;
+                const emailConfirm = emailConfirmInput.value;
+                
+                if (email !== emailConfirm) {
+                    e.preventDefault();
+                    alert('{{ __("Email addresses do not match.") }}');
+                    emailConfirmInput.focus();
+                    return false;
+                }
+            });
+        }
     });
 </script>
 

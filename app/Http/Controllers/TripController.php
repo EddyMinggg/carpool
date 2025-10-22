@@ -9,6 +9,8 @@ use App\Models\Trip;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Notifications\TripMemberLeaveNotification;
 use Notification;
 
@@ -443,5 +445,87 @@ class TripController extends Controller
         ]);
 
         return redirect()->back()->with('success', __('Trip has departed successfully!'));
+    }
+
+    /**
+     * Resend payment confirmation invoice email
+     */
+    public function resendInvoice(Request $request, string $id)
+    {
+        $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'email_confirmation' => ['required', 'email', 'same:email'],
+        ], [
+            'email.required' => __('Email address is required.'),
+            'email.email' => __('Please enter a valid email address.'),
+            'email_confirmation.required' => __('Email confirmation is required.'),
+            'email_confirmation.same' => __('Email addresses do not match.'),
+        ]);
+
+        try {
+            $trip = Trip::findOrFail($id);
+            $userPhone = Auth::user()->phone;
+
+            // Find the main booker's payment (first passenger's payment)
+            $payment = Payment::where('trip_id', $trip->id)
+                ->where('user_phone', $userPhone)
+                ->where('paid', true)
+                ->first();
+
+            if (!$payment) {
+                return back()->withErrors(['error' => __('Payment not found or not confirmed yet.')]);
+            }
+
+            // Check if user is the main booker
+            $tripJoin = TripJoin::where('trip_id', $trip->id)
+                ->where('user_phone', $userPhone)
+                ->first();
+
+            if (!$tripJoin) {
+                return back()->withErrors(['error' => __('You are not a member of this trip.')]);
+            }
+
+            // Get user details
+            $user = User::where('phone', $userPhone)->first();
+
+            // Send email with updated email address
+            Mail::send('emails.payment-confirmed', [
+                'userName' => $user ? $user->username : 'Carpool Member',
+                'tripId' => $trip->id,
+                'destination' => $trip->dropoff_location ?: 'To be confirmed',
+                'departureDate' => $trip->planned_departure_time ? $trip->planned_departure_time->format('Y-m-d') : 'To be confirmed',
+                'departureTime' => $trip->planned_departure_time ? $trip->planned_departure_time->format('H:i') : 'To be confirmed',
+                'pickupLocation' => $tripJoin->pickup_location ?: 'To be confirmed',
+                'amountPaid' => number_format($payment->amount, 2),
+                'paymentType' => ucfirst($payment->type),
+                'referenceCode' => $payment->reference_code,
+                'confirmedDate' => $payment->updated_at ? $payment->updated_at->format('Y-m-d H:i') : now()->format('Y-m-d H:i'),
+                'tripUrl' => route('trips.show', $trip->id),
+                'appName' => 'Snowpins',
+                'appUrl' => config('app.url'),
+                'adminNotes' => null,
+            ], function ($message) use ($request, $trip) {
+                $message->to($request->email)
+                    ->subject('Payment Invoice - Trip #' . $trip->id);
+            });
+
+            Log::info('Invoice email resent by user', [
+                'trip_id' => $trip->id,
+                'user_phone' => $userPhone,
+                'new_email' => $request->email,
+                'payment_id' => $payment->id,
+            ]);
+
+            return back()->with('success', __('Invoice email has been sent successfully to') . ' ' . $request->email);
+        } catch (\Exception $e) {
+            Log::error('Failed to resend invoice email', [
+                'trip_id' => $id,
+                'user_phone' => Auth::user()->phone ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->withErrors(['error' => __('Failed to send invoice email. Please try again or contact support.')]);
+        }
     }
 }

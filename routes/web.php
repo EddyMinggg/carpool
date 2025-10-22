@@ -21,6 +21,7 @@ Route::get('/', [TripController::class, 'dashboard'])->name('dashboard');
 Route::prefix('trips')->middleware(['auth', 'verified', 'prevent.driver.trips'])->group(function () {
     Route::get('/', [TripController::class, 'index'])->name('trips');
     Route::post('/{trip}/leave', [TripController::class, 'leave'])->name('trips.leave');
+    Route::post('/{trip}/resend-invoice', [TripController::class, 'resendInvoice'])->name('trips.resend-invoice');
 });
 
 Route::prefix('trips')->get('/{id}', [TripController::class, 'show'])->name('trips.show');
