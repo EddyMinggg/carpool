@@ -404,5 +404,21 @@
     "The password must contain at least one uppercase letter and one lowercase letter.": "The password must contain at least one uppercase letter and one lowercase letter.",
     "Password must be at least 8 characters long.": "Password must be at least 8 characters long.",
     "Password must contain at least one uppercase letter (A-Z).": "Password must contain at least one uppercase letter (A-Z).",
-    "Password must contain at least one lowercase letter (a-z).": "Password must contain at least one lowercase letter (a-z)."
+    "Password must contain at least one lowercase letter (a-z).": "Password must contain at least one lowercase letter (a-z).",
+    "Resend Invoice": "Resend Invoice",
+    "Resend Payment Invoice": "Resend Payment Invoice",
+    "Enter your email address to receive the payment invoice. You can update the email if needed.": "Enter your email address to receive the payment invoice. You can update the email if needed.",
+    "Confirm Email": "Confirm Email",
+    "Please re-enter your email address to confirm": "Please re-enter your email address to confirm",
+    "Send Invoice": "Send Invoice",
+    "Close": "Close",
+    "Email address is required.": "Email address is required.",
+    "Please enter a valid email address.": "Please enter a valid email address.",
+    "Email confirmation is required.": "Email confirmation is required.",
+    "Email addresses do not match.": "Email addresses do not match.",
+    "Payment not found or not confirmed yet.": "Payment not found or not confirmed yet.",
+    "You are not a member of this trip.": "You are not a member of this trip.",
+    "Invoice email has been sent successfully to": "Invoice email has been sent successfully to",
+    "Failed to send invoice email. Please try again or contact support.": "Failed to send invoice email. Please try again or contact support.",
+    "Important: Make sure your email address is correct. This invoice contains your trip details and payment confirmation.": "Important: Make sure your email address is correct. This invoice contains your trip details and payment confirmation."
 }
