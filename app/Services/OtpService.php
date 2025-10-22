@@ -54,7 +54,7 @@ class OtpService
                 'ip_address' => request()->ip()
             ]);
 
-            Notification::route('WhatsApp', $this->user->phone)->notify(new OtpNotification($otpCode, \App::getLocale()));
+            $this->user->notify(new OtpNotification($otpCode, \App::getLocale()));
 
             // if (!$result['success']) {
             //     Log::error('Failed to send OTP via Twilio', [
