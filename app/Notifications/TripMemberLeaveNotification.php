@@ -6,12 +6,15 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use App\Channels\SmsChannel;
+use App\Channels\WhatsAppChannel;
 use App\Channels\Messages\SmsMessage;
 use App\Channels\Messages\WhatsAppMessage;
 use App\Models\Trip;
+use App\Models\TripJoin;
 use App\Services\SmsTemplateService;
+define('LEAVE_SID', 'HXcabbd56f3b677a67aaaf9a9067730741');
 
-class TripMemberLeaveNotification extends Notification
+class TripMemberLeaveNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -35,16 +38,13 @@ class TripMemberLeaveNotification extends Notification
     {
         // Check if notifiable has notification_channel property (User model)
         // Otherwise use SmsChannel as default for anonymous notifiable
-        if (property_exists($notifiable, 'notification_channel') && $notifiable->notification_channel) {
+    
             // Map channel names to actual channel classes
             return match($notifiable->notification_channel) {
                 'sms' => [SmsChannel::class],
-                'whatsapp' => ['whatsapp'], // Keep as string if you have WhatsApp channel
+                'whatsapp' => [WhatsAppChannel::class], // Keep as string if you have WhatsApp channel
                 default => [SmsChannel::class],
             };
-        }
-        
-        return [SmsChannel::class];
     }
 
     public function toSms(object $notifiable): SmsMessage
@@ -57,14 +57,23 @@ class TripMemberLeaveNotification extends Notification
                 ->content(SmsTemplateService::regularTimeLeaveMessage($this->trip, $this->leftUserPhone, $this->leftUserName));
         }
     }
-    // public function toWhatsApp(object $notifiable): WhatsAppMessage
-    // {
-    //     if ($this->trip->type == 'golden') {
-    //         return (new WhatsAppMessage())
-    //             ->content(SmsTemplateService::goldenTimeLeaveMessage($this->trip));
-    //     } else {
-    //         return (new WhatsAppMessage())
-    //             ->content(SmsTemplateService::regularTimeLeaveMessage($this->trip));
-    //     }
-    // }
+    public function toWhatsApp(object $notifiable): WhatsAppMessage
+    {
+        $leftUserDisplayName = $this->leftUserName ?? $this->leftUserPhone;
+
+        $allTripJoinsCount = TripJoin::where('trip_id', $this->trip->id)->whereNot('has_left', 1)->count();
+
+        return (new WhatsAppMessage())
+            ->content(
+                JOIN_SID,
+                [
+                    '1' => (string)$this->trip->dropoff_location,
+                    '2' => (string)$this->trip->planned_departure_time,
+                    '3' => (string)$leftUserDisplayName,
+                    '4' => (string)$allTripJoinsCount,
+                    '5' => (string)$this->trip->max_people,
+                    '6' => (string)$this->trip->price_per_person
+                ],
+            );
+    }
 }

@@ -169,7 +169,7 @@ class PaymentConfirmationController extends Controller
                         $user->notify(new TripMemberJoinNotification($trip));
                         Log::info('Join notification sent via User model', ['phone' => $phone]);
                     } else {
-                        Notification::route('Sms', $phone)
+                        Notification::route('WhatsApp', $phone)
                             ->notify(new TripMemberJoinNotification($trip));
                         Log::info('Join notification sent via anonymous notifiable', ['phone' => $phone]);
                     }
