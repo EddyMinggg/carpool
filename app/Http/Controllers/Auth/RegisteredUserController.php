@@ -97,33 +97,25 @@ class RegisteredUserController extends Controller
         }
 
         // Phone not verified before, send OTP
-        $tempUser = new User([
+        $tempUser =  User::create([
             'username' => $userData['username'],
             'email' => $userData['email'],
             'phone' => $userData['phone'],
             'password' => $userData['password'],
             'user_role' => $userData['user_role'],
-            'notification_channel' => 'whatsapp',
         ]);
 
         $res = (new OtpService($tempUser))->sendOtp();
 
         if ($res['success']) {
-            $user = User::create([
-                'username' => $userData['username'],
-                'email' => $userData['email'],
-                'phone' => $userData['phone'],
-                'password' => $userData['password'],
-                'user_role' => $userData['user_role'],
-            ]);
-
-            Auth::login($user);
-
+            Auth::login($tempUser);
             return redirect(route('verification.notice'))->with(
                 'success',
                 'Registration completed! Please check your SMS to verify your phone number.'
             );
         }
+
+        $tempUser->delete();
 
         return redirect()->back()->withInput()->withErrors([
             'phone' => 'Failed to send OTP. Please check your phone number and try again.'
