@@ -47,8 +47,8 @@ class RegisteredUserController extends Controller
                 }
             ],
             'password' => [
-                'required', 
-                'confirmed', 
+                'required',
+                'confirmed',
                 'min:8',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z]).+$/', // At least one uppercase and one lowercase letter
             ],
@@ -103,7 +103,7 @@ class RegisteredUserController extends Controller
             'phone' => $userData['phone'],
             'password' => $userData['password'],
             'user_role' => $userData['user_role'],
-            'notification_channel' => 'sms',
+            'notification_channel' => 'whatsapp',
         ]);
 
         $res = (new OtpService($tempUser))->sendOtp();
