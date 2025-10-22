@@ -15,7 +15,7 @@ use App\Services\SmsTemplateService;
 
 define('LEAVE_SID', 'HXcabbd56f3b677a67aaaf9a9067730741');
 
-class TripMemberLeaveNotification extends Notification
+class TripMemberLeaveNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

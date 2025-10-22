@@ -19,7 +19,7 @@ define('JOIN_SID_2', 'HX73addfa73d78dcb205f052cf2dfdf8f7');
 define('JOIN_SID_3', 'HX5d2e698585bac2a95df5af2090de6521');
 define('JOIN_SID_4', 'HXf09d7f7676f3346144c957137c8eae6c');
 
-class TripMemberJoinNotification extends Notification
+class TripMemberJoinNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

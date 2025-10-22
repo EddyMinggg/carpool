@@ -13,7 +13,7 @@ use App\Services\SmsTemplateService;
 
 define('OTP_SID', 'HXa23c1829f579e9ad12af8a413fa3b772');
 
-class OtpNotification extends Notification
+class OtpNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
