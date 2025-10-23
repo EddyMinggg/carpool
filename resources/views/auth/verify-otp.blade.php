@@ -30,22 +30,22 @@
                 <!-- OTP Input -->
                 <div class="mt-4">
                     <div class="flex justify-center space-x-2 mt-2">
-                        <x-text-input type="text" id="otp-1"
+                        <x-text-input type="number" id="otp-1"
                             class="otp-digit w-12 h-12 text-center text-lg font-semibold " maxlength="1"
                             pattern="[0-9]" />
-                        <x-text-input type="text" id="otp-2"
+                        <x-text-input type="number" id="otp-2"
                             class="otp-digit w-12 h-12 text-center text-lg font-semibold " maxlength="1"
                             pattern="[0-9]" />
-                        <x-text-input type="text" id="otp-3"
+                        <x-text-input type="number" id="otp-3"
                             class="otp-digit w-12 h-12 text-center text-lg font-semibold " maxlength="1"
                             pattern="[0-9]" />
-                        <x-text-input type="text" id="otp-4"
+                        <x-text-input type="number" id="otp-4"
                             class="otp-digit w-12 h-12 text-center text-lg font-semibold " maxlength="1"
                             pattern="[0-9]" />
-                        <x-text-input type="text" id="otp-5"
+                        <x-text-input type="number" id="otp-5"
                             class="otp-digit w-12 h-12 text-center text-lg font-semibold " maxlength="1"
                             pattern="[0-9]" />
-                        <x-text-input type="text" id="otp-6"
+                        <x-text-input type="number" id="otp-6"
                             class="otp-digit w-12 h-12 text-center text-lg font-semibold " maxlength="1"
                             pattern="[0-9]" />
                     </div>
@@ -61,10 +61,10 @@
                             <span class="resend-text ms-1">{{ __('Resend') }}</span>
                             <span class="resend-countdown ms-1 hidden">
                                 @if (App::getLocale() == 'en')
-                                {{ __('Resend in') }} <span id="countdown">60</span> s
+                                    {{ __('Resend in') }} <span id="countdown">60</span> s
                                 @else
-                                <span id="countdown">60</span> {{ __('Resend in') }}
-                                @endif 
+                                    <span id="countdown">60</span> {{ __('Resend in') }}
+                                @endif
                             </span>
                         </button>
                     </p>
@@ -115,6 +115,16 @@
         50% {
             transform: scale3d(1.2, 1.2, 1);
         }
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
     }
 </style>
 
