@@ -227,6 +227,23 @@
 
         setupOtpInputs();
 
+        $('.otp-digit').on('input', function() {
+            if ($(this).val().length > 0) {
+                $(this).next('.otp-digit').focus();
+            }
+        });
+
+        $('.otp-digit').on('paste', function(e) {
+            e.preventDefault();
+
+            var pastedData = e.originalEvent.clipboardData.getData('text');
+            var digits = pastedData.split('').slice(0, $('.otp-digit').length);
+
+            digits.forEach(function(digit, i) {
+                $($('.otp-digit')[i]).val(digit);
+            });
+        });
+
         // Verify OTP Button Click Event
         $('#verify-otp-btn').on('click', async function() {
             const btn = $(this);
