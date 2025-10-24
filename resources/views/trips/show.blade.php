@@ -1057,7 +1057,8 @@
                                         {{ __('Email') }} <span class="text-red-500">*</span>
                                     </label>
                                     <x-text-input name="email" type="email" required
-                                        class="w-full border-gray-300 dark:border-gray-700" />
+                                        class="w-full border-gray-300 dark:border-gray-700" 
+                                        value="{{ Auth::user()->email ?? '' }}" />
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
