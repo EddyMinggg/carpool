@@ -121,9 +121,9 @@
                     {{ __('Contact') }}
                 </h3>
                 <div class="space-y-2">
-                    <a href="tel:+85298588879" class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
+                    <a href="tel:+85252414992" class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
                         <i class="fas fa-phone text-blue-600"></i>
-                        <span>+852 9858 8879</span>
+                        <span>+852 5241 4992</span>
                     </a>
                     <a href="mailto:danielwu@snowpins.com" class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
                         <i class="fas fa-envelope text-blue-600"></i>
