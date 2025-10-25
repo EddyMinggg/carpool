@@ -129,7 +129,7 @@
                         <i class="fas fa-envelope text-blue-600"></i>
                         <span>danielwu@snowpins.com</span>
                     </a>
-                    <a href="https://wa.me/85298588879" target="_blank" class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400">
+                    <a href="https://wa.me/85252414992" target="_blank" class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400">
                         <i class="fab fa-whatsapp text-base text-green-600"></i>
                         <span>WhatsApp</span>
                     </a>
