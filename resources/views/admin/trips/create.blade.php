@@ -184,7 +184,7 @@
                     @csrf
 
                     <input type="hidden" name="creator_id" value="{{ auth()->user()->id }}">
-                    <input type="hidden" name="dropoff_location" value="华发">
+                    <input type="hidden" name="dropoff_location" value="前海華發冰雪世界">
                     <input type="hidden" name="trip_status" value="awaiting">
 
                     <!-- Info Box for Start Point -->
@@ -199,7 +199,7 @@
                     <div class="mobile-form-group">
                         <label class="mobile-form-label">End Place</label>
                         <div class="mobile-form-input mobile-readonly">
-                            华发
+                            前海華發冰雪世界
                         </div>
                     </div>
 
@@ -208,7 +208,7 @@
                         <div class="mobile-info-box" style="margin-bottom: 16px;">
                             <p class="mobile-info-text">
                                 <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
-                                Create multiple trips at once. Each trip will go to the same destination (华发).
+                                Create multiple trips at once. Each trip will go to the same destination (前海華發冰雪世界).
                             </p>
                         </div>
                         
@@ -255,7 +255,7 @@
 
                     <input type="hidden" name="creator_id" value="{{ auth()->user()->id }}">
                     
-                    <input type="hidden" name="dropoff_location" value="华发">
+                    <input type="hidden" name="dropoff_location" value="前海華發冰雪世界">
                   
                     <input type="hidden" name="trip_status" value="awaiting">
 
@@ -271,7 +271,7 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">End Place</label>
                         <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                            华发
+                            前海華發冰雪世界
                         </div>
                     </div>
 
@@ -280,7 +280,7 @@
                         <div class="mb-6 p-4 bg-blue-50 rounded-md border border-blue-100">
                             <p class="text-sm text-blue-800">
                                 <i class="fa fa-info-circle mr-2"></i>
-                                Create multiple trips at once. Each trip will go to the same destination (华发) but can have different departure times, time slots, and pricing.
+                                Create multiple trips at once. Each trip will go to the same destination (前海華發冰雪世界) but can have different departure times, time slots, and pricing.
                             </p>
                         </div>
                         

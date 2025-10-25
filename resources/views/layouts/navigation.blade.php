@@ -71,6 +71,13 @@
                     </x-slot>
                 </x-dropdown>
 
+                <!-- WhatsApp Contact CS Button -->
+                <a href="https://wa.me/85252414992" target="_blank" 
+                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-200 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150"
+                   title="{{ __('Contact Customer Service') }}">
+                    <i class="fab fa-whatsapp text-lg sm:text-xl"></i>
+                </a>
+
                 {{-- <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
