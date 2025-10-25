@@ -1007,14 +1007,16 @@
                         <!-- 第一個乘客 (主預訂人) -->
                         <div
                             class="passenger-form border border-primary-accent dark:border-primary hover:border-primary rounded-lg p-4 bg-primary-opaque dark:bg-primary-opaque-dark">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-medium text-gray-700 dark:text-gray-200">
-                                    {{ __('Main Booker') }} ({{ __('Passenger') }} 1)
-                                </h4>
-                                <span
-                                    class="text-xs text-gray-100 dark:text-gray-200 font-medium px-2 py-1 bg-primary-accent dark:bg-primary rounded">
-                                    {{ __('Primary Contact') }}
-                                </span>
+                            <div class="mb-3">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <h4 class="font-medium text-gray-700 dark:text-gray-200">
+                                        {{ __('Main Booker') }} ({{ __('Passenger') }} 1)
+                                    </h4>
+                                    <span
+                                        class="self-start sm:self-auto text-xs text-gray-100 dark:text-gray-200 font-medium px-3 py-1.5 bg-primary-accent dark:bg-primary rounded-full whitespace-nowrap">
+                                        {{ __('Primary Contact') }}
+                                    </span>
+                                </div>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1061,25 +1063,58 @@
                                         value="{{ Auth::user()->email ?? '' }}" />
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         {{ __('Pickup Location') }} <span class="text-red-500">*</span>
                                     </label>
-                                    <div class="relative">
-                                        <input type="hidden" name="passengers[0][pickup_location]"
-                                            id="passenger-0-location" required>
-                                        <button type="button"
-                                            class="passenger-location-btn w-full text-left px-3 py-2 text-sm bg-secondary dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm transition-colors"
-                                            data-passenger="0" onclick="openMapForPassenger(0)">
-                                            <div class="flex items-center justify-between">
-                                                <span
-                                                    class="passenger-location-display text-gray-400 dark:text-gray-500 italic"
-                                                    id="passenger-0-display">
-                                                    {{ __('Click to select pickup location on map') }}
-                                                </span>
-                                                <i
-                                                    class="material-icons text-gray-400 dark:text-gray-500">location_on</i>
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <div class="relative flex-1">
+                                            <input type="hidden" name="passengers[0][pickup_location]"
+                                                id="passenger-0-location" required>
+                                            
+                                            <!-- 搜索輸入框 -->
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <i class="material-icons text-gray-400 dark:text-gray-500 text-lg">search</i>
+                                                </div>
+                                                <input type="text"
+                                                    class="passenger-location-input w-full pl-10 pr-10 py-3 text-sm bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl dark:text-gray-200 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 shadow-sm transition-all duration-200"
+                                                    data-passenger="0"
+                                                    id="passenger-0-input"
+                                                    placeholder="{{ __('Search for pickup location in Hong Kong...') }}"
+                                                    autocomplete="off">
+                                                <!-- 清除按鈕 -->
+                                                <button type="button" 
+                                                    class="clear-location-btn absolute inset-y-0 right-0 pr-3 flex items-center hidden"
+                                                    data-passenger="0">
+                                                    <i class="material-icons text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-lg">close</i>
+                                                </button>
                                             </div>
+                                            
+                                            <!-- 搜索結果下拉列表 -->
+                                            <div class="passenger-location-suggestions absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl max-h-80 overflow-y-auto hidden"
+                                                id="passenger-0-suggestions">
+                                            </div>
+                                            
+                                            <!-- 當前選中的地址顯示 -->
+                                            <div class="passenger-location-display mt-2 hidden"
+                                                id="passenger-0-display">
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 獲取當前位置按鈕 -->
+                                        <button type="button"
+                                            class="get-current-location-btn flex-shrink-0 h-12 px-4 sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+                                            data-passenger="0"
+                                            title="{{ __('Get current location') }}">
+                                            <i class="material-icons text-xl">my_location</i>
+                                            <span class="text-sm font-medium whitespace-nowrap">{{ __('Current') }}</span>
                                         </button>
+                                    </div>
+                                    
+                                    <!-- 提示信息 -->
+                                    <div class="mt-2 flex items-start gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                        <i class="material-icons text-sm">info</i>
+                                        <span>{{ __('Type to search or use current location') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1601,6 +1636,63 @@
         background-color: rgba(34, 197, 94, 0.1);
     }
 
+    /* 地址輸入框樣式 */
+    .passenger-location-input:focus {
+        outline: none;
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* 地址建議列表樣式 */
+    .passenger-location-suggestions {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .passenger-location-suggestions::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .passenger-location-suggestions::-webkit-scrollbar-track {
+        background: rgba(156, 163, 175, 0.1);
+        border-radius: 3px;
+    }
+
+    .passenger-location-suggestions::-webkit-scrollbar-thumb {
+        background: rgba(156, 163, 175, 0.5);
+        border-radius: 3px;
+    }
+
+    .passenger-location-suggestions::-webkit-scrollbar-thumb:hover {
+        background: rgba(156, 163, 175, 0.7);
+    }
+
+    .suggestion-item:first-child {
+        border-radius: 0.375rem 0.375rem 0 0;
+    }
+
+    .suggestion-item:last-child {
+        border-radius: 0 0 0.375rem 0.375rem;
+    }
+
+    /* 獲取當前位置按鈕動畫 */
+    .get-current-location-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+
     /* 滾動行為優化 */
     html {
         scroll-behavior: smooth;
@@ -1712,25 +1804,63 @@
 
             const hiddenInput = document.getElementById(`passenger-${passengerIndex}-location`);
             const displayElement = document.getElementById(`passenger-${passengerIndex}-display`);
+            const textInput = document.getElementById(`passenger-${passengerIndex}-input`);
             const locationBtn = document.querySelector(
                 `.passenger-location-btn[data-passenger="${passengerIndex}"]`);
 
             console.log('🔍 DOM元素查找結果:', {
                 hiddenInput: !!hiddenInput,
                 displayElement: !!displayElement,
+                textInput: !!textInput,
                 locationBtn: !!locationBtn
             });
 
-            if (hiddenInput && displayElement && location && location.formatted_address) {
-                // 更新隱藏欄位的值
-                hiddenInput.value = location.formatted_address;
+            if (hiddenInput && location && location.formatted_address) {
+                // 更新隱藏欄位的值（存儲完整的 JSON 數據）
+                hiddenInput.value = JSON.stringify(location);
+
+                // 如果有文本輸入框（新版），更新它
+                if (textInput) {
+                    textInput.value = location.place_name || location.formatted_address;
+                    textInput.classList.remove('border-red-500', 'dark:border-red-500');
+                }
 
                 // 更新顯示文字
-                displayElement.textContent = location.formatted_address;
-                displayElement.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic');
-                displayElement.classList.add('text-gray-900', 'dark:text-gray-100');
+                if (displayElement) {
+                    displayElement.innerHTML = `
+                        <div class="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-500 dark:border-green-600 rounded-xl p-3 sm:p-4 shadow-lg">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+                                <div class="flex items-start gap-3 flex-1 min-w-0">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center shadow-md">
+                                            <i class="material-icons text-white text-lg">check</i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 mb-1.5">
+                                            <i class="material-icons text-green-600 dark:text-green-400 text-base">place</i>
+                                            <span class="text-xs font-semibold text-green-700 dark:text-green-300 uppercase tracking-wide">{{ __('Selected Location') }}</span>
+                                        </div>
+                                        <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium mb-2 leading-relaxed break-words">${location.formatted_address}</p>
+                                        <div class="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                            <i class="material-icons text-gray-400 text-sm">public</i>
+                                            <span class="truncate">${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="document.getElementById('passenger-${passengerIndex}-input').value='${location.formatted_address.replace(/'/g, "\\'")}'; document.getElementById('passenger-${passengerIndex}-input').focus(); document.getElementById('passenger-${passengerIndex}-display').classList.add('hidden');" 
+                                        class="self-end sm:self-start flex-shrink-0 px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 flex items-center gap-1">
+                                    <i class="material-icons text-sm">edit</i>
+                                    <span>{{ __('Change') }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    displayElement.classList.remove('text-gray-400', 'dark:text-gray-500', 'italic', 'hidden');
+                    displayElement.classList.add('text-gray-900', 'dark:text-gray-100');
+                }
 
-                // 更新按鈕樣式，表示已選擇地址
+                // 更新按鈕樣式（如果有舊版按鈕）
                 if (locationBtn) {
                     locationBtn.classList.add('has-location');
                     const icon = locationBtn.querySelector('i');
@@ -2277,25 +2407,58 @@
                             </div>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 {{ __('Pickup Location') }} <span class="text-red-500">*</span>
                             </label>
-                            <div class="relative">
-                                <input type="hidden" name="passengers[${index}][pickup_location]"
-                                    id="passenger-${index}-location" required>
-                                <button type="button"
-                                    class="passenger-location-btn w-full text-left px-3 py-2 text-sm bg-secondary dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md dark:bg-secondary-dark dark:text-gray-300 focus:border-primary dark:focus:border-primary-dark focus:ring-primary dark:focus:ring-primary-dark shadow-sm transition-colors"
-                                    data-passenger="${index}" onclick="openMapForPassenger(${index})">
-                                    <div class="flex items-center justify-between">
-                                        <span
-                                            class="passenger-location-display text-gray-400 dark:text-gray-500 italic"
-                                            id="passenger-${index}-display">
-                                            {{ __('Click to select pickup location on map') }}
-                                        </span>
-                                        <i
-                                            class="material-icons text-gray-400 dark:text-gray-500">location_on</i>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <div class="relative flex-1">
+                                    <input type="hidden" name="passengers[${index}][pickup_location]"
+                                        id="passenger-${index}-location" required>
+                                    
+                                    <!-- 搜索輸入框 -->
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="material-icons text-gray-400 dark:text-gray-500 text-lg">search</i>
+                                        </div>
+                                        <input type="text"
+                                            class="passenger-location-input w-full pl-10 pr-10 py-3 text-sm bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl dark:text-gray-200 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 shadow-sm transition-all duration-200"
+                                            data-passenger="${index}"
+                                            id="passenger-${index}-input"
+                                            placeholder="{{ __('Search for pickup location in Hong Kong...') }}"
+                                            autocomplete="off">
+                                        <!-- 清除按鈕 -->
+                                        <button type="button" 
+                                            class="clear-location-btn absolute inset-y-0 right-0 pr-3 flex items-center hidden"
+                                            data-passenger="${index}">
+                                            <i class="material-icons text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-lg">close</i>
+                                        </button>
                                     </div>
+                                    
+                                    <!-- 搜索結果下拉列表 -->
+                                    <div class="passenger-location-suggestions absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl max-h-80 overflow-y-auto hidden"
+                                        id="passenger-${index}-suggestions">
+                                    </div>
+                                    
+                                    <!-- 當前選中的地址顯示 -->
+                                    <div class="passenger-location-display mt-2 hidden"
+                                        id="passenger-${index}-display">
+                                    </div>
+                                </div>
+                                
+                                <!-- 獲取當前位置按鈕 -->
+                                <button type="button"
+                                    class="get-current-location-btn flex-shrink-0 h-12 px-4 sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+                                    data-passenger="${index}"
+                                    title="{{ __('Get current location') }}">
+                                    <i class="material-icons text-xl">my_location</i>
+                                    <span class="text-sm font-medium whitespace-nowrap">{{ __('Current') }}</span>
                                 </button>
+                            </div>
+                            
+                            <!-- 提示信息 -->
+                            <div class="mt-2 flex items-start gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                <i class="material-icons text-sm">info</i>
+                                <span>{{ __('Type to search or use current location') }}</span>
                             </div>
                         </div>
                     </div>
@@ -2979,6 +3142,406 @@
                 }
             });
         }
+
+        // ========================================
+        // 地址搜索功能 (使用 Esri Geocoding API)
+        // ========================================
+        const geocodingApiKey = '{{ config('geocoding.api_key') }}';
+        let searchTimeout = null;
+        let activeSearchController = null;
+
+        // 初始化地址搜索功能
+        function initializeLocationSearch() {
+            // 為所有地址輸入框綁定事件
+            $(document).on('input', '.passenger-location-input', function() {
+                const input = $(this);
+                const passengerIndex = input.data('passenger');
+                const searchText = input.val().trim();
+                const clearBtn = $(`.clear-location-btn[data-passenger="${passengerIndex}"]`);
+
+                // 顯示/隱藏清除按鈕
+                if (searchText.length > 0) {
+                    clearBtn.removeClass('hidden');
+                } else {
+                    clearBtn.addClass('hidden');
+                }
+
+                // 清除之前的搜索
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+
+                // 如果輸入為空，隱藏建議列表
+                if (searchText.length < 2) {
+                    $(`#passenger-${passengerIndex}-suggestions`).addClass('hidden').empty();
+                    return;
+                }
+
+                // 延遲搜索（防抖）
+                searchTimeout = setTimeout(() => {
+                    searchLocation(searchText, passengerIndex);
+                }, 300);
+            });
+
+            // 清除按鈕點擊事件
+            $(document).on('click', '.clear-location-btn', function() {
+                const passengerIndex = $(this).data('passenger');
+                const input = $(`#passenger-${passengerIndex}-input`);
+                const hiddenInput = $(`#passenger-${passengerIndex}-location`);
+                const displayDiv = $(`#passenger-${passengerIndex}-display`);
+                
+                input.val('').focus();
+                hiddenInput.val('');
+                displayDiv.addClass('hidden');
+                $(this).addClass('hidden');
+                $(`#passenger-${passengerIndex}-suggestions`).addClass('hidden').empty();
+            });
+
+            // 點擊外部關閉建議列表
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.passenger-location-input, .passenger-location-suggestions').length) {
+                    $('.passenger-location-suggestions').addClass('hidden');
+                }
+            });
+
+            // 獲取當前位置按鈕
+            $(document).on('click', '.get-current-location-btn', function() {
+                const passengerIndex = $(this).data('passenger');
+                getCurrentLocation(passengerIndex);
+            });
+        }
+
+        // 使用 Esri Geocoding API 搜索地址（僅限香港）
+        function searchLocation(searchText, passengerIndex) {
+            // 取消之前的請求
+            if (activeSearchController) {
+                activeSearchController.abort();
+            }
+
+            activeSearchController = new AbortController();
+
+            // 香港的地理邊界範圍 (經緯度)
+            // 西南角: 113.835, 22.153 | 東北角: 114.441, 22.562
+            const hongKongBounds = {
+                xmin: 113.835,
+                ymin: 22.153,
+                xmax: 114.441,
+                ymax: 22.562
+            };
+
+            // 構建搜索 URL - 使用 findAddressCandidates 獲得更精確的結果
+            const searchUrl = `https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates`;
+            const params = new URLSearchParams({
+                f: 'json',
+                singleLine: searchText,
+                maxLocations: 15,
+                outFields: '*',
+                // 使用地理範圍限制搜索區域
+                searchExtent: `${hongKongBounds.xmin},${hongKongBounds.ymin},${hongKongBounds.xmax},${hongKongBounds.ymax}`,
+                location: '114.1694,22.3193', // 香港中心點座標
+                distance: 50000, // 50公里範圍內
+                token: geocodingApiKey,
+                category: 'Address,Street Address,Point Address,POI'
+            });
+
+            console.log('🔍 搜索地址:', searchText, 'for passenger:', passengerIndex);
+
+            fetch(`${searchUrl}?${params}`, {
+                signal: activeSearchController.signal
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('📍 原始搜索結果:', data);
+                
+                // 過濾結果，只保留香港地址
+                let candidates = data.candidates || [];
+                
+                console.log('🔍 過濾前候選數量:', candidates.length);
+                
+                // 更寬鬆的過濾：主要依賴座標範圍，輔以地址檢查
+                candidates = candidates.filter(candidate => {
+                    const address = (candidate.address || '').toLowerCase();
+                    const location = candidate.location;
+                    const attributes = candidate.attributes || {};
+                    
+                    console.log('🔍 檢查候選:', {
+                        address: candidate.address,
+                        location: location,
+                        country: attributes.Country,
+                        countryCode: attributes.CountryCode,
+                        region: attributes.Region
+                    });
+                    
+                    // 優先檢查座標是否在香港範圍內
+                    const inBounds = location && 
+                                    location.x >= hongKongBounds.xmin && 
+                                    location.x <= hongKongBounds.xmax &&
+                                    location.y >= hongKongBounds.ymin && 
+                                    location.y <= hongKongBounds.ymax;
+                    
+                    if (!inBounds) {
+                        console.log('❌ 座標不在香港範圍:', location);
+                        return false;
+                    }
+                    
+                    // 檢查國家代碼（如果有）
+                    if (attributes.CountryCode && attributes.CountryCode !== 'HKG') {
+                        console.log('❌ 國家代碼不是 HKG:', attributes.CountryCode);
+                        return false;
+                    }
+                    
+                    // 排除明顯的中國大陸關鍵字（但不要太嚴格）
+                    const mainlandKeywords = ['广东省', '廣東省', '广州市', '廣州市', '深圳市', '东莞市', '珠海市', '佛山市'];
+                    const hasMainlandKeyword = mainlandKeywords.some(keyword => address.includes(keyword.toLowerCase()));
+                    
+                    if (hasMainlandKeyword) {
+                        console.log('❌ 包含大陸關鍵字:', address);
+                        return false;
+                    }
+                    
+                    // 如果座標在香港範圍內且沒有大陸關鍵字，則接受
+                    console.log('✅ 接受此地址');
+                    return true;
+                });
+                
+                console.log('✅ 過濾後的香港地址:', candidates.length, '個');
+                
+                displayLocationCandidates(candidates, passengerIndex);
+            })
+            .catch(error => {
+                if (error.name !== 'AbortError') {
+                    console.error('❌ 搜索錯誤:', error);
+                }
+            });
+        }
+
+        // 顯示地址候選列表（從 findAddressCandidates API）
+        function displayLocationCandidates(candidates, passengerIndex) {
+            const suggestionsContainer = $(`#passenger-${passengerIndex}-suggestions`);
+            suggestionsContainer.empty();
+
+            if (candidates.length === 0) {
+                // 顯示無結果提示
+                const noResultItem = $(`
+                    <div class="px-6 py-8 text-center">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                            <i class="material-icons text-3xl text-gray-400 dark:text-gray-500">location_off</i>
+                        </div>
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            {{ __('No Hong Kong addresses found') }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            {{ __('Please try different keywords') }}
+                        </div>
+                    </div>
+                `);
+                suggestionsContainer.append(noResultItem);
+                suggestionsContainer.removeClass('hidden');
+                return;
+            }
+
+            // 添加標題
+            const headerItem = $(`
+                <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
+                    <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        {{ __('Select Location') }} (${candidates.length})
+                    </div>
+                </div>
+            `);
+            suggestionsContainer.append(headerItem);
+
+            candidates.forEach((candidate, idx) => {
+                const item = $(`
+                    <div class="suggestion-item group px-4 py-3.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all duration-150 active:bg-blue-100 dark:active:bg-blue-900/30"
+                         data-candidate='${JSON.stringify(candidate)}'>
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-9 h-9 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                                <i class="material-icons text-blue-600 dark:text-blue-400 text-lg">location_on</i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-0.5 line-clamp-2">
+                                    ${candidate.address}
+                                </div>
+                                ${candidate.attributes && candidate.attributes.City ? 
+                                    `<div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                        <i class="material-icons text-xs">place</i>
+                                        <span>${candidate.attributes.City}, Hong Kong</span>
+                                    </div>` 
+                                    : ''}
+                            </div>
+                            <div class="flex-shrink-0">
+                                <i class="material-icons text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">chevron_right</i>
+                            </div>
+                        </div>
+                    </div>
+                `);
+
+                item.on('click', function() {
+                    const candidateData = JSON.parse($(this).attr('data-candidate'));
+                    selectLocationFromCandidate(candidateData, passengerIndex);
+                });
+
+                suggestionsContainer.append(item);
+            });
+
+            suggestionsContainer.removeClass('hidden');
+        }
+
+        // 從候選地址中選擇（已包含完整信息，無需再次查詢）
+        function selectLocationFromCandidate(candidate, passengerIndex) {
+            console.log('✅ 選擇地址:', candidate.address);
+
+            const locationData = {
+                formatted_address: candidate.address,
+                lat: candidate.location.y,
+                lng: candidate.location.x,
+                place_name: candidate.address,
+                attributes: candidate.attributes
+            };
+
+            // 更新表單
+            updatePassengerLocation(passengerIndex, locationData);
+            
+            // 隱藏建議列表
+            $(`#passenger-${passengerIndex}-suggestions`).addClass('hidden');
+        }
+
+        // 獲取當前位置
+        function getCurrentLocation(passengerIndex) {
+            const button = $(`.get-current-location-btn[data-passenger="${passengerIndex}"]`);
+            
+            // 檢查瀏覽器是否支持地理位置
+            if (!navigator.geolocation) {
+                showAlertModal({
+                    title: '{{ __('Not Supported') }}',
+                    message: '{{ __('Geolocation is not supported by your browser') }}',
+                    type: 'error',
+                    buttonText: '{{ __('OK') }}'
+                });
+                return;
+            }
+
+            // 顯示加載狀態
+            button.prop('disabled', true);
+            const originalHtml = button.html();
+            button.html('<i class="material-icons text-lg animate-spin">refresh</i>');
+
+            navigator.geolocation.getCurrentPosition(
+                // 成功回調
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    console.log('📍 當前位置:', { lat, lng });
+
+                    // 使用反向地理編碼獲取地址
+                    reverseGeocode(lat, lng, passengerIndex);
+
+                    // 恢復按鈕狀態
+                    button.prop('disabled', false);
+                    button.html(originalHtml);
+                },
+                // 錯誤回調
+                function(error) {
+                    console.error('❌ 獲取位置失敗:', error);
+                    
+                    let message = '{{ __('Unable to get current location') }}';
+                    if (error.code === 1) {
+                        message = '{{ __('Location access denied. Please enable location permissions.') }}';
+                    } else if (error.code === 2) {
+                        message = '{{ __('Location information unavailable') }}';
+                    } else if (error.code === 3) {
+                        message = '{{ __('Location request timeout') }}';
+                    }
+
+                    showAlertModal({
+                        title: '{{ __('Location Error') }}',
+                        message: message,
+                        type: 'error',
+                        buttonText: '{{ __('OK') }}'
+                    });
+
+                    // 恢復按鈕狀態
+                    button.prop('disabled', false);
+                    button.html(originalHtml);
+                },
+                // 選項
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // 反向地理編碼（經緯度轉地址）
+        function reverseGeocode(lat, lng, passengerIndex) {
+            const reverseUrl = `https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode`;
+            const params = new URLSearchParams({
+                f: 'json',
+                location: `${lng},${lat}`,
+                token: geocodingApiKey,
+                langCode: 'en'
+            });
+
+            fetch(`${reverseUrl}?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('📍 反向地理編碼結果:', data);
+                
+                if (data.address) {
+                    const locationData = {
+                        formatted_address: data.address.LongLabel || data.address.Match_addr,
+                        lat: lat,
+                        lng: lng,
+                        place_name: data.address.LongLabel || data.address.Match_addr
+                    };
+
+                    // 更新表單
+                    updatePassengerLocation(passengerIndex, locationData);
+                    
+                    // 也更新輸入框顯示
+                    $(`#passenger-${passengerIndex}-input`).val(locationData.place_name);
+                }
+            })
+            .catch(error => {
+                console.error('❌ 反向地理編碼失敗:', error);
+                showAlertModal({
+                    title: '{{ __('Error') }}',
+                    message: '{{ __('Failed to get address from location') }}',
+                    type: 'error',
+                    buttonText: '{{ __('OK') }}'
+                });
+            });
+        }
+
+        // 更新乘客地址信息（修改原有函數以支持新的輸入方式）
+        // 頁面加載時初始化
+        initializeLocationSearch();
+
+        // 恢復已保存的地址（如果有的話）
+        setTimeout(() => {
+            $('.passenger-location-input').each(function() {
+                const passengerIndex = $(this).data('passenger');
+                const hiddenInput = $(`#passenger-${passengerIndex}-location`);
+                const savedData = hiddenInput.val();
+                
+                if (savedData) {
+                    try {
+                        const locationData = JSON.parse(savedData);
+                        updatePassengerLocation(passengerIndex, locationData);
+                    } catch (e) {
+                        // 舊格式數據，直接使用字符串
+                        const locationData = {
+                            formatted_address: savedData,
+                            place_name: savedData
+                        };
+                        updatePassengerLocation(passengerIndex, locationData);
+                    }
+                }
+            });
+        }, 500);
+
     });
 </script>
 
